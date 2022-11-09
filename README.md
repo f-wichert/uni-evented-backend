@@ -2,10 +2,22 @@
 
 ## Description
 Backend for Evented Application using Node.js & Express.js with Typescript
+Server restarts when it detects changes
+
+## Typescript
+- [Documentation](https://www.typescriptlang.org/docs/)
+- [Types](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types)
 
 ## Installation for usage
-1. `npm i`
-2. `node index.js`
+- `npm i` to install packages (run this first)
+- `npm run build` to compile code to JS
+- `npm run dev` to run server in dev mode
+
+## Packages
+- express
+- dotenv
+- concurrently
+- nodemon
 
 ## [Initial setup](https://blog.logrocket.com/how-to-set-up-node-typescript-express/)
 
@@ -15,6 +27,7 @@ Backend for Evented Application using Node.js & Express.js with Typescript
 4. `touch .env`
 5. `npm i -D typescript @types/express @types/nodes`
 6. `npx tsc --init`
+7. `npm i -D concurrently nodemon`
 
 ## Authors and acknowledgment
 

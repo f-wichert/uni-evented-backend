@@ -1,12 +1,12 @@
-const express = require('express');
+import express, { Express, Request, Response } from 'express';
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-const app = express();
+const app: Express = express();
 const port = process.env.PORT;
 
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.send('<h1> Initial setup </h1>');
 });
 
