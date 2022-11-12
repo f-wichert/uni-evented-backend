@@ -3,10 +3,8 @@ import { Sequelize, Model, DataTypes } from 'sequelize';
 // Connect to db
 const db_path = process.env.DB_PATH;
 
-export const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: db_path,
-});
+// TODO: check if env var is set
+export const sequelize = new Sequelize(db_path!);
 
 // Class definitions
 export class User extends Model {
@@ -43,9 +41,9 @@ User.init({
     lastName: {
         type: DataTypes.STRING,
     },
-    
+
 }, {
-    sequelize, 
+    sequelize,
     modelName: 'User'
 });
 
@@ -76,7 +74,7 @@ Event.init({
         allowNull: false,
     }
 }, {
-    sequelize, 
+    sequelize,
     modelName: 'Event'
 });
 
