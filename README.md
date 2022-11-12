@@ -10,6 +10,7 @@ Server restarts when it detects changes
 
 ## Database
 - [Sequelize - Core Concepts](https://sequelize.org/docs/v6/category/core-concepts/)
+- [Sequelize - Migrations - Setup for production](https://sequelize.org/docs/v6/other-topics/migrations/)
 
 ## Installation for usage
 - `npm i` to install packages (run this first)

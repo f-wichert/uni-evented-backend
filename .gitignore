@@ -8,4 +8,4 @@ package-lock.json
 .env
 
 # database
-db/
+db/*.db
