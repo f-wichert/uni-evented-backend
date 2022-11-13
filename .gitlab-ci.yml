@@ -26,3 +26,9 @@ build:
   stage: build
   script:
     npm run build
+
+check:
+  stage: build
+  script:
+    npm run format
+    npm run lint
