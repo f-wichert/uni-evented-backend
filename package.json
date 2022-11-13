@@ -1,48 +1,48 @@
 {
-  "name": "evented-backend",
-  "version": "1.0.0",
-  "description": "Backend for Evented Application using Node.js & Express.js with Typescript",
-  "main": "index.js",
-  "scripts": {
-    "prepare": "husky install",
-    "start": "node dist/index.js",
-    "dev": "tsc-watch --onSuccess \"npm run start\"",
-    "build": "tsc",
-    "lint": "eslint . --ignore-path .gitignore",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@git.rwth-aachen.de:iptk/ws22-23/groupk/evented-backend.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "pg": "^8.8.0",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.25.5",
-    "sqlite3": "^5.1.2"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.14",
-    "@types/node": "^18.11.9",
-    "@typescript-eslint/eslint-plugin": "^5.42.1",
-    "@typescript-eslint/parser": "^5.42.1",
-    "eslint": "^8.27.0",
-    "eslint-config-prettier": "^8.5.0",
-    "husky": "^8.0.2",
-    "lint-staged": "^13.0.3",
-    "prettier": "2.7.1",
-    "tsc-watch": "^5.0.3",
-    "typescript": "^4.8.4"
-  },
-  "lint-staged": {
-    "**/*.{js,ts}": [
-      "npm run format",
-      "npm run lint"
-    ]
-  }
+    "name": "evented-backend",
+    "version": "1.0.0",
+    "description": "Backend for Evented Application using Node.js & Express.js with Typescript",
+    "main": "index.js",
+    "scripts": {
+        "prepare": "husky install",
+        "start": "node dist/index.js",
+        "dev": "tsc-watch --onSuccess \"npm run start\"",
+        "build": "tsc",
+        "lint": "eslint . --ignore-path .gitignore",
+        "format": "prettier . --write",
+        "format:check": "prettier . --check"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@git.rwth-aachen.de:iptk/ws22-23/groupk/evented-backend.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "dotenv": "^16.0.3",
+        "express": "^4.18.2",
+        "pg": "^8.8.0",
+        "pg-hstore": "^2.3.4",
+        "sequelize": "^6.25.5",
+        "sqlite3": "^5.1.2"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.14",
+        "@types/node": "^18.11.9",
+        "@typescript-eslint/eslint-plugin": "^5.42.1",
+        "@typescript-eslint/parser": "^5.42.1",
+        "eslint": "^8.27.0",
+        "eslint-config-prettier": "^8.5.0",
+        "husky": "^8.0.2",
+        "lint-staged": "^13.0.3",
+        "prettier": "2.7.1",
+        "tsc-watch": "^5.0.3",
+        "typescript": "^4.8.4"
+    },
+    "lint-staged": {
+        "**/*.{js,ts}": [
+            "npm run format",
+            "npm run lint"
+        ]
+    }
 }

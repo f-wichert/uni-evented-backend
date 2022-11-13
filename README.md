@@ -1,27 +1,32 @@
 # Evented - Backend
 
 ## Description
+
 Backend for Evented Application using Node.js & Express.js with Typescript
 Server restarts when it detects changes
 
 ## Typescript
-- [Documentation](https://www.typescriptlang.org/docs/)
-- [Types](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types)
+
+-   [Documentation](https://www.typescriptlang.org/docs/)
+-   [Types](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types)
 
 ## Database
-- [Sequelize - Core Concepts](https://sequelize.org/docs/v6/category/core-concepts/)
-- [Sequelize - Migrations - Setup for production](https://sequelize.org/docs/v6/other-topics/migrations/)
+
+-   [Sequelize - Core Concepts](https://sequelize.org/docs/v6/category/core-concepts/)
+-   [Sequelize - Migrations - Setup for production](https://sequelize.org/docs/v6/other-topics/migrations/)
 
 ## Installation for usage
-- `npm i` to install packages (run this first)
-- `npm run build` to compile code to JS
-- `npm run dev` to run server in dev mode
+
+-   `npm i` to install packages (run this first)
+-   `npm run build` to compile code to JS
+-   `npm run dev` to run server in dev mode
 
 ## Packages
-- express
-- dotenv
-- concurrently
-- nodemon
+
+-   express
+-   dotenv
+-   concurrently
+-   nodemon
 
 ## [Initial setup](https://blog.logrocket.com/how-to-set-up-node-typescript-express/)
 
