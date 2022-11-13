@@ -8,7 +8,7 @@ export const sequelize = new Sequelize(db_path!);
 
 // Class definitions
 export class User extends Model {
-    static async createNewUser(firstName: String, lastName: String) {
+    static async createNewUser(firstName: string, lastName: string) {
         await User.create({
             firstName: firstName,
             lastName: lastName,
