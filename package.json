@@ -9,7 +9,7 @@
     "dev": "tsc-watch --onSuccess \"npm run start\"",
     "build": "tsc",
     "lint": "eslint . --ignore-path .gitignore",
-    "format": "prettier . --ignore-path .gitignore --write"
+    "format": "prettier . --write"
   },
   "repository": {
     "type": "git",
