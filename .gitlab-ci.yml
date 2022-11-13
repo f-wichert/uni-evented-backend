@@ -1,0 +1,28 @@
+image: node:18-slim
+
+default:
+  tags:
+    - evented
+  cache:
+    # global
+    - key: npm-cache
+      paths:
+        - .npm/
+    # per branch
+    - key: 'node-modules-$CI_COMMIT_REF_SLUG'
+      paths:
+        - node_modules/
+
+stages:
+  - install
+  - build
+
+install:
+  stage: install
+  script:
+    npm ci --cache .npm --prefer-offline
+
+build:
+  stage: build
+  script:
+    npm run build
