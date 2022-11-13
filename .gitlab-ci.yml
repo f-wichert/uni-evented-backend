@@ -24,11 +24,11 @@ install:
 
 build:
   stage: build
-  script:
+  script: |
     npm run build
 
 check:
   stage: build
-  script:
+  script: |
     npm run format:check
     npm run lint
