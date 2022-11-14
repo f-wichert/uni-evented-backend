@@ -7,7 +7,6 @@ import { User } from '../db/db_model';
 // Wait for DB Setup bevore saving data
 setupDatabase()
     .then(async () => {
-        // Write your Testdata here
         await generateTestdata();
     })
     .then(() => {
