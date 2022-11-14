@@ -8,6 +8,7 @@
         "start": "node dist/index.js",
         "dev": "tsc-watch --onSuccess \"npm run start\"",
         "build": "tsc",
+        "resetDB": "node dist/scripts/resetDB",
         "lint": "eslint . --ignore-path .gitignore",
         "format": "prettier . --write",
         "format:check": "prettier . --check"
