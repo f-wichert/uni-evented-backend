@@ -1,0 +1,46 @@
+import {
+    Model,
+    InferAttributes,
+    InferCreationAttributes,
+    CreationOptional,
+    Sequelize,
+    DataTypes,
+    ForeignKey,
+} from 'sequelize';
+import { User } from './user';
+
+export class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
+    declare id: CreationOptional<string>;
+    declare hostId: ForeignKey<User['id']>;
+    declare name: string;
+    declare lat: number;
+    declare lon: number;
+}
+
+export default function init(sequelize: Sequelize) {
+    Event.init(
+        {
+            id: {
+                type: DataTypes.UUID,
+                defaultValue: DataTypes.UUIDV4,
+                primaryKey: true,
+            },
+            name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            lat: {
+                type: DataTypes.DECIMAL(8, 6),
+                allowNull: false,
+            },
+            lon: {
+                type: DataTypes.DECIMAL(9, 6),
+                allowNull: false,
+            },
+        },
+        {
+            sequelize,
+            modelName: 'Event',
+        }
+    );
+}
