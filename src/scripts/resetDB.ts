@@ -1,23 +1,16 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { setupDatabase } from '../db/db_setup';
-import { User } from '../db/db_model';
+import { setupDatabase } from '../db';
+import { User } from '../db/models/user';
 
-// Wait for DB Setup bevore saving data
-setupDatabase()
-    .then(async () => {
-        await generateTestdata();
-    })
-    .then(() => {
-        console.log('Succesfully reset Database');
-    })
-    .catch((error) => {
-        // Handle Errors with creating testdata here
-        console.log('Error while resetting Database!');
-    });
-
-// Write your Testdata here
 async function generateTestdata() {
-    await User.createNewUser('Lorenzo', 'Von Matterhorn');
+    // Wait for DB Setup bevore saving data
+    await setupDatabase();
+    console.log('Succesfully reset Database');
+
+    // Write your Testdata here
+    await User.create({ firstName: 'Lorenzo', lastName: 'Von Matterhorn' });
 }
+
+void generateTestdata();

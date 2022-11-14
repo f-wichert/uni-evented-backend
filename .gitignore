@@ -134,5 +134,5 @@ dist
 
 ### Custom additions
 
-db/*.db
+*.db
 .vscode/
