@@ -20,7 +20,6 @@ const MEDIA_UPLOAD_ROOT = process.env.MEDIA_UPLOAD_ROOT || 'uploads';
 const CLIP_UPLOAD_INPUT_NAME_FIELD = (process.env.CLIP_UPLOAD_INPUT_NAME_FIELD = 'clip');
 const FFMPEG_TIMEOUT = Number.parseInt(process.env.FFMPEG_TIMEOUT || '60');
 
-const port = process.env.PORT;
 const app: Express = express();
 
 app.use(
