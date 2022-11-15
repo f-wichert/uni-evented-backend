@@ -15,6 +15,8 @@ export class Event extends Model<InferAttributes<Event>, InferCreationAttributes
     declare name: string;
     declare lat: number;
     declare lon: number;
+    declare startDateTime: Date;
+    declare endDateTime: Date;
 }
 
 export default function init(sequelize: Sequelize) {
@@ -36,6 +38,15 @@ export default function init(sequelize: Sequelize) {
             lon: {
                 type: DataTypes.DECIMAL(9, 6),
                 allowNull: false,
+            },
+            startDateTime: {
+                type: DataTypes.DATE,
+                allowNull: false,
+                defaultValue: DataTypes.NOW(),
+            },
+            endDateTime: {
+                type: DataTypes.DATE,
+                // can be null -> open end
             },
         },
         {
