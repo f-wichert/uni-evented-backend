@@ -14,8 +14,14 @@ import {
 
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare id: CreationOptional<string>;
-    declare firstName: string;
-    declare lastName: string | null;
+    declare userName: string;
+    declare password: string;
+    declare displayName: string | null;
+
+    verifyPassword(input: string): boolean {
+        // TODO
+        return this.password === input;
+    }
 }
 
 export default function init(sequelize: Sequelize) {
@@ -26,11 +32,16 @@ export default function init(sequelize: Sequelize) {
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
-            firstName: {
+            userName: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                unique: true,
+            },
+            password: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            lastName: {
+            displayName: {
                 type: DataTypes.STRING,
             },
         },

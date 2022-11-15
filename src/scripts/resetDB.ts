@@ -10,7 +10,7 @@ async function generateTestdata() {
     console.log('Succesfully reset Database');
 
     // Write your Testdata here
-    await User.create({ firstName: 'Lorenzo', lastName: 'Von Matterhorn' });
+    await User.create({ userName: 'lorenzo', password: 'verysecure' });
 }
 
 void generateTestdata();

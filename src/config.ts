@@ -14,4 +14,5 @@ export default e.envsafe({
         desc: 'The database connection url, i.e. <dialect>://<url>',
         example: 'sqlite://:memory:, sqlite://./some/path/, postgres://user:pass@host:5432/dbname',
     }),
+    JWT_SECRET: e.str(),
 });
