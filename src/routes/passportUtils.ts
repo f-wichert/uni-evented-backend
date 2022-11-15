@@ -10,8 +10,8 @@ import { User } from '../db/models/user';
 /* For authentication, we're using JWTs (https://auth0.com/learn/json-web-tokens),
    which (currently) only contain the user ID (see `JwtData` below).
 
-   These tokens are signed and validated using `config.JWT_SECRET`.
    Based on this ID, the full user data is fetched from the database.
+   These tokens are signed and validated using `config.JWT_SECRET`.
 
    The basic process is as follows (assuming the route is using the `requireAuth` (see below) middleware):
    - Client sends its token

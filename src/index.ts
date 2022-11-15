@@ -4,7 +4,7 @@ import passport from 'passport';
 import config from './config';
 import { setupDatabase } from './db';
 import { User } from './db/models/user';
-import routers from './routes';
+import routes from './routes';
 import { asyncHandler } from './utils';
 
 const app: Express = express();
@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(passport.initialize());
 
 // mount routers
-app.use('/api', routers);
+app.use('/api', routes);
 
 app.get(
     '/',
