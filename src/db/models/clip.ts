@@ -15,7 +15,8 @@ export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<C
     declare id: CreationOptional<string>;
     declare eventId: ForeignKey<Event['id']>;
     declare uploaderId: ForeignKey<User['id']>;
-    declare path: string;
+    // flag to tell whether the clip file is available (might not be if it is still being converted to m3u8)
+    declare file_available: boolean;
     declare length: number;
 }
 
@@ -27,15 +28,15 @@ export default function init(sequelize: Sequelize) {
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            file_available: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
             // length in seconds
             length: {
                 type: DataTypes.INTEGER,
                 defaultValue: 0,
             },
-            path: {
-                type: DataTypes.STRING,
-                defaultValue: "media/clips/clip_not_found.m3u8",
-            }
         },
         {
             sequelize,
