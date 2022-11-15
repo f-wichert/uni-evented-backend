@@ -15,6 +15,7 @@ export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<C
     declare id: CreationOptional<string>;
     declare eventId: ForeignKey<Event['id']>;
     declare uploaderId: ForeignKey<User['id']>;
+    declare path: string;
     declare length: number;
 }
 
@@ -31,6 +32,10 @@ export default function init(sequelize: Sequelize) {
                 type: DataTypes.INTEGER,
                 defaultValue: 0,
             },
+            path: {
+                type: DataTypes.STRING,
+                defaultValue: "media/clips/clip_not_found.m3u8",
+            }
         },
         {
             sequelize,
