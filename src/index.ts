@@ -1,9 +1,8 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import express, { Express, NextFunction, Request, Response } from 'express';
+
 import { setupDatabase } from './db';
 import { User } from './db/models/user';
+import config from './config';
 
 /** Properly handles async errors in express routers */
 function asyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
@@ -13,7 +12,6 @@ function asyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
 }
 
 const app: Express = express();
-const port = process.env.PORT;
 
 app.get(
     '/',
@@ -27,8 +25,8 @@ app.get(
 async function init() {
     await setupDatabase();
 
-    app.listen(port, () => {
-        console.log(`Server is running at https://localhost:${port!}`);
+    app.listen(config.PORT, () => {
+        console.log(`Server is running at https://localhost:${config.PORT}`);
     });
 }
 

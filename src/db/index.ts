@@ -1,11 +1,9 @@
 import { Sequelize } from 'sequelize';
-
-const db_path = process.env.DB_PATH;
+import config from '../config';
 
 // Initialize DB. Connection won't be established immediately,
 // only when `connect()` (see below) is called.
-// TODO: check if env var is set
-export const sequelize = new Sequelize(db_path!);
+export const sequelize = new Sequelize(config.DB_PATH);
 
 // Initialize model definitions
 import defineUser, { User } from './models/user';
@@ -40,7 +38,7 @@ User.hasMany(ChatMessage, { foreignKey: 'senderId', as: 'chatmesssages' });
 
 async function connect() {
     await sequelize.authenticate();
-    console.log('Database connection has been established successfully.');
+    console.log(`Successfully connected to ${config.DB_PATH}.`);
 }
 
 export async function setupDatabase() {
