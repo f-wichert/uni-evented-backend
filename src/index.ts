@@ -1,8 +1,8 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
 
+import config from './config';
 import { setupDatabase } from './db';
 import { User } from './db/models/user';
-import config from './config';
 
 /** Properly handles async errors in express routers */
 function asyncHandler(fn: (req: Request, res: Response) => Promise<void>) {

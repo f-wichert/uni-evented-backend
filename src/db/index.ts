@@ -6,18 +6,18 @@ import config from '../config';
 export const sequelize = new Sequelize(config.DB_PATH);
 
 // Initialize model definitions
-import defineUser, { User } from './models/user';
-defineUser(sequelize);
-import defineEvent, { Event } from './models/event';
-defineEvent(sequelize);
-import defineClip, { Clip } from './models/clip';
-defineClip(sequelize);
-import defineReview, { Review } from './models/review';
-defineReview(sequelize);
-import defineTag, { Tag } from './models/tag';
-defineTag(sequelize);
 import defineChatMessage, { ChatMessage } from './models/chatMessage';
+import defineClip, { Clip } from './models/clip';
+import defineEvent, { Event } from './models/event';
+import defineReview, { Review } from './models/review';
+import defineTag, { Tag } from './models/tag';
+import defineUser, { User } from './models/user';
 defineChatMessage(sequelize);
+defineClip(sequelize);
+defineEvent(sequelize);
+defineReview(sequelize);
+defineTag(sequelize);
+defineUser(sequelize);
 
 // Set up associations
 User.hasMany(Event, { foreignKey: 'hostId', as: 'events' });

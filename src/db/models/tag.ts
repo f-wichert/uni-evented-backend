@@ -1,12 +1,10 @@
 import {
-    Model,
+    CreationOptional,
+    DataTypes,
     InferAttributes,
     InferCreationAttributes,
-    CreationOptional,
+    Model,
     Sequelize,
-    DataTypes,
-    ForeignKey,
-    IntegerDataType,
 } from 'sequelize';
 
 export class Tag extends Model<InferAttributes<Tag>, InferCreationAttributes<Tag>> {
