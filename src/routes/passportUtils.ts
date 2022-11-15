@@ -7,6 +7,23 @@ import { callbackify } from 'util';
 import config from '../config';
 import { User } from '../db/models/user';
 
+/* For authentication, we're using JWTs (https://auth0.com/learn/json-web-tokens),
+   which (currently) only contain the user ID (see `JwtData` below).
+
+   These tokens are signed and validated using `config.JWT_SECRET`.
+   Based on this ID, the full user data is fetched from the database.
+
+   The basic process is as follows (assuming the route is using the `requireAuth` (see below) middleware):
+   - Client sends its token
+   - Server validates signature using `config.JWT_SECRET` (done by passport-jwt)
+   - Server extracts `userId` field from token, fetches user from database (see `JwtStrategy` below)
+   - Full `User` object is accessible as `req.user` in route handlers
+
+   Clients initially obtain a JWT by calling the login endpoint with a username and password.
+   If the inputs are valid, the server generates and signs a new JWT, and sends it back to the client.
+   (see auth/index.ts)
+*/
+
 // JWT stuff
 // ==========
 
