@@ -1,11 +1,11 @@
 import {
-    Model,
-    InferAttributes,
-    InferCreationAttributes,
     CreationOptional,
-    Sequelize,
     DataTypes,
     ForeignKey,
+    InferAttributes,
+    InferCreationAttributes,
+    Model,
+    Sequelize,
 } from 'sequelize';
 import { User } from './user';
 

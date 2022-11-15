@@ -3,7 +3,6 @@
 ## Description
 
 Backend for Evented Application using Node.js & Express.js with Typescript
-Server restarts when it detects changes
 
 ## Typescript
 
@@ -18,15 +17,21 @@ Server restarts when it detects changes
 ## Installation for usage
 
 -   `npm i` to install packages (run this first)
--   `npm run build` to compile code to JS
 -   `npm run dev` to run server in dev mode
+    -   Automatically rebuilds+restarts when it detects changes
+
+## Scripts
+
+-   `npm run lint` to run eslint and check for common issues
+-   `npm run format` to automatically format all files with consistent styling
+
+`lint` + `format` also automatically run through a git hook on all staged changes before every commit.
 
 ## Packages
 
 -   express
 -   dotenv
--   concurrently
--   nodemon
+-   sequelize
 
 ## [Initial setup](https://blog.logrocket.com/how-to-set-up-node-typescript-express/)
 
@@ -39,7 +44,3 @@ Server restarts when it detects changes
 7. `npm i -D concurrently nodemon`
 8. `npm install --save sequelize`
 9. `npm install --save sqlite3`
-
-## Authors and acknowledgment
-
-## License

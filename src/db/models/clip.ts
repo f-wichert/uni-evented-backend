@@ -1,15 +1,14 @@
 import {
-    Model,
-    InferAttributes,
-    InferCreationAttributes,
     CreationOptional,
-    Sequelize,
     DataTypes,
     ForeignKey,
-    IntegerDataType,
+    InferAttributes,
+    InferCreationAttributes,
+    Model,
+    Sequelize,
 } from 'sequelize';
-import { User } from './user';
 import { Event } from './event';
+import { User } from './user';
 
 export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<Clip>> {
     declare id: CreationOptional<string>;

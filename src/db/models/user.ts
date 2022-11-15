@@ -4,12 +4,12 @@
 // when creating an instance of the model (such as using Model.create()).
 
 import {
-    Model,
+    CreationOptional,
+    DataTypes,
     InferAttributes,
     InferCreationAttributes,
-    CreationOptional,
+    Model,
     Sequelize,
-    DataTypes,
 } from 'sequelize';
 
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {

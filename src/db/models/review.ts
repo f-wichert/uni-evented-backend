@@ -1,15 +1,14 @@
 import {
-    Model,
-    InferAttributes,
-    InferCreationAttributes,
     CreationOptional,
-    Sequelize,
     DataTypes,
     ForeignKey,
-    IntegerDataType,
+    InferAttributes,
+    InferCreationAttributes,
+    Model,
+    Sequelize,
 } from 'sequelize';
-import { User } from './user';
 import { Event } from './event';
+import { User } from './user';
 
 export class Review extends Model<InferAttributes<Review>, InferCreationAttributes<Review>> {
     declare id: CreationOptional<string>;

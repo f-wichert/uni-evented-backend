@@ -1,25 +1,23 @@
 import { Sequelize } from 'sequelize';
-
-const db_path = process.env.DB_PATH;
+import config from '../config';
 
 // Initialize DB. Connection won't be established immediately,
 // only when `connect()` (see below) is called.
-// TODO: check if env var is set
-export const sequelize = new Sequelize(db_path!);
+export const sequelize = new Sequelize(config.DB_PATH);
 
 // Initialize model definitions
-import defineUser, { User } from './models/user';
-defineUser(sequelize);
-import defineEvent, { Event } from './models/event';
-defineEvent(sequelize);
-import defineClip, { Clip } from './models/clip';
-defineClip(sequelize);
-import defineReview, { Review } from './models/review';
-defineReview(sequelize);
-import defineTag, { Tag } from './models/tag';
-defineTag(sequelize);
 import defineChatMessage, { ChatMessage } from './models/chatMessage';
+import defineClip, { Clip } from './models/clip';
+import defineEvent, { Event } from './models/event';
+import defineReview, { Review } from './models/review';
+import defineTag, { Tag } from './models/tag';
+import defineUser, { User } from './models/user';
 defineChatMessage(sequelize);
+defineClip(sequelize);
+defineEvent(sequelize);
+defineReview(sequelize);
+defineTag(sequelize);
+defineUser(sequelize);
 
 // Set up associations
 User.hasMany(Event, { foreignKey: 'hostId', as: 'events' });
@@ -40,7 +38,7 @@ User.hasMany(ChatMessage, { foreignKey: 'senderId', as: 'chatmesssages' });
 
 async function connect() {
     await sequelize.authenticate();
-    console.log('Database connection has been established successfully.');
+    console.log(`Successfully connected to ${config.DB_PATH}.`);
 }
 
 export async function setupDatabase() {

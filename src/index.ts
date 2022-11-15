@@ -1,14 +1,12 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import express, { Express, NextFunction, Request, Response } from 'express';
+
+import config from './config';
 import { setupDatabase } from './db';
 import { User } from './db/models/user';
 import { Clip } from './db/models/clip';
 import ffmpeg from 'fluent-ffmpeg';
 import fileUpload from 'express-fileupload';
 import fs from 'fs';
-import { create } from 'domain';
 
 /** Properly handles async errors in express routers */
 function asyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
@@ -23,8 +21,8 @@ const CLIP_UPLOAD_INPUT_NAME_FIELD = (process.env.CLIP_UPLOAD_INPUT_NAME_FIELD =
 const FFMPEG_TIMEOUT = Number.parseInt(process.env.FFMPEG_TIMEOUT || '60');
 
 const port = process.env.PORT;
-
 const app: Express = express();
+
 app.use(
     fileUpload({
         limits: { fileSize: 50 * 1024 * 1024 },
@@ -113,8 +111,8 @@ async function init() {
     await createDirectory(MEDIA_ROOT + '/clips');
     await createDirectory(MEDIA_UPLOAD_ROOT);
 
-    app.listen(port, () => {
-        console.log(`Server is running at http://localhost:${port!}`);
+    app.listen(config.PORT, () => {
+        console.log(`Server is running at http://localhost:${config.PORT}`);
     });
 }
 
