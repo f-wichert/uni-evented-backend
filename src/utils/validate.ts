@@ -9,7 +9,7 @@ import config from '../config';
 /* Usage:
  *     router.post(
  *         '/path',
- *         processBody(z.object({...})),
+ *         validateBody(z.object({...})),
  *         (req, res) => {
  *             ...
  *         }
@@ -21,7 +21,7 @@ import config from '../config';
 
 // heavily inspired by https://github.com/Aquila169/zod-express-middleware
 
-export function processBody<TSchema extends ZodRawShape>(
+export function validateBody<TSchema extends ZodRawShape>(
     schema: ZodObject<TSchema, any>,
     strict = true
 ): RequestHandler<ParamsDictionary, any, z.infer<ZodObject<TSchema>>, any> {

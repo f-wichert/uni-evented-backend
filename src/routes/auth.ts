@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { User } from '../db/models/user';
 import { createTokenForUser, requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
-import { processBody } from '../utils/validate';
+import { validateBody } from '../utils/validate';
 
 const router = Router();
 
@@ -19,7 +19,7 @@ router.get('/info', requireAuth, (req, res) => {
 
 router.post(
     '/register',
-    processBody(z.object({ username: z.string(), password: z.string() })),
+    validateBody(z.object({ username: z.string(), password: z.string() })),
     asyncHandler(async (req, res) => {
         const { username, password } = req.body;
 
@@ -37,7 +37,7 @@ router.post(
 
 router.post(
     '/login',
-    processBody(z.object({ username: z.string(), password: z.string() })),
+    validateBody(z.object({ username: z.string(), password: z.string() })),
     asyncHandler(async (req, res) => {
         const { username, password } = req.body;
 
