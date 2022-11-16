@@ -1,12 +1,4 @@
 import bcrypt from 'bcrypt';
-import { NextFunction, Request, Response } from 'express';
-
-/** Properly handles async errors in express routers */
-export function asyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
-    return function (req: Request, res: Response, next: NextFunction): void {
-        fn(req, res).catch(next);
-    };
-}
 
 // A factor of 10 is quite low, but good enough for our purposes
 // https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#bcrypt
