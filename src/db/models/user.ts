@@ -15,6 +15,10 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     declare password: string;
     declare displayName: string | null;
 
+    static async getByUserName(username: string): Promise<User | null> {
+        return await User.findOne({ where: { userName: username } });
+    }
+
     async verifyPassword(input: string): Promise<boolean> {
         return await verifyPassword(input, this.password);
     }
@@ -29,8 +33,10 @@ export default function init(sequelize: Sequelize) {
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
             },
+            // TODO: require ASCII-only, no umlauts etc.
             userName: {
-                type: DataTypes.STRING,
+                // `CITEXT` is pg-specific, and gets translated to `TEXT COLLATE NOCASE` for sqlite
+                type: DataTypes.CITEXT,
                 allowNull: false,
                 unique: true,
             },
