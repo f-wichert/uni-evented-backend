@@ -1,8 +1,3 @@
-// see https://sequelize.org/docs/v6/other-topics/typescript/
-
-// 'CreationOptional' is a special type that marks the field as optional
-// when creating an instance of the model (such as using Model.create()).
-
 import {
     CreationOptional,
     DataTypes,
@@ -12,18 +7,20 @@ import {
     Sequelize,
 } from 'sequelize';
 
+import { hashPassword, verifyPassword } from '../../utils';
+
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare id: CreationOptional<string>;
     declare userName: string;
     declare password: string;
     declare displayName: string | null;
 
-    verifyPassword(input: string): boolean {
-        // TODO
-        return this.password === input;
+    async verifyPassword(input: string): Promise<boolean> {
+        return await verifyPassword(input, this.password);
     }
 }
 
+// TODO: min/max length for most of these fields
 export default function init(sequelize: Sequelize) {
     User.init(
         {
@@ -50,4 +47,15 @@ export default function init(sequelize: Sequelize) {
             modelName: 'User',
         }
     );
+
+    // Define hooks
+    // NOTE: these don't apply to bulk creates/updates
+    User.beforeCreate(async (user) => {
+        user.password = await hashPassword(user.password);
+    });
+    User.beforeUpdate(async (user) => {
+        if (user.changed('password')) {
+            user.password = await hashPassword(user.password);
+        }
+    });
 }

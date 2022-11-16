@@ -12,13 +12,13 @@ router.post(
         // TODO: validate request payload
         const { username, password } = req.body as Record<string, string>;
 
-        // partially taken from https://www.passportjs.org/concepts/authentication/password/
+        // inspired by https://www.passportjs.org/concepts/authentication/password/
         const user = await User.findOne({ where: { userName: username.toLowerCase() } });
         if (!user) {
             throw new Error(`No user named ${username}!`);
         }
 
-        if (!user.verifyPassword(password)) {
+        if (!(await user.verifyPassword(password))) {
             throw new Error('Incorrect password!');
         }
 
