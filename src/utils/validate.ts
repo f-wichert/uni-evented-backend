@@ -35,7 +35,7 @@ export function validateBody<TSchema extends ZodRawShape>(
             return next();
         } else {
             const resData =
-                config.NODE_ENV === 'development' ? parsed.error.issues : 'invalid payload';
+                config.NODE_ENV === 'development' ? parsed.error.format() : 'invalid payload';
             return res.status(400).send({ error: resData });
         }
     };
