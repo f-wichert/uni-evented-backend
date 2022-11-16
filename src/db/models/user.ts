@@ -37,6 +37,11 @@ export default function init(sequelize: Sequelize) {
             password: {
                 type: DataTypes.STRING,
                 allowNull: false,
+                // Validators run before create/update hooks, which is what we want;
+                // bcrypt is capped at 72 bytes
+                validate: {
+                    len: [8, 64],
+                },
             },
             displayName: {
                 type: DataTypes.STRING,
