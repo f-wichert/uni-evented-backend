@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express from 'express';
 
 import passport from 'passport';
 import config from './config';
@@ -7,7 +7,7 @@ import { User } from './db/models/user';
 import routes from './routes';
 import { asyncHandler } from './utils';
 
-const app: Express = express();
+const app = express();
 
 // TODO: csrf and other middlewares
 app.use(express.json());
@@ -18,7 +18,7 @@ app.use('/api', routes);
 
 app.get(
     '/',
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (req, res) => {
         console.log(await User.findAll());
 
         res.json({ things: 'stuff' });

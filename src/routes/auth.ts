@@ -1,12 +1,14 @@
-import { Request, Response, Router } from 'express';
+import { Router } from 'express';
+import { z } from 'zod';
 
 import { User } from '../db/models/user';
 import { createTokenForUser, requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
+import { processBody } from '../utils/validate';
 
 const router = Router();
 
-router.get('/info', requireAuth, (req: Request, res: Response) => {
+router.get('/info', requireAuth, (req, res) => {
     const user = req.user!;
     res.json({
         id: user.id,
@@ -17,9 +19,9 @@ router.get('/info', requireAuth, (req: Request, res: Response) => {
 
 router.post(
     '/register',
-    asyncHandler(async (req: Request, res: Response) => {
-        // TODO: validate request payload
-        const { username, password } = req.body as Record<string, string>;
+    processBody(z.object({ username: z.string(), password: z.string() })),
+    asyncHandler(async (req, res) => {
+        const { username, password } = req.body;
 
         // This is also enforced to be unique on the DB level, but we check
         // beforehand to avoid unnecessary operations
@@ -35,9 +37,9 @@ router.post(
 
 router.post(
     '/login',
-    asyncHandler(async (req: Request, res: Response) => {
-        // TODO: validate request payload
-        const { username, password } = req.body as Record<string, string>;
+    processBody(z.object({ username: z.string(), password: z.string() })),
+    asyncHandler(async (req, res) => {
+        const { username, password } = req.body;
 
         // inspired by https://www.passportjs.org/concepts/authentication/password/
         const user = await User.getByUserName(username);
