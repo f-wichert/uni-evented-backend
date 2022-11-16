@@ -4,8 +4,8 @@ import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { callbackify } from 'util';
 
-import config from '../config';
-import { User } from '../db/models/user';
+import config from './config';
+import { User } from './db/models/user';
 
 /* For authentication, we're using JWTs (https://auth0.com/learn/json-web-tokens),
    which (currently) only contain the user ID (see `JwtData` below).
@@ -21,13 +21,14 @@ import { User } from '../db/models/user';
 
    Clients initially obtain a JWT by calling the login endpoint with a username and password.
    If the inputs are valid, the server generates and signs a new JWT, and sends it back to the client.
-   (see auth/index.ts)
+   (see routes/auth.ts)
 */
 
 // merge custom user type into express request type declaration
 // (this globally changes the type of `req.user` to our `User` db model)
 // see https://github.com/DefinitelyTyped/DefinitelyTyped/commit/91c229dbdb653dbf0da91992f525905893cbeb91#r34812715
 // ==========
+
 type UserModel = User;
 declare global {
     namespace Express {
@@ -76,15 +77,9 @@ passport.use(
 );
 
 // define some middlewares
+// (see `/check` in `routes/auth.ts` for a usage example)
 // ==========
 
-// Example usage:
-// router.get("/secret", requireAuth, (req: Request, res: Response) => {
-//     // successfully authenticated here
-// })
-
-// need cast here since `authenticate` returns `any` for unknown reasons
-// https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/58704
 export const requireAuth = passport.authenticate('jwt', { session: false }) as Handler;
 
 // // not used yet, useful if we ever have routes where auth is optional

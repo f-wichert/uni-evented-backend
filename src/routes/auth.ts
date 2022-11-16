@@ -1,8 +1,8 @@
 import { Request, Response, Router } from 'express';
 
-import { User } from '../../db/models/user';
-import { asyncHandler } from '../../utils';
-import { createTokenForUser, requireAuth } from '../passportUtils';
+import { User } from '../db/models/user';
+import { createTokenForUser, requireAuth } from '../passport';
+import { asyncHandler } from '../utils';
 
 const router = Router();
 
