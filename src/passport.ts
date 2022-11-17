@@ -77,7 +77,7 @@ passport.use(
 );
 
 // define some middlewares
-// (see `/check` in `routes/auth.ts` for a usage example)
+// (see `/info` in `routes/auth.ts` for a usage example)
 // ==========
 
 export const requireAuth = passport.authenticate('jwt', { session: false }) as Handler;

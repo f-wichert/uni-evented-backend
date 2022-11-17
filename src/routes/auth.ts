@@ -6,8 +6,13 @@ import { asyncHandler } from '../utils';
 
 const router = Router();
 
-router.get('/check', requireAuth, (req: Request, res: Response) => {
-    res.json({ result: 'valid', id: req.user!.id });
+router.get('/info', requireAuth, (req: Request, res: Response) => {
+    const user = req.user!;
+    res.json({
+        id: user.id,
+        userName: user.userName,
+        displayName: user.displayName,
+    });
 });
 
 router.post(
