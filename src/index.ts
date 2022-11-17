@@ -1,12 +1,12 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
 
-import config from './config';
-import { setupDatabase } from './db';
-import { User } from './db/models/user';
-import { Clip } from './db/models/clip';
-import ffmpeg from 'fluent-ffmpeg';
 import fileUpload from 'express-fileupload';
+import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
+import config from './config';
+import { connect } from './db';
+import { Clip } from './db/models/clip';
+import { User } from './db/models/user';
 
 /** Properly handles async errors in express routers */
 function asyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
@@ -61,7 +61,7 @@ app.post(
         try {
             await createDirectory(clip_path);
         } catch (error) {
-            console.log(`something went wrong trying to create dir ${clip_path}: ${error}`);
+            console.log(`something went wrong trying to create dir ${clip_path}: ${String(error)}`);
             await clip.destroy();
             return;
         }
@@ -71,7 +71,7 @@ app.post(
         ffmpeg(upload_path, { timeout: FFMPEG_TIMEOUT })
             .addOption([
                 '-level 3.0',
-                `-hls_time ${process.env.CLIP_HLS_SEGMENT_DURATION}`,
+                `-hls_time ${process.env.CLIP_HLS_SEGMENT_DURATION!}`,
                 '-hls_list_size 0',
                 '-f hls',
             ])
@@ -81,7 +81,9 @@ app.post(
             .on('end', () => {
                 console.log('done processing ', upload_path, ' => ', clip_path);
                 clip.file_available = true;
-                clip.save().then(() => console.log(`clip ${clip.id} now available`));
+                clip.save()
+                    .then(() => console.log(`clip ${clip.id} now available`))
+                    .catch(() => console.log('Error on clip upload'));
             })
             .run();
 
@@ -99,12 +101,13 @@ async function createDirectory(path: string) {
     try {
         await fs.promises.mkdir(path, { recursive: true });
     } catch (error) {
+        console.log(`Encountered Error while creating a Directory: ${String(error)}`);
         throw error;
     }
 }
 
 async function init() {
-    await setupDatabase();
+    await connect();
 
     // create media directories if they don't exists
     await createDirectory(MEDIA_ROOT + '/clips');

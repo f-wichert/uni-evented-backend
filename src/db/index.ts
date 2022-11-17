@@ -36,7 +36,7 @@ Event.hasMany(ChatMessage, { foreignKey: 'eventId', as: 'chatmesssages' });
 User.hasMany(ChatMessage, { foreignKey: 'senderId', as: 'chatmesssages' });
 // ChatMessage.belongsTo(User);
 
-async function connect() {
+export async function connect() {
     await sequelize.authenticate();
     console.log(`Successfully connected to ${config.DB_PATH}.`);
 }
