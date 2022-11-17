@@ -41,9 +41,9 @@ async function connect() {
     console.log(`Successfully connected to ${config.DB_PATH}.`);
 }
 
-export async function setupDatabase() {
+export async function setupDatabase(force = false) {
     await connect();
     // Synchronize whole model to DB
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force });
     console.log('All models were synchronized successfully.');
 }

@@ -16,4 +16,8 @@ module.exports = {
     },
     plugins: ['@typescript-eslint'],
     root: true,
+    rules: {
+        '@typescript-eslint/no-namespace': ['error', { allowDeclarations: true }],
+        '@typescript-eslint/no-non-null-assertion': 'off',
+    },
 };

@@ -32,6 +32,7 @@ Backend for Evented Application using Node.js & Express.js with Typescript
 -   express
 -   dotenv
 -   sequelize
+-   passport
 
 ## [Initial setup](https://blog.logrocket.com/how-to-set-up-node-typescript-express/)
 
