@@ -4,6 +4,7 @@ import fs from 'fs';
 import { z } from 'zod';
 import config from '../config';
 import { Clip } from '../db/models/clip';
+import { Event } from '../db/models/event';
 import { requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
 import { validateBody } from '../utils/validate';
@@ -16,15 +17,13 @@ router.post(
     validateBody(z.object({ eventId: z.string() })),
     asyncHandler(async (req, res) => {
         if (!req.files || !(Object.keys(req.files).length === 1)) {
-            res.status(400).send('no or too many files uploaded');
-            return;
+            throw Error('No or too many files uploaded');
         }
 
         const file = req.files[config.CLIP_UPLOAD_INPUT_NAME_FIELD];
 
         if (Array.isArray(file)) {
-            res.status(400).send('file is an array');
-            return;
+            throw Error(`File is an Array`);
         }
 
         const clip = await Clip.create();
@@ -34,13 +33,22 @@ router.post(
         try {
             await fs.promises.mkdir(clip_path, { recursive: true });
         } catch (error) {
-            console.error(
-                `something went wrong trying to create dir ${clip_path}: ${String(error)}`
-            );
-            res.status(400).send('');
             await clip.destroy();
-            return;
+            throw Error(`Couldnt create clip directory: ${String(error)}`);
         }
+
+        const user = req.user!;
+
+        // TODO: get the currently attended event directly from the user
+        const event = await Event.findOne({ where: { id: req.body.eventId } });
+        if (!event) {
+            await clip.destroy();
+            throw Error('specified event doesnt exist');
+        }
+
+        clip.eventId = event.id;
+        clip.uploaderId = user.id;
+        await clip.save();
 
         await file.mv(upload_path);
 
