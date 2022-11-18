@@ -7,7 +7,7 @@ import {
     Sequelize,
 } from 'sequelize';
 
-import { hashPassword, verifyPassword } from '../../utils';
+import { hashPassword, verifyPassword } from '../../utils/crypto';
 
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare id: CreationOptional<string>;

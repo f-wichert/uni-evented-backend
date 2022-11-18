@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express from 'express';
 
 import fileUpload from 'express-fileupload';
 import ffmpeg from 'fluent-ffmpeg';
@@ -16,7 +16,7 @@ const MEDIA_UPLOAD_ROOT = process.env.MEDIA_UPLOAD_ROOT || 'uploads';
 const CLIP_UPLOAD_INPUT_NAME_FIELD = (process.env.CLIP_UPLOAD_INPUT_NAME_FIELD = 'clip');
 const FFMPEG_TIMEOUT = Number.parseInt(process.env.FFMPEG_TIMEOUT || '60');
 
-const app: Express = express();
+const app = express();
 
 app.use(
     fileUpload({
@@ -32,7 +32,7 @@ app.use('/api', routes);
 
 app.get(
     '/',
-    asyncHandler(async (req: Request, res: Response) => {
+    asyncHandler(async (req, res) => {
         console.log(await User.findAll());
 
         res.json({ things: 'stuff' });
