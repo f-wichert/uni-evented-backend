@@ -5,6 +5,9 @@ import * as e from 'envsafe';
 
 // https://github.com/KATT/envsafe#basic-usage
 export default e.envsafe({
+    NODE_ENV: e.str({
+        choices: ['development', 'production'],
+    }) as e.ValidatorSpec<'development' | 'production'>,
     PORT: e.port({
         default: 3000,
         desc: 'The port the backend listens on',
