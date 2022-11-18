@@ -1,19 +1,15 @@
-import express, { Express, NextFunction, Request, Response } from 'express';
+import express, { Express, Request, Response } from 'express';
 
 import fileUpload from 'express-fileupload';
 import ffmpeg from 'fluent-ffmpeg';
 import fs from 'fs';
+import passport from 'passport';
 import config from './config';
 import { connect } from './db';
 import { Clip } from './db/models/clip';
 import { User } from './db/models/user';
-
-/** Properly handles async errors in express routers */
-function asyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
-    return function (req: Request, res: Response, next: NextFunction): void {
-        fn(req, res).catch(next);
-    };
-}
+import routes from './routes';
+import { asyncHandler } from './utils';
 
 const MEDIA_ROOT = process.env.MEDIA_ROOT || 'media';
 const MEDIA_UPLOAD_ROOT = process.env.MEDIA_UPLOAD_ROOT || 'uploads';
@@ -27,13 +23,19 @@ app.use(
         limits: { fileSize: 50 * 1024 * 1024 },
     })
 );
+// TODO: csrf and other middlewares
+app.use(express.json());
+app.use(passport.initialize());
+
+// mount routers
+app.use('/api', routes);
 
 app.get(
     '/',
     asyncHandler(async (req: Request, res: Response) => {
-        await User.create({ firstName: 'Jonas', lastName: 'Test' });
+        console.log(await User.findAll());
 
-        res.send('<h1> Initial setup </h1>');
+        res.json({ things: 'stuff' });
     })
 );
 
