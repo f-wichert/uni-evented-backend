@@ -32,11 +32,13 @@ app.get(
     })
 );
 
-app.get('/media/:UUID/', (req, res) => {
-    const UUID = req.params['UUID'];
-    const videoPath = process.env.CLIENT_MEDIA_PATH! + '/' + UUID + '/';
-
-    res.redirect('welt');
+app.get('/debugPlayer', (req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.write('<html><head><title>HLS Player fed by node.js' +
+		    '</title></head><body>');
+		res.write('<video src="http://' + 'localhost' +
+		    ':' + process.env.PORT + '/api/hls/b3b5c206-6fd7-426e-b6c0-8a64bd9a2342/output.m3u8" controls></body></html>');
+		res.end();
 });
 
 async function init() {
@@ -49,6 +51,7 @@ async function init() {
     app.listen(config.PORT, () => {
         console.log(`Server is running at http://localhost:${config.PORT}`);
     });
+    console.log("finished Setup")
 }
 
 void init();
