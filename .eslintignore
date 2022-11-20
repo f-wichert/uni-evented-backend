@@ -1,0 +1,5 @@
+/media/**/*.ts
+.gitignore
+package-lock.json
+dist/
+*.yml

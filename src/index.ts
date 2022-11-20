@@ -7,6 +7,7 @@ import config from './config';
 import { connect } from './db';
 import { Clip } from './db/models/clip';
 import { User } from './db/models/user';
+// const hlsserver = require('hls-server')(8000)
 
 /** Properly handles async errors in express routers */
 function asyncHandler(fn: (req: Request, res: Response) => Promise<void>) {
@@ -91,6 +92,13 @@ app.post(
     })
 );
 
+app.get('/media/:UUID/', (req, res) => {
+    const UUID = req.params['UUID'];
+    const videoPath = process.env.CLIENT_MEDIA_PATH! + '/' + UUID + '/';
+
+    res.redirect('welt');
+});
+
 async function createDirectory(path: string) {
     try {
         await fs.promises.access(path);
@@ -108,7 +116,7 @@ async function createDirectory(path: string) {
 
 async function init() {
     await connect();
-
+    // console.log(hlsserver)
     // create media directories if they don't exists
     await createDirectory(MEDIA_ROOT + '/clips');
     await createDirectory(MEDIA_UPLOAD_ROOT);
