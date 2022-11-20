@@ -1,6 +1,8 @@
+import compression from 'compression';
 import express from 'express';
-
+import morgan from 'morgan';
 import passport from 'passport';
+
 import config from './config';
 import { setupDatabase } from './db';
 import { User } from './db/models/user';
@@ -9,8 +11,10 @@ import { asyncHandler } from './utils';
 
 const app = express();
 
-// TODO: csrf and other middlewares
-app.use(express.json());
+app.use(compression());
+app.use(express.json({ limit: '1mb' }));
+app.use(morgan(config.NODE_ENV === 'development' ? 'dev' : 'common'));
+
 app.use(passport.initialize());
 
 // mount routers
