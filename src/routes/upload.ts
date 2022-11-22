@@ -6,9 +6,36 @@ import { Clip } from '../db/models/clip';
 import { requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
 
+class ClipQuality {
+    readonly width: number;
+    readonly height: number;
+    readonly vBitrate: number;
+    readonly vBufsize: number;
+    readonly aBitrate: number;
+    readonly aSamplerate: number;
+    readonly aChannels: number;
+
+    constructor(
+        width: number,
+        height: number,
+        vBitrate: number,
+        aBitrate: number,
+        aSamplerate: number,
+        aChannels: number
+    ) {
+        this.width = width;
+        this.height = height;
+        this.vBitrate = vBitrate;
+        this.vBufsize = 2 * vBitrate;
+        this.aBitrate = aBitrate;
+        this.aSamplerate = aSamplerate;
+        this.aChannels = aChannels;
+    }
+}
+
 const CLIP_QUALITIES = [
-    [480, 854, 1000, 256],
-    [720, 1280, 2000, 256],
+    new ClipQuality(480, 854, 600, 32, 44100, 1),
+    new ClipQuality(720, 1280, 1500, 64, 44100, 2),
 ];
 
 const router = Router();
@@ -30,7 +57,7 @@ function ffmpegPromise(fmpg: FfmpegCommand): Promise<void> {
  * resolutions and bitrates.
  *
  * @param input input file path
- * @param tmp path for a temporary video container, should be .mkv
+ * @param tmp path for a temporary audio container, should be .mp3
  * @param output output directory path
  */
 async function processClip(input: string, tmp: string, output: string) {
@@ -38,54 +65,51 @@ async function processClip(input: string, tmp: string, output: string) {
     const probe: FfprobeData = await new Promise((resolve, reject) =>
         ffmpeg.ffprobe(input, (err, data) => (data ? resolve(data) : reject(err)))
     );
+
     const length = probe.format.duration;
 
-    // do some audio pre-processing
-    await ffmpegPromise(
-        ffmpeg(input, { timeout: config.FFMPEG_TIMEOUT })
-            .input('anullsrc=channel_layout=stereo:sample_rate=48000')
-            .inputFormat('lavfi')
-            .addOptions([
-                '-c:v copy',
-                '-c:a aac',
-                '-ar 48000',
-                '-ac 2',
-                length ? `-t ${length}` : '-shortest',
-            ])
-            .output(tmp)
-    );
+    // TODO: do some audio pre-processing, needed if input has no audio stream
+    // await ffmpegPromise(
+    //     ffmpeg(input, { timeout: config.FFMPEG_TIMEOUT })
+    //         .input('anullsrc=channel_layout=stereo:sample_rate=44100')
+    //         .inputFormat('lavfi')
+    //         .addOptions(['-c:a aac', '-ar 44100', '-ac 2', length ? `-t ${length}` : '-shortest',])
+    //         .output(tmp)
+    // );
 
     // inspired by https://stackoverflow.com/a/71985380
-    let fmpg = ffmpeg(tmp, { timeout: config.FFMPEG_TIMEOUT });
-
-    CLIP_QUALITIES.forEach(() => {
-        fmpg = fmpg.addOptions(['-map 0:v:0', '-map 0:a:0']);
-    });
-
-    fmpg = fmpg.addOptions(['-c:v libx264', '-crf 22', '-c:a copy']);
+    let fmpg = ffmpeg(input, { timeout: config.FFMPEG_TIMEOUT })
+        .addOptions(
+            new Array<string[]>(CLIP_QUALITIES.length).fill(['-map 0:v:0', '-map 0:a:0']).flat()
+        )
+        .addOptions(['-c:v libx264', '-crf 22', '-c:a aac']);
 
     let streamMapString = '';
 
     CLIP_QUALITIES.forEach((quality, index) => {
         fmpg = fmpg.addOptions([
-            `-filter:v:${index} scale=w=${quality[0]}:h=${quality[1]}`,
-            `-maxrate:v:${index} ${quality[2]}`,
-            `-b:a:${index} ${quality[3]}`,
+            `-filter:v:${index} scale=w=${quality.width}:h=${quality.height}`,
+            `-maxrate:v:${index} ${quality.vBitrate}k`,
+            `-bufsize:v:${index} ${quality.vBufsize}k`,
+            `-b:a:${index} ${quality.aBitrate}k`,
+            `-ar:a:${index} ${quality.aSamplerate}`,
+            `-ac:a:${index} ${quality.aChannels}`,
         ]);
-        streamMapString += `v:${index},a:${index},name:${quality[1]}p `;
+        streamMapString += `v:${index},a:${index},name:${quality.height}p `;
     });
 
-    await ffmpegPromise(
-        fmpg
-            .addOption('-var_stream_map', streamMapString)
-            .addOptions([
-                '-f hls',
-                `-hls_time ${config.CLIP_HLS_SEGMENT_DURATION}`,
-                '-hls_list_size 0',
-                `-master_pl_name index.m3u8`,
-            ])
-            .output(`${output}/index-%v.m3u8`)
-    );
+    fmpg = fmpg
+        .addOption('-var_stream_map', streamMapString)
+        .addOptions([
+            length ? `-t ${length}` : '-shortest',
+            '-f hls',
+            `-hls_time ${config.CLIP_HLS_SEGMENT_DURATION}`,
+            '-hls_list_size 0',
+            `-master_pl_name index.m3u8`,
+        ])
+        .output(`${output}/index-%v.m3u8`);
+
+    await ffmpegPromise(fmpg);
 }
 
 // endpoint accepts a request with a single file
@@ -111,7 +135,7 @@ router.post(
         const clip = await Clip.create({ uploaderId: user.id });
 
         const uploadPath = `${config.MEDIA_UPLOAD_ROOT}/${clip.id}`;
-        const tmpPath = uploadPath + '.tmp.mkv';
+        const tmpPath = uploadPath + '.tmp.mp3';
         const clipPath = `${config.MEDIA_ROOT}/clips/${clip.id}`;
 
         try {
@@ -125,7 +149,7 @@ router.post(
                 .catch((error) => console.error(`failed to remove ${clipId}: ${String(error)}`));
             throw error;
         } finally {
-            [uploadPath, tmpPath].forEach(
+            [uploadPath].forEach(
                 (path) =>
                     void fs.promises
                         .rm(path)
