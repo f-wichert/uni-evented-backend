@@ -26,24 +26,14 @@ app.use('/api', routes);
 app.get(
     '/',
     asyncHandler(async (req, res) => {
-        console.log(await User.findAll());
-
+        await User.findAll();
         res.json({ things: 'stuff' });
     })
 );
 
-app.get('/debugPlayer', (req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-		res.write('<html><head><title>HLS Player fed by node.js' +
-		    '</title></head><body>');
-		res.write('<video src="http://' + 'localhost' +
-		    ':' + process.env.PORT + '/api/hls/b3b5c206-6fd7-426e-b6c0-8a64bd9a2342/output.m3u8" controls></body></html>');
-		res.end();
-});
-
 async function init() {
     await connect();
-    // console.log(hlsserver)
+
     // create media directories if they don't exists
     await fs.promises.mkdir(config.MEDIA_ROOT + '/clips', { recursive: true });
     await fs.promises.mkdir(config.MEDIA_UPLOAD_ROOT, { recursive: true });
@@ -51,7 +41,7 @@ async function init() {
     app.listen(config.PORT, () => {
         console.log(`Server is running at http://localhost:${config.PORT}`);
     });
-    console.log("finished Setup")
+    console.log('finished Setup');
 }
 
 void init();

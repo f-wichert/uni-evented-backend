@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
 import authRouter from './auth';
-import uploadRouter from './upload';
 import streamingRouter from './hls_stream';
+import uploadRouter from './upload';
 
 const router = Router();
 
@@ -10,6 +10,5 @@ const router = Router();
 router.use('/auth', authRouter);
 router.use('/upload', uploadRouter);
 router.use('/hls', streamingRouter);
-
 
 export default router;
