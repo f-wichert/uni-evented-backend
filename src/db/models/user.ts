@@ -3,17 +3,62 @@ import {
     DataTypes,
     InferAttributes,
     InferCreationAttributes,
-    Model,
-    Sequelize,
+    NonAttribute,
 } from 'sequelize';
+import {
+    AllowNull,
+    BeforeCreate,
+    BeforeUpdate,
+    Column,
+    Default,
+    HasMany,
+    Length,
+    Model,
+    PrimaryKey,
+    Table,
+} from 'sequelize-typescript';
 
 import { hashPassword, verifyPassword } from '../../utils/crypto';
+import { Event } from './event';
 
+// TODO: min/max length for most of these fields
+@Table
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+    @PrimaryKey
+    @Default(DataTypes.UUIDV4)
+    @Column(DataTypes.UUID)
     declare id: CreationOptional<string>;
+
+    // TODO: require ASCII-only, no umlauts etc.
+    // `CITEXT` is pg-specific, and gets translated to `TEXT COLLATE NOCASE` for sqlite
+    @AllowNull(false)
+    @Column(DataTypes.CITEXT)
     declare userName: string;
+
+    // Validators run before create/update hooks, which is what we want;
+    // bcrypt is capped at 72 bytes
+    @Length({ min: 8, max: 64 })
+    @AllowNull(false)
+    @Column
     declare password: string;
+
+    @Column(DataTypes.STRING)
     declare displayName: string | null;
+
+    @HasMany(() => Event)
+    declare events: NonAttribute<Event[]>;
+
+    @BeforeCreate
+    static async beforeCreateHook(user: User) {
+        user.password = await hashPassword(user.password);
+    }
+
+    @BeforeUpdate
+    static async beforeUpdateHook(user: User) {
+        if (user.changed('password')) {
+            user.password = await hashPassword(user.password);
+        }
+    }
 
     static async getByUserName(username: string): Promise<User | null> {
         return await User.findOne({ where: { userName: username } });
@@ -24,49 +69,4 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     }
 }
 
-// TODO: min/max length for most of these fields
-export default function init(sequelize: Sequelize) {
-    User.init(
-        {
-            id: {
-                type: DataTypes.UUID,
-                defaultValue: DataTypes.UUIDV4,
-                primaryKey: true,
-            },
-            // TODO: require ASCII-only, no umlauts etc.
-            userName: {
-                // `CITEXT` is pg-specific, and gets translated to `TEXT COLLATE NOCASE` for sqlite
-                type: DataTypes.CITEXT,
-                allowNull: false,
-                unique: true,
-            },
-            password: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                // Validators run before create/update hooks, which is what we want;
-                // bcrypt is capped at 72 bytes
-                validate: {
-                    len: [8, 64],
-                },
-            },
-            displayName: {
-                type: DataTypes.STRING,
-            },
-        },
-        {
-            sequelize,
-            modelName: 'User',
-        }
-    );
-
-    // Define hooks
-    // NOTE: these don't apply to bulk creates/updates
-    User.beforeCreate(async (user) => {
-        user.password = await hashPassword(user.password);
-    });
-    User.beforeUpdate(async (user) => {
-        if (user.changed('password')) {
-            user.password = await hashPassword(user.password);
-        }
-    });
-}
+export default User;

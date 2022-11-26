@@ -127,7 +127,7 @@ router.post(
             );
         }
 
-        clip.file_available = true;
+        clip.fileAvailable = true;
         clip.save()
             .then(() => console.log(`clip ${clip.id} now available`))
             .catch((error) => console.error(`failed to save clip ${clip.id}: ${String(error)}`));

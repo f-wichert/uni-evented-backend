@@ -4,42 +4,54 @@ import {
     ForeignKey,
     InferAttributes,
     InferCreationAttributes,
-    Model,
-    Sequelize,
+    NonAttribute,
 } from 'sequelize';
+import {
+    AllowNull,
+    BelongsTo,
+    Column,
+    Default,
+    ForeignKey as ForeignKeyDec,
+    Model,
+    PrimaryKey,
+    Table,
+} from 'sequelize-typescript';
+
 import { Event } from './event';
 import { User } from './user';
 
+@Table
 export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<Clip>> {
+    @PrimaryKey
+    @Default(DataTypes.UUIDV4)
+    @Column(DataTypes.UUID)
     declare id: CreationOptional<string>;
-    declare eventId: ForeignKey<Event['id']>;
-    declare uploaderId: ForeignKey<User['id']>;
-    // flag to tell whether the clip file is available (might not be if it is still being converted to m3u8)
-    declare file_available: CreationOptional<boolean>;
+
+    @AllowNull(false)
+    @Default(false)
+    @Column
+    declare fileAvailable: CreationOptional<boolean>;
+
+    @AllowNull(false)
+    @Default(0)
+    @Column
     declare length: CreationOptional<number>;
+
+    @AllowNull(false)
+    @ForeignKeyDec(() => Event)
+    @Column
+    declare eventId: ForeignKey<Event['id']>;
+
+    @BelongsTo(() => Event)
+    declare event?: NonAttribute<Event>;
+
+    @AllowNull(false)
+    @ForeignKeyDec(() => User)
+    @Column
+    declare uploaderId: ForeignKey<User['id']>;
+
+    @BelongsTo(() => User)
+    declare uploader?: NonAttribute<User>;
 }
 
-export default function init(sequelize: Sequelize) {
-    Clip.init(
-        {
-            id: {
-                type: DataTypes.UUID,
-                defaultValue: DataTypes.UUIDV4,
-                primaryKey: true,
-            },
-            file_available: {
-                type: DataTypes.BOOLEAN,
-                defaultValue: false,
-            },
-            // length in seconds
-            length: {
-                type: DataTypes.INTEGER,
-                defaultValue: 0,
-            },
-        },
-        {
-            sequelize,
-            modelName: 'Clip',
-        }
-    );
-}
+export default Clip;

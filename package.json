@@ -37,6 +37,7 @@
         "pg-hstore": "^2.3.4",
         "queue": "^6.0.2",
         "sequelize": "^6.25.8",
+        "sequelize-typescript": "^2.1.5",
         "sqlite3": "^5.1.2",
         "zod": "^3.19.1"
     },

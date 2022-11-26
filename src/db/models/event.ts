@@ -4,54 +4,60 @@ import {
     ForeignKey,
     InferAttributes,
     InferCreationAttributes,
-    Model,
-    Sequelize,
+    NonAttribute,
 } from 'sequelize';
+import {
+    AllowNull,
+    BelongsTo,
+    Column,
+    Default,
+    ForeignKey as ForeignKeyDec,
+    HasMany,
+    Model,
+    PrimaryKey,
+    Table,
+} from 'sequelize-typescript';
+
+import { Clip } from './clip';
 import { User } from './user';
 
+@Table
 export class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
+    @PrimaryKey
+    @Default(DataTypes.UUIDV4)
+    @Column(DataTypes.UUID)
     declare id: CreationOptional<string>;
-    declare hostId: ForeignKey<User['id']>;
+
+    @AllowNull(false)
+    @Column
     declare name: string;
+
+    @AllowNull(false)
+    @Column(DataTypes.DECIMAL(8, 6))
     declare lat: number;
+
+    @AllowNull(false)
+    @Column(DataTypes.DECIMAL(9, 6))
     declare lon: number;
+
+    @AllowNull(false)
+    @Default(DataTypes.NOW())
+    @Column
     declare startDateTime: Date;
+
+    // can be null -> open end
+    @Column
     declare endDateTime: Date;
+
+    @ForeignKeyDec(() => User)
+    @Column
+    declare hostId: ForeignKey<User['id']>;
+
+    @BelongsTo(() => User)
+    declare host?: NonAttribute<User>;
+
+    @HasMany(() => Clip)
+    declare clips?: NonAttribute<Clip[]>;
 }
 
-export default function init(sequelize: Sequelize) {
-    Event.init(
-        {
-            id: {
-                type: DataTypes.UUID,
-                defaultValue: DataTypes.UUIDV4,
-                primaryKey: true,
-            },
-            name: {
-                type: DataTypes.STRING,
-                allowNull: false,
-            },
-            lat: {
-                type: DataTypes.DECIMAL(8, 6),
-                allowNull: false,
-            },
-            lon: {
-                type: DataTypes.DECIMAL(9, 6),
-                allowNull: false,
-            },
-            startDateTime: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW(),
-            },
-            endDateTime: {
-                type: DataTypes.DATE,
-                // can be null -> open end
-            },
-        },
-        {
-            sequelize,
-            modelName: 'Event',
-        }
-    );
-}
+export default Event;
