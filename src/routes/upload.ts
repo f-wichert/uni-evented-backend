@@ -1,37 +1,11 @@
 import { Router } from 'express';
-import ffmpeg, { FfmpegCommand, FfprobeData } from 'fluent-ffmpeg';
+import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import fs from 'fs';
 import config from '../config';
 import { Clip } from '../db/models/clip';
 import { requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
-
-class ClipQuality {
-    readonly width: number;
-    readonly height: number;
-    readonly vBitrate: number;
-    readonly vBufsize: number;
-    readonly aBitrate: number;
-    readonly aSamplerate: number;
-    readonly aChannels: number;
-
-    constructor(
-        width: number,
-        height: number,
-        vBitrate: number,
-        aBitrate: number,
-        aSamplerate: number,
-        aChannels: number
-    ) {
-        this.width = width;
-        this.height = height;
-        this.vBitrate = vBitrate;
-        this.vBufsize = 2 * vBitrate;
-        this.aBitrate = aBitrate;
-        this.aSamplerate = aSamplerate;
-        this.aChannels = aChannels;
-    }
-}
+import { ClipQuality, FfmpegJobQueue } from '../utils/ffmpeg';
 
 const CLIP_QUALITIES = [
     new ClipQuality(480, 854, 600, 32, 44100, 1),
@@ -40,14 +14,7 @@ const CLIP_QUALITIES = [
 
 const router = Router();
 
-// inspired by https://github.com/fluent-ffmpeg/node-fluent-ffmpeg/issues/710#issuecomment-382917544
-function ffmpegPromise(fmpg: FfmpegCommand): Promise<void> {
-    return new Promise((resolve, reject) => {
-        fmpg.on('error', (error) => reject(error))
-            .on('end', () => resolve())
-            .run();
-    });
-}
+const ffmpegJobQueue = new FfmpegJobQueue();
 
 /**
  * Processes any input video file into multiple hls stream with multiple qualities,
@@ -60,7 +27,7 @@ function ffmpegPromise(fmpg: FfmpegCommand): Promise<void> {
  * @param tmp path for a temporary audio container, should be .mp3
  * @param output output directory path
  */
-async function processClip(input: string, tmp: string, output: string) {
+async function processClip(id: string, input: string, tmp: string, output: string) {
     // attempt to extract the length of the video
     const probe: FfprobeData = await new Promise((resolve, reject) =>
         ffmpeg.ffprobe(input, (err, data) => (data ? resolve(data) : reject(err)))
@@ -109,7 +76,7 @@ async function processClip(input: string, tmp: string, output: string) {
         ])
         .output(`${output}/index-%v.m3u8`);
 
-    await ffmpegPromise(fmpg);
+    await ffmpegJobQueue.process(id, fmpg);
 }
 
 // endpoint accepts a request with a single file
@@ -141,7 +108,7 @@ router.post(
         try {
             await fs.promises.mkdir(clipPath, { recursive: true });
             await file.mv(uploadPath);
-            await processClip(uploadPath, tmpPath, clipPath);
+            await processClip(clip.id, uploadPath, tmpPath, clipPath);
         } catch (error) {
             const clipId = clip.id;
             clip.destroy()

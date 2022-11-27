@@ -20,7 +20,9 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "async": "^3.2.4",
         "bcrypt": "^5.1.0",
+        "callable-instance": "^2.0.0",
         "compression": "^1.7.4",
         "dotenv": "^16.0.3",
         "envsafe": "^2.0.3",
@@ -33,6 +35,7 @@
         "passport-jwt": "^4.0.0",
         "pg": "^8.8.0",
         "pg-hstore": "^2.3.4",
+        "queue": "^6.0.2",
         "sequelize": "^6.25.8",
         "sqlite3": "^5.1.2",
         "zod": "^3.19.1"
