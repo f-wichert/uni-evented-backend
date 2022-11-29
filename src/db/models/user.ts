@@ -45,13 +45,14 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Column
     declare password: string;
 
-    // set to be equal to username on creation
+    // set to be equal to username on creation, see below
     @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
     declare displayName: CreationOptional<string>;
 
     // relationships
 
+    // connected through `EventAttendee` table
     @BelongsToMany(() => Event, () => EventAttendee)
     declare events?: NonAttribute<Event[]>;
 

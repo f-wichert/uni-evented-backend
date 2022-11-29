@@ -1,9 +1,15 @@
 import { Sequelize } from 'sequelize-typescript';
 import config from '../config';
 
+// https://github.com/sequelize/sequelize-typescript
+// For relationship functions (addX, getX, ...), see https://github.com/sequelize/sequelize-typescript#type-safe-usage-of-auto-generated-functions
+
 // Initialize DB. Connection won't be established immediately,
 // only when `connect()` (see below) is called.
-export const sequelize = new Sequelize(config.DB_PATH, { models: [__dirname + '/models'] });
+export const sequelize = new Sequelize(config.DB_PATH, {
+    // Load all files from `./models`
+    models: [__dirname + '/models'],
+});
 
 export async function connect() {
     await sequelize.authenticate();

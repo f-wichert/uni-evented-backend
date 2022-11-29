@@ -71,6 +71,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @BelongsTo(() => User)
     declare host?: NonAttribute<User>;
 
+    // connected through `EventAttendee` table
     @BelongsToMany(() => User, () => EventAttendee)
     declare attendees?: NonAttribute<User[]>;
     declare addAttendee: HasManyAddAssociationMixin<User, string>;
