@@ -12,7 +12,6 @@ async function generateTestdata() {
 
     // Write your Testdata here
     await User.create({ userName: 'lorenzo', password: 'verysecure' });
-    await Clip.create({ id: 'b3b5c206-6fd7-426e-b6c0-8a64bd9a2342', length: 1 });
 }
 
 void generateTestdata();
