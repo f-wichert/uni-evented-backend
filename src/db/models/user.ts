@@ -62,7 +62,6 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
 
     @BeforeCreate
     static async beforeCreateHook(user: User) {
-        user.displayName = user.username;
         user.password = await hashPassword(user.password);
     }
 
