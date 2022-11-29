@@ -7,6 +7,10 @@ export const sequelize = new Sequelize(config.DB_PATH, { models: [__dirname + '/
 
 export async function connect() {
     await sequelize.authenticate();
+    // enable CITEXT extension for postgres; sqlite already supports it out of the box
+    if (sequelize.getDialect() === 'postgres') {
+        await sequelize.query('CREATE EXTENSION IF NOT EXISTS citext;');
+    }
     console.log(`Successfully connected to ${config.DB_PATH}.`);
 }
 
