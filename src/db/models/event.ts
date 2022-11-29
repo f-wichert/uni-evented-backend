@@ -24,12 +24,12 @@ import {
     Table,
 } from 'sequelize-typescript';
 
-import { EventAttendee } from './eventAttendee';
-import { Media } from './media';
-import { User } from './user';
+import EventAttendee from './eventAttendee';
+import Media from './media';
+import User from './user';
 
 @Table
-export class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
+export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
@@ -87,5 +87,3 @@ export class Event extends Model<InferAttributes<Event>, InferCreationAttributes
         await event.addAttendee(event.hostId);
     }
 }
-
-export default Event;

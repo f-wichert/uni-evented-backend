@@ -17,11 +17,11 @@ import {
     Table,
 } from 'sequelize-typescript';
 
-import { Event } from './event';
-import { User } from './user';
+import Event from './event';
+import User from './user';
 
 @Table
-export class Media extends Model<InferAttributes<Media>, InferCreationAttributes<Media>> {
+export default class Media extends Model<InferAttributes<Media>, InferCreationAttributes<Media>> {
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
@@ -59,5 +59,3 @@ export class Media extends Model<InferAttributes<Media>, InferCreationAttributes
     @BelongsTo(() => User)
     declare user?: NonAttribute<User>;
 }
-
-export default Media;

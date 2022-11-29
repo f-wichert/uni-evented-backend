@@ -2,9 +2,9 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { setupDatabase } from '../db';
-import { Event } from '../db/models/event';
-import { Media } from '../db/models/media';
-import { User } from '../db/models/user';
+import Event from '../db/models/event';
+import Media from '../db/models/media';
+import User from '../db/models/user';
 
 async function generateTestdata() {
     // Wait for DB Setup bevore saving data

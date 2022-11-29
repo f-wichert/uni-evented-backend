@@ -21,12 +21,11 @@ import {
 } from 'sequelize-typescript';
 
 import { hashPassword, verifyPassword } from '../../utils/crypto';
-import { Event } from './event';
-import { EventAttendee } from './eventAttendee';
+import Event from './event';
+import EventAttendee from './eventAttendee';
 
-// TODO: min/max length for most of these fields
 @Table
-export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+export default class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
@@ -84,5 +83,3 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
         return await verifyPassword(input, this.password);
     }
 }
-
-export default User;

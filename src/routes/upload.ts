@@ -2,7 +2,7 @@ import { Router } from 'express';
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import fs from 'fs';
 import config from '../config';
-import { Media } from '../db/models/media';
+import Media from '../db/models/media';
 import { requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
 import { ClipQuality, FfmpegJobQueue } from '../utils/ffmpeg';

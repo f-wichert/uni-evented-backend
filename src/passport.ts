@@ -5,7 +5,7 @@ import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { callbackify } from 'util';
 
 import config from './config';
-import { User } from './db/models/user';
+import User from './db/models/user';
 
 /* For authentication, we're using JWTs (https://auth0.com/learn/json-web-tokens),
    which (currently) only contain the user ID (see `JwtData` below).

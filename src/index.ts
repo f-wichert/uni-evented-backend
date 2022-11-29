@@ -8,7 +8,7 @@ import passport from 'passport';
 
 import config from './config';
 import { connect } from './db';
-import { User } from './db/models/user';
+import User from './db/models/user';
 import routes from './routes';
 import { asyncHandler } from './utils';
 

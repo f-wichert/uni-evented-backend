@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { Media } from '../db/models/media';
+import Media from '../db/models/media';
 import { asyncHandler } from '../utils';
 
 const router = Router();

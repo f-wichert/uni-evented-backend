@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 
-import { User } from '../db/models/user';
+import User from '../db/models/user';
 import { createTokenForUser, requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
 import { validateBody } from '../utils/validate';
