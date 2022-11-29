@@ -21,9 +21,9 @@ export default class EventAttendee extends Model<
 > {
     @ForeignKey(() => User)
     @Column(DataTypes.UUID)
-    declare userId: ForeignKeyType<User['id']>;
+    declare userId: ForeignKeyType<string>;
 
     @ForeignKey(() => Event)
     @Column(DataTypes.UUID)
-    declare eventId: ForeignKeyType<Event['id']>;
+    declare eventId: ForeignKeyType<string>;
 }

@@ -46,7 +46,7 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
     @AllowNull(false)
     @ForeignKey(() => Event)
     @Column(DataTypes.UUID)
-    declare eventId: ForeignKeyType<Event['id']>;
+    declare eventId: ForeignKeyType<string>;
 
     @BelongsTo(() => Event)
     declare event?: NonAttribute<Event>;
@@ -54,7 +54,7 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
     @AllowNull(false)
     @ForeignKey(() => User)
     @Column(DataTypes.UUID)
-    declare userId: ForeignKeyType<User['id']>;
+    declare userId: ForeignKeyType<string>;
 
     @BelongsTo(() => User)
     declare user?: NonAttribute<User>;

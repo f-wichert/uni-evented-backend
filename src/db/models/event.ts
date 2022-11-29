@@ -63,10 +63,9 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
 
     // relationships
 
-    // TODO: foreign keys should be required on creation
     @ForeignKey(() => User)
     @Column(DataTypes.UUID)
-    declare hostId: ForeignKeyType<User['id']>;
+    declare hostId: ForeignKeyType<string>;
 
     @BelongsTo(() => User)
     declare host?: NonAttribute<User>;
