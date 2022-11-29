@@ -20,7 +20,9 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "async": "^3.2.4",
         "bcrypt": "^5.1.0",
+        "callable-instance": "^2.0.0",
         "compression": "^1.7.4",
         "dotenv": "^16.0.3",
         "envsafe": "^2.0.3",
@@ -33,7 +35,8 @@
         "passport-jwt": "^4.0.0",
         "pg": "^8.8.0",
         "pg-hstore": "^2.3.4",
-        "sequelize": "^6.25.5",
+        "queue": "^6.0.2",
+        "sequelize": "^6.25.8",
         "sqlite3": "^5.1.2",
         "zod": "^3.19.1"
     },
@@ -47,16 +50,16 @@
         "@types/node": "^18.11.9",
         "@types/passport": "^1.0.11",
         "@types/passport-jwt": "^3.0.7",
-        "@typescript-eslint/eslint-plugin": "^5.42.1",
-        "@typescript-eslint/parser": "^5.42.1",
-        "eslint": "^8.27.0",
+        "@typescript-eslint/eslint-plugin": "^5.44.0",
+        "@typescript-eslint/parser": "^5.44.0",
+        "eslint": "^8.28.0",
         "eslint-config-prettier": "^8.5.0",
         "husky": "^8.0.2",
-        "lint-staged": "^13.0.3",
-        "prettier": "^2.7.1",
-        "prettier-plugin-organize-imports": "^3.2.0",
+        "lint-staged": "^13.0.4",
+        "prettier": "^2.8.0",
+        "prettier-plugin-organize-imports": "^3.2.1",
         "tsc-watch": "^5.0.3",
-        "typescript": "^4.8.4"
+        "typescript": "^4.9.3"
     },
     "lint-staged": {
         "**/*.{js,ts}": [
