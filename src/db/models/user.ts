@@ -45,10 +45,9 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Column
     declare password: string;
 
-    // set to be equal to username on creation, see below
     @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
-    declare displayName: CreationOptional<string>;
+    declare displayName: string | null;
 
     // relationships
 
