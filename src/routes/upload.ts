@@ -2,7 +2,7 @@ import { Router } from 'express';
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import fs from 'fs';
 import config from '../config';
-import { Clip } from '../db/models/clip';
+import { Media } from '../db/models/media';
 import { requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
 import { ClipQuality, FfmpegJobQueue } from '../utils/ffmpeg';
@@ -99,7 +99,7 @@ router.post(
 
         // TODO: get the currently attended event from the user
 
-        const clip = await Clip.create({ uploaderId: user.id });
+        const clip = await Media.create({ type: 'video', userId: user.id });
 
         const uploadPath = `${config.MEDIA_UPLOAD_ROOT}/${clip.id}`;
         const tmpPath = uploadPath + '.tmp.mp3';
@@ -127,7 +127,7 @@ router.post(
             );
         }
 
-        clip.file_available = true;
+        clip.fileAvailable = true;
         clip.save()
             .then(() => console.log(`clip ${clip.id} now available`))
             .catch((error) => console.error(`failed to save clip ${clip.id}: ${String(error)}`));

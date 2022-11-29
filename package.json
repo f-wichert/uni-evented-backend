@@ -8,6 +8,7 @@
         "start": "node dist/index.js",
         "dev": "tsc-watch --onSuccess \"npm run start\"",
         "build": "tsc",
+        "preresetDB": "npm run build",
         "resetDB": "node dist/scripts/resetDB",
         "lint": "eslint . --ignore-path .gitignore",
         "format": "prettier . --write",
@@ -37,6 +38,7 @@
         "pg-hstore": "^2.3.4",
         "queue": "^6.0.2",
         "sequelize": "^6.25.8",
+        "sequelize-typescript": "^2.1.5",
         "sqlite3": "^5.1.2",
         "zod": "^3.19.1"
     },

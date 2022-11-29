@@ -12,7 +12,7 @@ router.get('/info', requireAuth, (req, res) => {
     const user = req.user!;
     res.json({
         id: user.id,
-        userName: user.userName,
+        username: user.username,
         displayName: user.displayName,
     });
 });
@@ -29,7 +29,7 @@ router.post(
             throw new Error('User already exists!');
         }
 
-        const user = await User.create({ userName: username, password: password });
+        const user = await User.create({ username: username, password: password });
 
         res.json({ token: createTokenForUser(user) });
     })
