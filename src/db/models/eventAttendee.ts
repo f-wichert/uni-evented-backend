@@ -1,10 +1,7 @@
-import {
-    DataTypes,
-    ForeignKey as ForeignKeyType,
-    InferAttributes,
-    InferCreationAttributes,
-} from 'sequelize';
-import { AllowNull, Column, ForeignKey, Model, Table } from 'sequelize-typescript';
+import { ForeignKey, InferAttributes, InferCreationAttributes } from 'sequelize';
+import { Model, Table } from 'sequelize-typescript';
+
+import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
 
@@ -19,13 +16,9 @@ export default class EventAttendee extends Model<
     InferAttributes<EventAttendee>,
     InferCreationAttributes<EventAttendee>
 > {
-    @ForeignKey(() => User)
-    @AllowNull(false)
-    @Column(DataTypes.UUID)
-    declare userId: ForeignKeyType<string>;
+    @ForeignUUIDColumn(() => User)
+    declare userId: ForeignKey<string>;
 
-    @ForeignKey(() => Event)
-    @AllowNull(false)
-    @Column(DataTypes.UUID)
-    declare eventId: ForeignKeyType<string>;
+    @ForeignUUIDColumn(() => Event)
+    declare eventId: ForeignKey<string>;
 }

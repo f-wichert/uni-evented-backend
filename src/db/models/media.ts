@@ -1,7 +1,7 @@
 import {
     CreationOptional,
     DataTypes,
-    ForeignKey as ForeignKeyType,
+    ForeignKey,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -11,12 +11,12 @@ import {
     BelongsTo,
     Column,
     Default,
-    ForeignKey,
     Model,
     PrimaryKey,
     Table,
 } from 'sequelize-typescript';
 
+import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
 
@@ -43,18 +43,14 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
 
     // relationships
 
-    @ForeignKey(() => Event)
-    @AllowNull(false)
-    @Column(DataTypes.UUID)
-    declare eventId: ForeignKeyType<string>;
+    @ForeignUUIDColumn(() => Event)
+    declare eventId: ForeignKey<string>;
 
     @BelongsTo(() => Event)
     declare event?: NonAttribute<Event>;
 
-    @ForeignKey(() => User)
-    @AllowNull(false)
-    @Column(DataTypes.UUID)
-    declare userId: ForeignKeyType<string>;
+    @ForeignUUIDColumn(() => User)
+    declare userId: ForeignKey<string>;
 
     @BelongsTo(() => User)
     declare user?: NonAttribute<User>;

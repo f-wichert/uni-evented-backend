@@ -1,7 +1,7 @@
 import {
     CreationOptional,
     DataTypes,
-    ForeignKey as ForeignKeyType,
+    ForeignKey,
     HasManyAddAssociationMixin,
     InferAttributes,
     InferCreationAttributes,
@@ -14,7 +14,6 @@ import {
     BelongsToMany,
     Column,
     Default,
-    ForeignKey,
     HasMany,
     Length,
     Max,
@@ -24,6 +23,7 @@ import {
     Table,
 } from 'sequelize-typescript';
 
+import { ForeignUUIDColumn } from '../utils';
 import EventAttendee from './eventAttendee';
 import Media from './media';
 import User from './user';
@@ -63,10 +63,8 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
 
     // relationships
 
-    @ForeignKey(() => User)
-    @AllowNull(false)
-    @Column(DataTypes.UUID)
-    declare hostId: ForeignKeyType<string>;
+    @ForeignUUIDColumn(() => User)
+    declare hostId: ForeignKey<string>;
 
     @BelongsTo(() => User)
     declare host?: NonAttribute<User>;
