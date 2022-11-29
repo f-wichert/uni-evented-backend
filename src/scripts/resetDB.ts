@@ -12,7 +12,7 @@ async function generateTestdata() {
     console.log('Succesfully reset Database');
 
     // Write your Testdata here
-    const user = await User.create({ userName: 'lorenzo', password: 'verysecure' });
+    const user = await User.create({ username: 'lorenzo', password: 'verysecure' });
     const event = await Event.create({
         name: 'h',
         startDateTime: new Date(),

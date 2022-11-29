@@ -33,7 +33,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     // `CITEXT` is pg-specific, and gets translated to `TEXT COLLATE NOCASE` for sqlite
     @AllowNull(false)
     @Column(DataTypes.CITEXT)
-    declare userName: string;
+    declare username: string;
 
     // Validators run before create/update hooks, which is what we want;
     // bcrypt is capped at 72 bytes
@@ -61,7 +61,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     }
 
     static async getByUserName(username: string): Promise<User | null> {
-        return await User.findOne({ where: { userName: username } });
+        return await User.findOne({ where: { username: username } });
     }
 
     async verifyPassword(input: string): Promise<boolean> {
