@@ -9,9 +9,11 @@ import {
     AllowNull,
     BeforeCreate,
     BeforeUpdate,
+    BelongsToMany,
     Column,
     Default,
     HasMany,
+    IsAlphanumeric,
     Length,
     Model,
     PrimaryKey,
@@ -20,6 +22,7 @@ import {
 
 import { hashPassword, verifyPassword } from '../../utils/crypto';
 import { Event } from './event';
+import { EventAttendee } from './eventAttendee';
 
 // TODO: min/max length for most of these fields
 @Table
@@ -29,8 +32,9 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     @Column(DataTypes.UUID)
     declare id: CreationOptional<string>;
 
-    // TODO: require ASCII-only, no umlauts etc.
     // `CITEXT` is pg-specific, and gets translated to `TEXT COLLATE NOCASE` for sqlite
+    @Length({ min: 1, max: 16 })
+    @IsAlphanumeric
     @AllowNull(false)
     @Column(DataTypes.CITEXT)
     declare username: string;
@@ -42,14 +46,24 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     @Column
     declare password: string;
 
+    // set to be equal to username on creation
+    @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
-    declare displayName?: string | null;
+    declare displayName: CreationOptional<string>;
+
+    // relationships
+
+    @BelongsToMany(() => Event, () => EventAttendee)
+    declare events?: NonAttribute<Event[]>;
 
     @HasMany(() => Event)
-    declare events?: NonAttribute<Event[]>;
+    declare hostedEvents?: NonAttribute<Event[]>;
+
+    // hooks
 
     @BeforeCreate
     static async beforeCreateHook(user: User) {
+        user.displayName = user.username;
         user.password = await hashPassword(user.password);
     }
 
@@ -59,6 +73,8 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
             user.password = await hashPassword(user.password);
         }
     }
+
+    // other methods
 
     static async getByUserName(username: string): Promise<User | null> {
         return await User.findOne({ where: { username: username } });

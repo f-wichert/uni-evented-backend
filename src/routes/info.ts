@@ -1,15 +1,15 @@
 import { Router } from 'express';
 
-import { Clip } from '../db/models/clip';
+import { Media } from '../db/models/media';
 import { asyncHandler } from '../utils';
 
 const router = Router();
 
 router.get(
-    '/all_clips',
+    '/all_media',
     asyncHandler(async (req, res) => {
-        const clips = await Clip.findAll();
-        res.send(clips);
+        const media = await Media.findAll();
+        res.send(media);
     })
 );
 

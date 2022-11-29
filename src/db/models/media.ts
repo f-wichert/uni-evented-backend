@@ -21,11 +21,15 @@ import { Event } from './event';
 import { User } from './user';
 
 @Table
-export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<Clip>> {
+export class Media extends Model<InferAttributes<Media>, InferCreationAttributes<Media>> {
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
     declare id: CreationOptional<string>;
+
+    @AllowNull(false)
+    @Column(DataTypes.ENUM('image', 'video'))
+    declare type: 'image' | 'video';
 
     @AllowNull(false)
     @Default(false)
@@ -37,9 +41,11 @@ export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<C
     @Column(DataTypes.INTEGER)
     declare length: CreationOptional<number>;
 
+    // relationships
+
     @AllowNull(false)
     @ForeignKeyDec(() => Event)
-    @Column(DataTypes.STRING)
+    @Column(DataTypes.UUID)
     declare eventId: ForeignKey<Event['id']>;
 
     @BelongsTo(() => Event)
@@ -47,11 +53,11 @@ export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<C
 
     @AllowNull(false)
     @ForeignKeyDec(() => User)
-    @Column(DataTypes.STRING)
-    declare uploaderId: ForeignKey<User['id']>;
+    @Column(DataTypes.UUID)
+    declare userId: ForeignKey<User['id']>;
 
     @BelongsTo(() => User)
-    declare uploader?: NonAttribute<User>;
+    declare user?: NonAttribute<User>;
 }
 
-export default Clip;
+export default Media;
