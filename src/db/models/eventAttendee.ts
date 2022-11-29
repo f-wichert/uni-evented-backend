@@ -4,7 +4,7 @@ import {
     InferAttributes,
     InferCreationAttributes,
 } from 'sequelize';
-import { Column, ForeignKey, Model, Table } from 'sequelize-typescript';
+import { AllowNull, Column, ForeignKey, Model, Table } from 'sequelize-typescript';
 import Event from './event';
 import User from './user';
 
@@ -20,10 +20,12 @@ export default class EventAttendee extends Model<
     InferCreationAttributes<EventAttendee>
 > {
     @ForeignKey(() => User)
+    @AllowNull(false)
     @Column(DataTypes.UUID)
     declare userId: ForeignKeyType<string>;
 
     @ForeignKey(() => Event)
+    @AllowNull(false)
     @Column(DataTypes.UUID)
     declare eventId: ForeignKeyType<string>;
 }

@@ -64,6 +64,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     // relationships
 
     @ForeignKey(() => User)
+    @AllowNull(false)
     @Column(DataTypes.UUID)
     declare hostId: ForeignKeyType<string>;
 

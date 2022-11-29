@@ -99,7 +99,7 @@ router.post(
 
         // TODO: get the currently attended event from the user
 
-        const clip = await Media.create({ type: 'video', userId: user.id });
+        const clip = await Media.create({ type: 'video', userId: user.id, eventId: 'TODO' });
 
         const uploadPath = `${config.MEDIA_UPLOAD_ROOT}/${clip.id}`;
         const tmpPath = uploadPath + '.tmp.mp3';
