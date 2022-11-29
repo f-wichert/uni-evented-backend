@@ -1,7 +1,7 @@
 import {
     CreationOptional,
     DataTypes,
-    ForeignKey,
+    ForeignKey as ForeignKeyType,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -11,7 +11,7 @@ import {
     BelongsTo,
     Column,
     Default,
-    ForeignKey as ForeignKeyDec,
+    ForeignKey,
     Model,
     PrimaryKey,
     Table,
@@ -44,17 +44,17 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
     // relationships
 
     @AllowNull(false)
-    @ForeignKeyDec(() => Event)
+    @ForeignKey(() => Event)
     @Column(DataTypes.UUID)
-    declare eventId: ForeignKey<Event['id']>;
+    declare eventId: ForeignKeyType<Event['id']>;
 
     @BelongsTo(() => Event)
     declare event?: NonAttribute<Event>;
 
     @AllowNull(false)
-    @ForeignKeyDec(() => User)
+    @ForeignKey(() => User)
     @Column(DataTypes.UUID)
-    declare userId: ForeignKey<User['id']>;
+    declare userId: ForeignKeyType<User['id']>;
 
     @BelongsTo(() => User)
     declare user?: NonAttribute<User>;

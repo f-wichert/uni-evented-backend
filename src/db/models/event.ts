@@ -1,7 +1,7 @@
 import {
     CreationOptional,
     DataTypes,
-    ForeignKey,
+    ForeignKey as ForeignKeyType,
     HasManyAddAssociationMixin,
     InferAttributes,
     InferCreationAttributes,
@@ -14,7 +14,7 @@ import {
     BelongsToMany,
     Column,
     Default,
-    ForeignKey as ForeignKeyDec,
+    ForeignKey,
     HasMany,
     Length,
     Max,
@@ -64,9 +64,9 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     // relationships
 
     // TODO: foreign keys should be required on creation
-    @ForeignKeyDec(() => User)
+    @ForeignKey(() => User)
     @Column(DataTypes.UUID)
-    declare hostId: ForeignKey<User['id']>;
+    declare hostId: ForeignKeyType<User['id']>;
 
     @BelongsTo(() => User)
     declare host?: NonAttribute<User>;

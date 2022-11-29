@@ -1,5 +1,10 @@
-import { DataTypes, ForeignKey, InferAttributes, InferCreationAttributes } from 'sequelize';
-import { Column, ForeignKey as ForeignKeyDec, Model, Table } from 'sequelize-typescript';
+import {
+    DataTypes,
+    ForeignKey as ForeignKeyType,
+    InferAttributes,
+    InferCreationAttributes,
+} from 'sequelize';
+import { Column, ForeignKey, Model, Table } from 'sequelize-typescript';
 import Event from './event';
 import User from './user';
 
@@ -8,11 +13,11 @@ export default class EventAttendee extends Model<
     InferAttributes<EventAttendee>,
     InferCreationAttributes<EventAttendee>
 > {
-    @ForeignKeyDec(() => User)
+    @ForeignKey(() => User)
     @Column(DataTypes.UUID)
-    declare userId: ForeignKey<User['id']>;
+    declare userId: ForeignKeyType<User['id']>;
 
-    @ForeignKeyDec(() => Event)
+    @ForeignKey(() => Event)
     @Column(DataTypes.UUID)
-    declare eventId: ForeignKey<Event['id']>;
+    declare eventId: ForeignKeyType<Event['id']>;
 }
