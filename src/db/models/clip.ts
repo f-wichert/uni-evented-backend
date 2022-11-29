@@ -29,17 +29,17 @@ export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<C
 
     @AllowNull(false)
     @Default(false)
-    @Column
+    @Column(DataTypes.BOOLEAN)
     declare fileAvailable: CreationOptional<boolean>;
 
     @AllowNull(false)
     @Default(0)
-    @Column
+    @Column(DataTypes.INTEGER)
     declare length: CreationOptional<number>;
 
     @AllowNull(false)
     @ForeignKeyDec(() => Event)
-    @Column
+    @Column(DataTypes.STRING)
     declare eventId: ForeignKey<Event['id']>;
 
     @BelongsTo(() => Event)
@@ -47,7 +47,7 @@ export class Clip extends Model<InferAttributes<Clip>, InferCreationAttributes<C
 
     @AllowNull(false)
     @ForeignKeyDec(() => User)
-    @Column
+    @Column(DataTypes.STRING)
     declare uploaderId: ForeignKey<User['id']>;
 
     @BelongsTo(() => User)

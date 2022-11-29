@@ -43,10 +43,10 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     declare password: string;
 
     @Column(DataTypes.STRING)
-    declare displayName: string | null;
+    declare displayName?: string | null;
 
     @HasMany(() => Event)
-    declare events: NonAttribute<Event[]>;
+    declare events?: NonAttribute<Event[]>;
 
     @BeforeCreate
     static async beforeCreateHook(user: User) {

@@ -46,11 +46,11 @@ export class Event extends Model<InferAttributes<Event>, InferCreationAttributes
     declare startDateTime: Date;
 
     // can be null -> open end
-    @Column
-    declare endDateTime: Date;
+    @Column(DataTypes.DATE)
+    declare endDateTime?: Date | null;
 
     @ForeignKeyDec(() => User)
-    @Column
+    @Column(DataTypes.STRING)
     declare hostId: ForeignKey<User['id']>;
 
     @BelongsTo(() => User)
