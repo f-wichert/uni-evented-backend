@@ -31,7 +31,9 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Column(DataTypes.UUID)
     declare id: CreationOptional<string>;
 
-    // `CITEXT` is pg-specific, and gets translated to `TEXT COLLATE NOCASE` for sqlite
+    // `CITEXT` makes the column and queries case-insensitive,
+    // so that uppercase/lowercase in username does not matter
+    // (it's pg-specific, and gets translated to `TEXT COLLATE NOCASE` for sqlite)
     @Length({ min: 1, max: 16 })
     @IsAlphanumeric
     @AllowNull(false)
@@ -47,7 +49,7 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
 
     @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
-    declare displayName: string | null;
+    declare displayName?: string | null;
 
     // relationships
 
