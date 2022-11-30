@@ -12,6 +12,8 @@ import User from './db/models/user';
 import routes from './routes';
 import { asyncHandler } from './utils';
 
+import { sendSimpleMail } from './utils/email';
+
 const app = express();
 
 app.use(compression());
@@ -35,6 +37,13 @@ app.get(
         res.json({ things: 'stuff' });
     })
 );
+
+app.get('/email', (req,res) => {
+    console.log('Sending Email');
+    // sendSimpleMail('laurenz.kammeyer@gmx.de', 'TestMail', '<h1> Hallo von Bot 4 </h1>')
+    console.log('Send Mail');
+    res.send('<h1> Top </h1>')
+})
 
 async function init() {
     await connect();
