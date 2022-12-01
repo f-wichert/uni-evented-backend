@@ -30,12 +30,17 @@ export class ClipQuality {
     }
 }
 
+// simple inclusion checking with type safety, inspired by
+// https://stackoverflow.com/a/56792762
+export const imageQualityNames = <const>['high', 'medium', 'low'];
+export type ImageQualityName = typeof imageQualityNames[number];
+
 export class ImageQuality {
-    readonly name: string;
+    readonly name: ImageQualityName;
     readonly width: number;
     readonly height: number;
 
-    constructor(name: string, width: number, height: number) {
+    constructor(name: ImageQualityName, width: number, height: number) {
         this.name = name;
         this.width = width;
         this.height = height;
