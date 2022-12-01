@@ -47,8 +47,13 @@ async function init() {
     await connect();
 
     // create media directories if they don't exists
-    await fs.promises.mkdir(config.MEDIA_ROOT + '/clips', { recursive: true });
-    await fs.promises.mkdir(config.MEDIA_UPLOAD_ROOT, { recursive: true });
+    for (const path of [
+        config.MEDIA_ROOT + '/video',
+        config.MEDIA_ROOT + '/image',
+        config.MEDIA_UPLOAD_ROOT,
+    ]) {
+        await fs.promises.mkdir(path, { recursive: true });
+    }
 
     app.listen(config.PORT, () => {
         console.log(`Server is running at http://localhost:${config.PORT}`);

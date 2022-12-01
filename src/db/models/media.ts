@@ -20,6 +20,8 @@ import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
 
+export type MediaType = 'image' | 'video';
+
 @Table
 export default class Media extends Model<InferAttributes<Media>, InferCreationAttributes<Media>> {
     @PrimaryKey
@@ -29,7 +31,7 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
 
     @AllowNull(false)
     @Column(DataTypes.ENUM('image', 'video'))
-    declare type: 'image' | 'video';
+    declare type: MediaType;
 
     @AllowNull(false)
     @Default(false)

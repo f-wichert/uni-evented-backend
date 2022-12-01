@@ -1,82 +1,79 @@
-import { Router } from 'express';
-import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
+import assert from 'assert';
+import { Request, Router } from 'express';
 import fs from 'fs';
 import config from '../config';
-import Media from '../db/models/media';
+import Media, { MediaType } from '../db/models/media';
 import { requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
-import { ClipQuality, FfmpegJobQueue } from '../utils/ffmpeg';
+import MediaProcessor, { ClipQuality, ImageQuality } from '../utils/mediaProcessing';
+
+// TODO: Use multer for file upload
+
+const router = Router();
 
 const CLIP_QUALITIES = [
     new ClipQuality(480, 854, 600, 32, 44100, 1),
     new ClipQuality(720, 1280, 1500, 64, 44100, 2),
 ];
 
-const router = Router();
+const IMAGE_QUALITIES = [
+    new ImageQuality('high', 1080, 1920),
+    new ImageQuality('medium', 720, 1280),
+    new ImageQuality('low', 480, 854),
+];
 
-const ffmpegJobQueue = new FfmpegJobQueue();
+const mediaProcessor = new MediaProcessor();
 
-/**
- * Processes any input video file into multiple hls stream with multiple qualities,
- * defined in `CLIP_QUALITIES`.
- *
- * The streams consist of one h264 video and an aac audio stream with the specified
- * resolutions and bitrates.
- *
- * @param input input file path
- * @param tmp path for a temporary audio container, should be .mp3
- * @param output output directory path
- */
-async function processClip(id: string, input: string, tmp: string, output: string) {
-    // attempt to extract the length of the video
-    const probe: FfprobeData = await new Promise((resolve, reject) =>
-        ffmpeg.ffprobe(input, (err, data) => (data ? resolve(data) : reject(err)))
-    );
+async function handleMediaUpload(mediaType: MediaType, req: Request) {
+    assert(req.files && Object.keys(req.files).length === 1, 'No or too many files uploaded');
 
-    const length = probe.format.duration;
+    const file = req.files[config.UPLOAD_INPUT_NAME_FIELD];
+    assert(!Array.isArray(file));
 
-    // TODO: do some audio pre-processing, needed if input has no audio stream
-    // await ffmpegPromise(
-    //     ffmpeg(input, { timeout: config.FFMPEG_TIMEOUT })
-    //         .input('anullsrc=channel_layout=stereo:sample_rate=44100')
-    //         .inputFormat('lavfi')
-    //         .addOptions(['-c:a aac', '-ar 44100', '-ac 2', length ? `-t ${length}` : '-shortest',])
-    //         .output(tmp)
-    // );
+    const user = req.user!;
+    const eventId = user.currentEventId;
 
-    // inspired by https://stackoverflow.com/a/71985380
-    let fmpg = ffmpeg(input, { timeout: config.FFMPEG_TIMEOUT })
-        .addOptions(
-            new Array<string[]>(CLIP_QUALITIES.length).fill(['-map 0:v:0', '-map 0:a:0']).flat()
-        )
-        .addOptions(['-c:v libx264', '-crf 22', '-c:a aac']);
+    assert(eventId, 'user is not attending an event');
 
-    let streamMapString = '';
-
-    CLIP_QUALITIES.forEach((quality, index) => {
-        fmpg = fmpg.addOptions([
-            `-filter:v:${index} scale=w=${quality.width}:h=${quality.height}`,
-            `-maxrate:v:${index} ${quality.vBitrate}k`,
-            `-bufsize:v:${index} ${quality.vBufsize}k`,
-            `-b:a:${index} ${quality.aBitrate}k`,
-            `-ar:a:${index} ${quality.aSamplerate}`,
-            `-ac:a:${index} ${quality.aChannels}`,
-        ]);
-        streamMapString += `v:${index},a:${index},name:${quality.height}p `;
+    const media = await Media.create({
+        type: mediaType,
+        userId: user.id,
+        eventId: eventId,
     });
 
-    fmpg = fmpg
-        .addOption('-var_stream_map', streamMapString)
-        .addOptions([
-            length ? `-t ${length}` : '-shortest',
-            '-f hls',
-            `-hls_time ${config.CLIP_HLS_SEGMENT_DURATION}`,
-            '-hls_list_size 0',
-            `-master_pl_name index.m3u8`,
-        ])
-        .output(`${output}/index-%v.m3u8`);
+    const fileExtension = file.name.substring(file.name.lastIndexOf('.'));
+    const uploadPath = `${config.MEDIA_UPLOAD_ROOT}/${media.id}${fileExtension}`;
+    const mediaPath = `${config.MEDIA_ROOT}/${mediaType}/${media.id}`;
 
-    await ffmpegJobQueue.process(id, fmpg);
+    try {
+        await fs.promises.mkdir(mediaPath, { recursive: true });
+        await file.mv(uploadPath);
+        await mediaProcessor.process(
+            mediaType,
+            media.id,
+            uploadPath,
+            mediaPath,
+            mediaType == 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES
+        );
+    } catch (error) {
+        media
+            .destroy()
+            .catch((error) => console.error(`failed to remove ${media.id}: ${String(error)}`));
+        void fs.promises
+            .rm(mediaPath, { recursive: true })
+            .catch((error) => console.error(`failed to remove ${mediaPath}: ${String(error)}`));
+        throw error;
+    } finally {
+        void fs.promises
+            .rm(uploadPath)
+            .catch((error) => console.error(`failed to remove ${uploadPath}: ${String(error)}`));
+    }
+
+    media.fileAvailable = true;
+    media
+        .save()
+        .then(() => console.log(`media ${media.id} now available`))
+        .catch((error) => console.error(`failed to save media ${media.id}: ${String(error)}`));
 }
 
 // endpoint accepts a request with a single file
@@ -85,53 +82,16 @@ router.post(
     '/clip',
     requireAuth,
     asyncHandler(async (req, res) => {
-        if (!req.files || !(Object.keys(req.files).length === 1)) {
-            throw Error('No or too many files uploaded');
-        }
+        await handleMediaUpload('video', req);
+        res.send('ok!');
+    })
+);
 
-        const file = req.files[config.CLIP_UPLOAD_INPUT_NAME_FIELD];
-
-        if (Array.isArray(file)) {
-            throw Error(`File is an Array`);
-        }
-
-        const user = req.user!;
-
-        // TODO: get the currently attended event from the user
-
-        const clip = await Media.create({ type: 'video', userId: user.id, eventId: 'TODO' });
-
-        const uploadPath = `${config.MEDIA_UPLOAD_ROOT}/${clip.id}`;
-        const tmpPath = uploadPath + '.tmp.mp3';
-        const clipPath = `${config.MEDIA_ROOT}/clips/${clip.id}`;
-
-        try {
-            await fs.promises.mkdir(clipPath, { recursive: true });
-            await file.mv(uploadPath);
-            await processClip(clip.id, uploadPath, tmpPath, clipPath);
-        } catch (error) {
-            const clipId = clip.id;
-            clip.destroy()
-                .then(() => console.log(`removed clip ${clipId}`))
-                .catch((error) => console.error(`failed to remove ${clipId}: ${String(error)}`));
-            throw error;
-        } finally {
-            [uploadPath].forEach(
-                (path) =>
-                    void fs.promises
-                        .rm(path)
-                        .then(() => console.log(`removed ${path}`))
-                        .catch((error) =>
-                            console.error(`failed to remove ${path}: ${String(error)}`)
-                        )
-            );
-        }
-
-        clip.fileAvailable = true;
-        clip.save()
-            .then(() => console.log(`clip ${clip.id} now available`))
-            .catch((error) => console.error(`failed to save clip ${clip.id}: ${String(error)}`));
-
+router.post(
+    '/image',
+    requireAuth,
+    asyncHandler(async (req, res) => {
+        await handleMediaUpload('image', req);
         res.send('ok!');
     })
 );
