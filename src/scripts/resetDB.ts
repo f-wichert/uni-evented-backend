@@ -20,6 +20,8 @@ async function generateTestdata() {
         lat: 49.877432,
         lon: 8.654297,
     });
+    user.currentEventId = event.id;
+    await user.save();
 
     await Media.create({
         type: 'video',

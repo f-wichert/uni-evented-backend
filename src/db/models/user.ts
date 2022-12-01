@@ -1,6 +1,7 @@
 import {
     CreationOptional,
     DataTypes,
+    ForeignKey,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -9,9 +10,11 @@ import {
     AllowNull,
     BeforeCreate,
     BeforeUpdate,
+    BelongsTo,
     BelongsToMany,
     Column,
     Default,
+    ForeignKey as ForeignKeyDec,
     HasMany,
     IsAlphanumeric,
     Length,
@@ -50,6 +53,15 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
     declare displayName?: string | null;
+
+    // can be null if user is not attending an event
+    @ForeignKeyDec(() => Event)
+    @AllowNull(true)
+    @Column(DataTypes.UUID)
+    declare currentEventId?: ForeignKey<string> | null;
+
+    @BelongsTo(() => Event)
+    declare currentEvent?: NonAttribute<Event> | null;
 
     // relationships
 
