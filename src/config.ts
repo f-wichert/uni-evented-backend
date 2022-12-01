@@ -26,11 +26,16 @@ export default e.envsafe({
         default: 'uploads',
         desc: 'The root of the directory where all user uploads will be stored temporarily while being processed',
     }),
-    FFMPEG_TIMEOUT: e.num(),
-    CLIP_MAX_RESOLUTION: e.str({
-        default: '720x1280',
-        desc: 'The resolution all clips will be converted to for the highest stream quality',
+    FFMPEG_TIMEOUT: e.num({
+        default: 240,
+        desc: 'The timeout for all ffmpeg processes in seconds',
     }),
-    CLIP_HLS_SEGMENT_DURATION: e.num(),
-    CLIP_UPLOAD_INPUT_NAME_FIELD: e.str(),
+    FFMPEG_HLS_SEGMENT_DURATION: e.num({
+        default: 5,
+        desc: 'The duration of hls segments for all videos',
+    }),
+    UPLOAD_INPUT_NAME_FIELD: e.str({
+        default: 'File',
+        desc: 'The name of the form data field containing all uploaded files',
+    }),
 });
