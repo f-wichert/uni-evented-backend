@@ -194,7 +194,7 @@ router.post(
 );
 
 /**
- * Leave the currently attended
+ * Leave the currently attended event
  *
  * Auth required
  */
