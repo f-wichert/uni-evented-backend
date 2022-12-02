@@ -12,7 +12,11 @@ async function generateTestdata() {
 
     // Write your Testdata here
     const user = await User.create({ username: 'lorenzo', password: 'verysecure' });
-    const user2 = await User.create({ username: 'notlorenzo', password: 'notverysecure' });
+    const user2 = await User.create({ username: 'notlorenzo', password: 'verysecure' });
+    const user3 = await User.create({ username: 'reallorenzo', password: 'verysecure' });
+    const user4 = await User.create({ username: 'alice', password: 'verysecure' });
+    const user5 = await User.create({ username: 'bob', password: 'verysecure' });
+
     const event = await Event.create({
         name: 'cool event',
         startDateTime: new Date(),
@@ -24,10 +28,8 @@ async function generateTestdata() {
     user.currentEventId = event.id;
     user2.currentEventId = event.id;
     await event.addAttendee(user2);
-
     await user.save();
     await user2.save();
-    await event.save();
 }
 
 void generateTestdata();
