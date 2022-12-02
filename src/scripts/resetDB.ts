@@ -12,6 +12,7 @@ async function generateTestdata() {
 
     // Write your Testdata here
     const user = await User.create({ username: 'lorenzo', password: 'verysecure' });
+    const user2 = await User.create({ username: 'notlorenzo', password: 'notverysecure' });
     const event = await Event.create({
         name: 'cool event',
         startDateTime: new Date(),
@@ -19,8 +20,14 @@ async function generateTestdata() {
         lat: 49.877432,
         lon: 8.654297,
     });
+
     user.currentEventId = event.id;
+    user2.currentEventId = event.id;
+    await event.addAttendee(user2);
+
     await user.save();
+    await user2.save();
+    await event.save();
 }
 
 void generateTestdata();

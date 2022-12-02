@@ -75,8 +75,11 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare addAttendee: HasManyAddAssociationMixin<User, string>;
     // + getAttendees, removeAttendee, hasAttendee, countAttendee also exist, see docs
 
+    @HasMany(() => User)
+    declare currentAttendees?: NonAttribute<User[]>;
+
     @HasMany(() => Media)
-    declare clips?: NonAttribute<Media[]>;
+    declare media?: NonAttribute<Media[]>;
 
     // hooks
 

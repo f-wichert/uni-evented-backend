@@ -6,14 +6,16 @@ import { z, ZodObject, ZodRawShape } from 'zod';
 
 import config from '../config';
 
-/* Usage:
- *     router.post(
- *         '/path',
- *         validateBody(z.object({...})),
- *         (req, res) => {
- *             ...
- *         }
- *     )
+/** Usage:
+ *  ```javascript
+ *  router.post(
+ *      '/path',
+ *      validateBody(z.object({...})),
+ *      (req, res) => {
+ *          ...
+ *      }
+ *  )
+ * ```
  *
  * Note that the `req` parameter has no type annotation,
  * this way `req.body` gets inferred automatically based on the specified object schema.
