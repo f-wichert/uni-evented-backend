@@ -28,7 +28,7 @@ import EventAttendee from './eventAttendee';
 import Media from './media';
 import User from './user';
 
-type EventStatus = 'scheduled' | 'running' | 'completed';
+type EventStatus = 'scheduled' | 'active' | 'completed';
 
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
@@ -43,8 +43,8 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare name: string;
 
     @AllowNull(false)
-    @Default('running')
-    @Column(DataTypes.ENUM('scheduled', 'running', 'completed'))
+    @Default('active')
+    @Column(DataTypes.ENUM('scheduled', 'active', 'completed'))
     declare status: CreationOptional<EventStatus>;
 
     @Min(-90)

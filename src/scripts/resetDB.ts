@@ -25,6 +25,14 @@ async function generateTestdata() {
         lon: 8.654297,
     });
 
+    const event2 = await Event.create({
+        name: 'actually cool event',
+        startDateTime: new Date(),
+        hostId: user3.id,
+        lat: 50.877432,
+        lon: 9.654297,
+    });
+
     user.currentEventId = event.id;
     user2.currentEventId = event.id;
     await event.addAttendee(user2);

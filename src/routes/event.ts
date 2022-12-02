@@ -1,5 +1,6 @@
 import assert from 'assert';
 import { Router } from 'express';
+import { Op } from 'sequelize';
 import { z } from 'zod';
 
 import Event from '../db/models/event';
@@ -210,6 +211,127 @@ router.post(
         await user.save();
 
         res.json({});
+    })
+);
+
+/**
+ * Find events, based on which input options are specified
+ *
+ * input
+ *  {
+ *      statuses?: ['scheduled' | 'active' | 'completed']
+ *      loadUsers?: boolean
+ *      loadMedia?: boolean
+ *      lat?: number
+ *      lon?: number
+ *      maxResults?: number
+ *      maxRadius?: number
+ *  }
+ *
+ * If lat and lon are specified the output will be sorted by distance
+ * maxResults and maxRadius are only available if location is specified
+ *
+ * returns
+ *  {[
+ *      id: string
+ *      name: string
+ *      lat: number
+ *      lon: number
+ *      startDateTime: Date
+ *      endDateTime: Date | null
+ *
+ *      // if loadMedia is true
+ *      media: [{
+ *          id: string
+ *          mediaType: 'video' | 'image'
+ *          fileAvailable: boolean
+ *      }]
+ *
+ *      // if loadUsers is true
+ *      attendees: [{
+ *          id: string
+ *          username: string
+ *          displayName: string | null
+ *      }]
+ *      currentAttendees: [{
+ *          id: string
+ *          username: string
+ *          displayName: string | null
+ *      }]
+ *  ]}
+ */
+router.get(
+    '/find',
+    requireAuth,
+    validateBody(
+        z.object({
+            statuses: z.array(z.string()).optional(),
+            loadUsers: z.boolean().optional(),
+            loadMedia: z.boolean().optional(),
+            lat: z.number().optional(),
+            lon: z.number().optional(),
+            maxResults: z.number().optional(),
+            maxRadius: z.number().optional(),
+        })
+    ),
+    asyncHandler(async (req, res) => {
+        const { statuses, loadMedia, loadUsers, lat, lon, maxResults, maxRadius } = req.body;
+
+        const includes = [];
+        if (loadMedia) {
+            includes.push({
+                model: Media,
+                as: 'media',
+                attributes: { exclude: ['createdAt', 'updatedAt'] },
+            });
+        }
+        if (loadUsers) {
+            includes.push(
+                {
+                    model: User,
+                    as: 'attendees',
+                    attributes: ['id', 'username', 'displayName'],
+                },
+                {
+                    model: User,
+                    as: 'currentAttendees',
+                    attributes: ['id', 'username', 'displayName'],
+                }
+            );
+        }
+
+        let events = await Event.findAll({
+            where: {
+                status: {
+                    [Op.or]: statuses ? statuses : [],
+                },
+            },
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+            include: includes,
+        });
+
+        // location specified
+        if (lat && lon) {
+            // filter out events that are too far away
+            if (maxRadius) {
+                events = events.filter(
+                    (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius
+                );
+            }
+
+            // TODO: always sort?
+            events.sort((event1, event2) => {
+                const dist1 = haversine(lat, lon, event1.lat, event1.lon);
+                const dist2 = haversine(lat, lon, event2.lat, event2.lon);
+                return dist1 - dist2;
+            });
+
+            if (maxResults && maxResults < events.length) {
+                events = events.splice(0, maxResults);
+            }
+        }
+
+        res.json(events);
     })
 );
 
