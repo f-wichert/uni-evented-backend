@@ -8,7 +8,7 @@ const router = Router();
 
 router.get('/:UUID/:filename', (req, res) => {
     const filename: string =
-        process.env.MEDIA_ROOT! + '/clips' + '/' + req.params.UUID + '/' + req.params.filename;
+        process.env.MEDIA_ROOT! + '/video' + '/' + req.params.UUID + '/' + req.params.filename;
 
     fs.exists(filename, function (exists) {
         if (!exists) {

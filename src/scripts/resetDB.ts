@@ -3,7 +3,6 @@ dotenv.config();
 
 import { setupDatabase } from '../db';
 import Event from '../db/models/event';
-import Media from '../db/models/media';
 import User from '../db/models/user';
 
 async function generateTestdata() {
@@ -22,13 +21,6 @@ async function generateTestdata() {
     });
     user.currentEventId = event.id;
     await user.save();
-
-    await Media.create({
-        type: 'video',
-        length: 42,
-        eventId: event.id,
-        userId: user.id,
-    });
 }
 
 void generateTestdata();
