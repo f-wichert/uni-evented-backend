@@ -95,10 +95,24 @@ export default class MediaProcessor {
     }
 
     async processImage(id: string, input: string, output: string, qualities: ImageQuality[]) {
+        const meta = await sharp(input).metadata();
+        const { orientation } = meta;
+
+        // if the orientation exif tag is between 5 and 8 the image is in portrait
+        // and has to be handled differently when resizing
+        const isPortrait = orientation && 5 <= orientation && orientation <= 8;
+
         for (const quality of qualities) {
+            // swap width and height if image is tagged as portrait
+            const [width, height] = isPortrait
+                ? [quality.height, quality.width]
+                : [quality.width, quality.height];
+
             const sharpObj = sharp(input)
-                .resize(quality.width, quality.height, { fit: 'inside' })
+                .withMetadata()
+                .resize(width, height, { fit: 'inside' })
                 .jpeg({ mozjpeg: true });
+
             const job = new SharpJob(id, sharpObj, `${output}/${quality.name}.jpg`);
             await this.imageQueue.process(job);
         }

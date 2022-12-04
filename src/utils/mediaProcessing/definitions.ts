@@ -147,8 +147,6 @@ export class SharpJob extends CallableInstance<[], void> implements MediaProcess
     }
 
     async run() {
-        console.log(`starting execution`);
         await this.sharp.toFile(this.outputPath);
-        console.log(`concluded execution`);
     }
 }
