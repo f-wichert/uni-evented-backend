@@ -232,7 +232,7 @@ router.post(
  * maxResults and maxRadius are only available if location is specified
  *
  * returns
- *  {[
+ *  { events: [
  *      id: string
  *      name: string
  *      lat: number
@@ -331,7 +331,7 @@ router.get(
             }
         }
 
-        res.json(events);
+        res.json({ events: events });
     })
 );
 
