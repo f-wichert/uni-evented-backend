@@ -9,7 +9,7 @@ import User from '../db/models/user';
 import { requireAuth } from '../passport';
 import { asyncHandler } from '../utils';
 import { haversine } from '../utils/math';
-import { validateBody } from '../utils/validate';
+import { dateSchema, validateBody } from '../utils/validate';
 
 const router = Router();
 
@@ -118,8 +118,8 @@ router.post(
             name: z.string(),
             lat: z.number(),
             lon: z.number(),
-            startDateTime: z.date().optional(),
-            endDateTime: z.date().optional(),
+            startDateTime: dateSchema.nullish(),
+            endDateTime: dateSchema.nullish(),
         })
     ),
     asyncHandler(async (req, res) => {

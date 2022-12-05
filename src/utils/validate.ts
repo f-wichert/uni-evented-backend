@@ -42,3 +42,7 @@ export function validateBody<TSchema extends ZodRawShape>(
         }
     };
 }
+
+export const dateSchema = z.preprocess((arg: unknown) => {
+    if (typeof arg == 'string' || arg instanceof Date) return new Date(arg);
+}, z.date());
