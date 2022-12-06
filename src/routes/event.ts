@@ -97,6 +97,7 @@ router.get(
  * input
  *  {
         name: string
+        tags?: string[]
         lat: number
         lon: number
         // now if not specified
@@ -116,6 +117,8 @@ router.post(
     validateBody(
         z.object({
             name: z.string(),
+            // TODO: make mandatory
+            tags: z.array(z.string()).optional(),
             lat: z.number(),
             lon: z.number(),
             startDateTime: z.date().optional(),
@@ -145,6 +148,54 @@ router.post(
         res.json({
             eventId: event.id,
         });
+    })
+);
+
+router.post(
+    '/close',
+    requireAuth,
+    validateBody(
+        z.object({
+            /** if not specified try to get currently attended event */
+            eventId: z.string().optional(),
+        })
+    ),
+    asyncHandler(async (req, res) => {
+        const user = req.user!;
+        const { eventId } = req.body;
+
+        const actualEventId = eventId || user.currentEventId;
+
+        assert(actualEventId, 'no eventId found');
+
+        const event = await Event.findOne({
+            where: { id: actualEventId },
+            include: [
+                {
+                    model: User,
+                    as: 'attendees',
+                },
+            ],
+        });
+
+        assert(event, `no event with id: ${actualEventId}`);
+        assert(
+            event.hostId == user.id,
+            `${user.id} tried to close event ${actualEventId}, but host is ${event.hostId}`
+        );
+        assert(event.status != 'completed', 'event aready completed');
+
+        // remove all current attendees from the event
+        const userSavePromises = event.attendees!.map((user) => {
+            user.currentEventId = null;
+            return user.save();
+        });
+        await Promise.all(userSavePromises);
+
+        event.status = 'completed';
+        await event.save();
+
+        res.json({});
     })
 );
 
