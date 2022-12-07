@@ -32,7 +32,7 @@ router.post(
         // beforehand to avoid unnecessary operations and provide better error messages
         const existing = await User.getByEmailOrUsername(email, username);
         if (existing) {
-            if (existing.username.toLowerCase() == username.toLowerCase())
+            if (existing.username.toLowerCase() === username.toLowerCase())
                 throw new Error('Username already taken!');
             throw new Error('User with given email already exists!');
         }

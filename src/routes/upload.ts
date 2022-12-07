@@ -53,7 +53,7 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
             media.id,
             uploadPath,
             mediaPath,
-            mediaType == 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES
+            mediaType === 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES
         );
     } catch (error) {
         media

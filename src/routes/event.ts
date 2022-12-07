@@ -180,10 +180,10 @@ router.post(
 
         assert(event, `no event with id: ${actualEventId}`);
         assert(
-            event.hostId == user.id,
+            event.hostId === user.id,
             `${user.id} tried to close event ${actualEventId}, but host is ${event.hostId}`
         );
-        assert(event.status != 'completed', 'event aready completed');
+        assert(event.status !== 'completed', 'event aready completed');
 
         // remove all current attendees from the event
         const userSavePromises = event.attendees!.map((user) => {
