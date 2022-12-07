@@ -10,7 +10,7 @@ const transporter = mailer.createTransport(config.SMTP_URL, {
     logger: true,
 });
 
-export async function sendSimpleMail(
+export async function sendMail(
     recipient: string,
     subject: string,
     options: Omit<mailer.SendMailOptions, 'from' | 'to' | 'subject'>

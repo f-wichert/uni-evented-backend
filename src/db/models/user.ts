@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {
     CreationOptional,
     DataTypes,
@@ -60,6 +61,11 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Column(DataTypes.STRING)
     declare password: string;
 
+    // note: this is essentially a plaintext password,
+    // but it'll be fine for our purposes as it's randomly generated
+    @Column(DataTypes.STRING)
+    declare passwordResetToken?: string | null;
+
     @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
     declare displayName?: string | null;
@@ -103,6 +109,17 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     }
 
     async verifyPassword(input: string): Promise<boolean> {
-        return await verifyPassword(input, this.password);
+        let valid = await verifyPassword(input, this.password);
+
+        // if the user has a reset token, try matching that as well
+        if (this.passwordResetToken) {
+            const inputBuffer = Buffer.from(input);
+            const resetTokenBuffer = Buffer.from(this.passwordResetToken);
+            valid ||=
+                inputBuffer.length === resetTokenBuffer.length &&
+                crypto.timingSafeEqual(inputBuffer, resetTokenBuffer);
+        }
+
+        return valid;
     }
 }

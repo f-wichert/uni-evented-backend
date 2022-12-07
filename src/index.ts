@@ -12,7 +12,7 @@ import { connect } from './db';
 import User from './db/models/user';
 import routes from './routes';
 import { asyncHandler } from './utils';
-import { sendSimpleMail } from './utils/email';
+import { sendMail } from './utils/email';
 import { validateBody } from './utils/validate';
 
 const app = express();
@@ -43,7 +43,7 @@ app.post(
     '/testemail',
     validateBody(z.object({ email: z.string() })),
     asyncHandler(async (req, res) => {
-        await sendSimpleMail(req.body.email, 'Test Mail', { text: 'hi there' });
+        await sendMail(req.body.email, 'Test Mail', { text: 'hi there' });
         res.sendStatus(200);
     })
 );
