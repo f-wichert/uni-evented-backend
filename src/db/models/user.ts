@@ -5,6 +5,7 @@ import {
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
+    Op,
 } from 'sequelize';
 import {
     AllowNull,
@@ -17,10 +18,12 @@ import {
     ForeignKey as ForeignKeyDec,
     HasMany,
     IsAlphanumeric,
+    IsEmail,
     Length,
     Model,
     PrimaryKey,
     Table,
+    Unique,
 } from 'sequelize-typescript';
 
 import { hashPassword, verifyPassword } from '../../utils/crypto';
@@ -39,15 +42,22 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     // (it's pg-specific, and gets translated to `TEXT COLLATE NOCASE` for sqlite)
     @Length({ min: 1, max: 16 })
     @IsAlphanumeric
+    @Unique
     @AllowNull(false)
     @Column(DataTypes.CITEXT)
     declare username: string;
+
+    @IsEmail
+    @Unique
+    @AllowNull(false)
+    @Column(DataTypes.CITEXT)
+    declare email: string;
 
     // Validators run before create/update hooks, which is what we want;
     // bcrypt is capped at 72 bytes
     @Length({ min: 8, max: 64 })
     @AllowNull(false)
-    @Column
+    @Column(DataTypes.STRING)
     declare password: string;
 
     @Length({ min: 1, max: 16 })
@@ -88,8 +98,8 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
 
     // other methods
 
-    static async getByUserName(username: string): Promise<User | null> {
-        return await User.findOne({ where: { username: username } });
+    static async getByEmailOrUsername(email: string, username: string): Promise<User | null> {
+        return await User.findOne({ where: { [Op.or]: { email: email, username: username } } });
     }
 
     async verifyPassword(input: string): Promise<boolean> {

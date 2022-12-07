@@ -12,6 +12,7 @@ router.get('/info', requireAuth, (req, res) => {
     const user = req.user!;
     res.json({
         id: user.id,
+        email: user.email,
         username: user.username,
         displayName: user.displayName,
     });
@@ -19,17 +20,22 @@ router.get('/info', requireAuth, (req, res) => {
 
 router.post(
     '/register',
-    validateBody(z.object({ username: z.string(), password: z.string() })),
+    validateBody(
+        z.object({ email: z.string().email(), username: z.string(), password: z.string() })
+    ),
     asyncHandler(async (req, res) => {
-        const { username, password } = req.body;
+        const { email, username, password } = req.body;
 
         // This is also enforced to be unique on the DB level, but we check
-        // beforehand to avoid unnecessary operations
-        if (await User.getByUserName(username)) {
-            throw new Error('User already exists!');
+        // beforehand to avoid unnecessary operations and provide better error messages
+        const existing = await User.getByEmailOrUsername(email, username);
+        if (existing) {
+            if (existing.username.toLowerCase() == username.toLowerCase())
+                throw new Error('Username already taken!');
+            throw new Error('User with given email already exists!');
         }
 
-        const user = await User.create({ username: username, password: password });
+        const user = await User.create({ email, username, password });
 
         res.json({ token: createTokenForUser(user) });
     })
@@ -41,8 +47,9 @@ router.post(
     asyncHandler(async (req, res) => {
         const { username, password } = req.body;
 
-        // inspired by https://www.passportjs.org/concepts/authentication/password/
-        const user = await User.getByUserName(username);
+        // Try provided username for both email and username fields,
+        // i.e. allow login using email as well
+        const user = await User.getByEmailOrUsername(username, username);
         if (!user) {
             throw new Error(`No user named ${username}!`);
         }
