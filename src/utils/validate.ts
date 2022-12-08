@@ -25,7 +25,7 @@ import config from '../config';
 
 export function validateBody<TSchema extends ZodRawShape>(
     schema: ZodObject<TSchema, any>,
-    strict = true
+    strict = true,
 ): RequestHandler<ParamsDictionary, any, z.infer<ZodObject<TSchema>>, any> {
     return (req, res, next) => {
         if (strict) {

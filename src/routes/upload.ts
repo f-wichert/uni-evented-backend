@@ -51,7 +51,7 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
             media.id,
             uploadPath,
             mediaPath,
-            mediaType === 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES
+            mediaType === 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES,
         );
     } catch (error) {
         media
@@ -76,20 +76,14 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
 
 // endpoint accepts a request with a single file
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
-router.post(
-    '/clip',
-    async (req, res) => {
-        await handleMediaUpload('video', req);
-        res.send('ok!');
-    },
-);
+router.post('/clip', async (req, res) => {
+    await handleMediaUpload('video', req);
+    res.send('ok!');
+});
 
-router.post(
-    '/image',
-    async (req, res) => {
-        await handleMediaUpload('image', req);
-        res.send('ok!');
-    },
-);
+router.post('/image', async (req, res) => {
+    await handleMediaUpload('image', req);
+    res.send('ok!');
+});
 
 export default router;

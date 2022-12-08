@@ -53,7 +53,7 @@ router.get(
         z.object({
             // if not specified will use user.currentEventId
             eventId: z.string().optional(),
-        })
+        }),
     ),
     async (req, res) => {
         const user = req.user!;
@@ -119,7 +119,7 @@ router.post(
             lon: z.number(),
             startDateTime: dateSchema.nullish(),
             endDateTime: dateSchema.nullish(),
-        })
+        }),
     ),
     async (req, res) => {
         const user = req.user!;
@@ -153,7 +153,7 @@ router.post(
         z.object({
             /** if not specified try to get currently attended event */
             eventId: z.string().optional(),
-        })
+        }),
     ),
     async (req, res) => {
         const user = req.user!;
@@ -176,7 +176,7 @@ router.post(
         assert(event, `no event with id: ${actualEventId}`);
         assert(
             event.hostId === user.id,
-            `${user.id} tried to close event ${actualEventId}, but host is ${event.hostId}`
+            `${user.id} tried to close event ${actualEventId}, but host is ${event.hostId}`,
         );
         assert(event.status !== 'completed', 'event aready completed');
 
@@ -213,7 +213,7 @@ router.post(
             eventId: z.string(),
             lat: z.number(),
             lon: z.number(),
-        })
+        }),
     ),
     async (req, res) => {
         const user = req.user!;
@@ -244,19 +244,16 @@ router.post(
  *
  * Auth required
  */
-router.post(
-    '/leave',
-    async (req, res) => {
-        const user = req.user!;
+router.post('/leave', async (req, res) => {
+    const user = req.user!;
 
-        assert(user.currentEventId, 'user is not attending an event');
+    assert(user.currentEventId, 'user is not attending an event');
 
-        user.currentEventId = null;
-        await user.save();
+    user.currentEventId = null;
+    await user.save();
 
-        res.json({});
-    },
-);
+    res.json({});
+});
 
 /**
  * Find events, based on which input options are specified
@@ -315,7 +312,7 @@ router.get(
             lon: z.number().optional(),
             maxResults: z.number().optional(),
             maxRadius: z.number().optional(),
-        })
+        }),
     ),
     async (req, res) => {
         const { statuses, loadMedia, loadUsers, lat, lon, maxResults, maxRadius } = req.body;
@@ -339,7 +336,7 @@ router.get(
                     model: User,
                     as: 'currentAttendees',
                     attributes: ['id', 'username', 'displayName'],
-                }
+                },
             );
         }
 
@@ -358,7 +355,7 @@ router.get(
             // filter out events that are too far away
             if (maxRadius) {
                 events = events.filter(
-                    (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius
+                    (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius,
                 );
             }
 

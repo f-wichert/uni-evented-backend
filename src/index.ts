@@ -27,28 +27,21 @@ app.use(passport.initialize());
 app.use(
     fileUpload({
         limits: { fileSize: 50 * 1024 * 1024 },
-    })
+    }),
 );
 
 // mount routers
 app.use('/api', routes);
 
-app.get(
-    '/',
-    async (req, res) => {
-        await User.findAll();
-        res.json({ things: 'stuff' });
-    },
-);
+app.get('/', async (req, res) => {
+    await User.findAll();
+    res.json({ things: 'stuff' });
+});
 
-app.post(
-    '/testemail',
-    validateBody(z.object({ email: z.string() })),
-    async (req, res) => {
-        await sendMail(req.body.email, 'Test Mail', { text: 'hi there' });
-        res.sendStatus(200);
-    },
-);
+app.post('/testemail', validateBody(z.object({ email: z.string() })), async (req, res) => {
+    await sendMail(req.body.email, 'Test Mail', { text: 'hi there' });
+    res.sendStatus(200);
+});
 
 async function init() {
     await connect();

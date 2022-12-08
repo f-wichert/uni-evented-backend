@@ -13,7 +13,7 @@ const transporter = mailer.createTransport(config.SMTP_URL, {
 export async function sendMail(
     recipient: string,
     subject: string,
-    options: Omit<mailer.SendMailOptions, 'from' | 'to' | 'subject'>
+    options: Omit<mailer.SendMailOptions, 'from' | 'to' | 'subject'>,
 ) {
     await transporter.sendMail({
         from: '"Your Evented Team" <no-reply@evented.live>',

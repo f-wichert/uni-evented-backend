@@ -12,8 +12,8 @@ const router = Router();
 
 // add routes here
 router.use('/auth', authRouter);
-router.use('/hls', streamingRouter);  // TODO: require auth
-router.use('/media', mediaRouter);  // TODO: require auth
+router.use('/hls', streamingRouter); // TODO: require auth
+router.use('/media', mediaRouter); // TODO: require auth
 // all routes following this middleware require authorization
 router.use(requireAuth);
 router.use('/event', eventRouter);

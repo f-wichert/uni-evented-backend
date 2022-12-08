@@ -22,7 +22,7 @@ router.get('/info', requireAuth, (req, res) => {
 router.post(
     '/register',
     validateBody(
-        z.object({ email: z.string().email(), username: z.string(), password: z.string() })
+        z.object({ email: z.string().email(), username: z.string(), password: z.string() }),
     ),
     async (req, res) => {
         const { email, username, password } = req.body;
@@ -69,33 +69,29 @@ router.post(
     },
 );
 
-router.post(
-    '/reset',
-    validateBody(z.object({ email: z.string() })),
-    async (req, res) => {
-        const { email } = req.body;
+router.post('/reset', validateBody(z.object({ email: z.string() })), async (req, res) => {
+    const { email } = req.body;
 
-        const user = await User.findOne({ where: { email: email } });
-        if (!user) {
-            throw new Error(`User not found!`);
-        }
+    const user = await User.findOne({ where: { email: email } });
+    if (!user) {
+        throw new Error(`User not found!`);
+    }
 
-        // generate random reset token, store in database
-        const resetToken = await randomAscii(16);
-        await user.update({ passwordResetToken: resetToken });
+    // generate random reset token, store in database
+    const resetToken = await randomAscii(16);
+    await user.update({ passwordResetToken: resetToken });
 
-        // send reset token to user through email
-        await sendMail(user.email, 'Password reset', {
-            text:
-                `A password reset was requested on your account. ` +
-                `Please use the following one-time token as the password to log in, ` +
-                `and then change your password in the profile settings:\n\n` +
-                `\t${resetToken}` +
-                `\n\nIf you did not request this action, feel free to ignore this message.`,
-        });
+    // send reset token to user through email
+    await sendMail(user.email, 'Password reset', {
+        text:
+            `A password reset was requested on your account. ` +
+            `Please use the following one-time token as the password to log in, ` +
+            `and then change your password in the profile settings:\n\n` +
+            `\t${resetToken}` +
+            `\n\nIf you did not request this action, feel free to ignore this message.`,
+    });
 
-        res.send({ status: 'ok' });
-    },
-);
+    res.send({ status: 'ok' });
+});
 
 export default router;

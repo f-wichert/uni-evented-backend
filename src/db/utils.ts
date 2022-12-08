@@ -19,7 +19,7 @@ import { AllowNull, Column, ForeignKey, ModelClassGetter } from 'sequelize-types
 /* eslint-disable @typescript-eslint/ban-types */
 export function ForeignUUIDColumn<TCreationAttributes extends {}, TModelAttributes extends {}>(
     relatedClassGetter: ModelClassGetter<TCreationAttributes, TModelAttributes>,
-    opts: { optional: boolean } = { optional: false }
+    opts: { optional: boolean } = { optional: false },
 ): Function {
     return (target: unknown, propertyName: string) => {
         [

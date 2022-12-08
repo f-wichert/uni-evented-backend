@@ -18,7 +18,7 @@ export class ClipQuality {
         vBitrate: number,
         aBitrate: number,
         aSamplerate: number,
-        aChannels: number
+        aChannels: number,
     ) {
         this.width = width;
         this.height = height;
