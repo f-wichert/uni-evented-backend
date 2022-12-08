@@ -5,6 +5,7 @@ import * as e from 'envsafe';
 
 // https://github.com/KATT/envsafe#basic-usage
 export default e.envsafe({
+    // general
     NODE_ENV: e.str({
         choices: ['development', 'production'],
     }) as e.ValidatorSpec<'development' | 'production'>,
@@ -17,7 +18,17 @@ export default e.envsafe({
         desc: 'The database connection url, i.e. <dialect>://<url>',
         example: 'sqlite://:memory:, sqlite://./some/path/, postgres://user:pass@host:5432/dbname',
     }),
-    JWT_SECRET: e.str(),
+
+    // secrets + keys
+    JWT_SECRET: e.str({
+        desc: 'Used for signing authentication tokens, should be a secure randomly generated value',
+    }),
+    SMTP_URL: e.url({
+        desc: 'SMTP connection URL for nodemailer',
+        docs: 'https://nodemailer.com/smtp/',
+    }),
+
+    // media
     MEDIA_ROOT: e.str({
         default: 'media',
         desc: 'The root of the directory where all user media will be stored',
@@ -26,6 +37,8 @@ export default e.envsafe({
         default: 'uploads',
         desc: 'The root of the directory where all user uploads will be stored temporarily while being processed',
     }),
+
+    // clips
     FFMPEG_TIMEOUT: e.num({
         default: 240,
         desc: 'The timeout for all ffmpeg processes in seconds',

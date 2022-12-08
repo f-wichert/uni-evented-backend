@@ -11,11 +11,31 @@ async function generateTestdata() {
     console.log('Successfully reset Database');
 
     // Write your Testdata here
-    const user = await User.create({ username: 'Lorenzo', password: 'Verysecure' });
-    const user2 = await User.create({ username: 'Notlorenzo', password: 'Verysecure' });
-    const user3 = await User.create({ username: 'Reallorenzo', password: 'Verysecure' });
-    const user4 = await User.create({ username: 'Alice', password: 'Verysecure' });
-    const user5 = await User.create({ username: 'Bob', password: 'Verysecure' });
+    const user = await User.create({
+        username: 'Lorenzo',
+        password: 'Verysecure',
+        email: 'test1@evented.live',
+    });
+    const user2 = await User.create({
+        username: 'Notlorenzo',
+        password: 'Verysecure',
+        email: 'test2@evented.live',
+    });
+    const user3 = await User.create({
+        username: 'Reallorenzo',
+        password: 'Verysecure',
+        email: 'test3@evented.live',
+    });
+    const user4 = await User.create({
+        username: 'Alice',
+        password: 'Verysecure',
+        email: 'test4@evented.live',
+    });
+    const user5 = await User.create({
+        username: 'Bob',
+        password: 'Verysecure',
+        email: 'test5@evented.live',
+    });
 
     const event = await Event.create({
         name: 'cool event',

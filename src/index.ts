@@ -5,12 +5,15 @@ import fileUpload from 'express-fileupload';
 import fs from 'fs';
 import morgan from 'morgan';
 import passport from 'passport';
+import { z } from 'zod';
 
 import config from './config';
 import { connect } from './db';
 import User from './db/models/user';
 import routes from './routes';
 import { asyncHandler } from './utils';
+import { sendMail } from './utils/email';
+import { validateBody } from './utils/validate';
 
 const app = express();
 
@@ -36,12 +39,14 @@ app.get(
     })
 );
 
-app.get('/email', (req, res) => {
-    console.log('Sending Email');
-    // sendSimpleMail('laurenz.kammeyer@gmx.de', 'TestMail', '<h1> Hallo von Bot 4 </h1>')
-    console.log('Send Mail');
-    res.send('<h1> Top </h1>');
-});
+app.post(
+    '/testemail',
+    validateBody(z.object({ email: z.string() })),
+    asyncHandler(async (req, res) => {
+        await sendMail(req.body.email, 'Test Mail', { text: 'hi there' });
+        res.sendStatus(200);
+    })
+);
 
 async function init() {
     await connect();
@@ -58,7 +63,6 @@ async function init() {
     app.listen(config.PORT, () => {
         console.log(`Server is running at http://localhost:${config.PORT}`);
     });
-    console.log('finished Setup');
 }
 
 void init();
