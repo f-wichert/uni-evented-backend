@@ -6,7 +6,6 @@ import { z } from 'zod';
 import Event from '../db/models/event';
 import Media from '../db/models/media';
 import User from '../db/models/user';
-import { requireAuth } from '../passport';
 import { haversine } from '../utils/math';
 import { dateSchema, validateBody } from '../utils/validate';
 
@@ -50,7 +49,6 @@ const router = Router();
  */
 router.get(
     '/info',
-    requireAuth,
     validateBody(
         z.object({
             // if not specified will use user.currentEventId
@@ -112,7 +110,6 @@ router.get(
  */
 router.post(
     '/create',
-    requireAuth,
     validateBody(
         z.object({
             name: z.string(),
@@ -152,7 +149,6 @@ router.post(
 
 router.post(
     '/close',
-    requireAuth,
     validateBody(
         z.object({
             /** if not specified try to get currently attended event */
@@ -212,7 +208,6 @@ router.post(
  */
 router.post(
     '/join',
-    requireAuth,
     validateBody(
         z.object({
             eventId: z.string(),
@@ -251,7 +246,6 @@ router.post(
  */
 router.post(
     '/leave',
-    requireAuth,
     async (req, res) => {
         const user = req.user!;
 
@@ -312,7 +306,6 @@ router.post(
  */
 router.get(
     '/find',
-    requireAuth,
     validateBody(
         z.object({
             statuses: z.array(z.string()).optional(),

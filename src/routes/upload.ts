@@ -3,7 +3,6 @@ import { Request, Router } from 'express';
 import fs from 'fs';
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
-import { requireAuth } from '../passport';
 import MediaProcessor, { ClipQuality, ImageQuality } from '../utils/mediaProcessing';
 
 // TODO: Use multer for file upload
@@ -79,7 +78,6 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
 router.post(
     '/clip',
-    requireAuth,
     async (req, res) => {
         await handleMediaUpload('video', req);
         res.send('ok!');
@@ -88,7 +86,6 @@ router.post(
 
 router.post(
     '/image',
-    requireAuth,
     async (req, res) => {
         await handleMediaUpload('image', req);
         res.send('ok!');

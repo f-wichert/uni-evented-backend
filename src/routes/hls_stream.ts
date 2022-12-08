@@ -1,8 +1,6 @@
-import * as dotenv from 'dotenv';
 import { Router } from 'express';
 import fs from 'fs';
 import { extname } from 'path';
-dotenv.config();
 
 const router = Router();
 

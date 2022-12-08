@@ -5,11 +5,6 @@ const router = Router();
 
 router.use(
     '/',
-    // requireAuth,
-    (req, res, next) => {
-        // TODO
-        return next();
-    },
     express.static(config.MEDIA_ROOT)
 );
 
