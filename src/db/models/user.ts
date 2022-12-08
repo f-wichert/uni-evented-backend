@@ -16,7 +16,6 @@ import {
     BelongsToMany,
     Column,
     Default,
-    ForeignKey as ForeignKeyDec,
     HasMany,
     IsAlphanumeric,
     IsEmail,
@@ -28,6 +27,7 @@ import {
 } from 'sequelize-typescript';
 
 import { hashPassword, verifyPassword } from '../../utils/crypto';
+import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import EventAttendee from './eventAttendee';
 
@@ -71,9 +71,7 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     declare displayName?: string | null;
 
     // can be null if user is not attending an event
-    @ForeignKeyDec(() => Event)
-    @AllowNull(true)
-    @Column(DataTypes.UUID)
+    @ForeignUUIDColumn(() => Event, { optional: true })
     declare currentEventId?: ForeignKey<string> | null;
 
     @BelongsTo(() => Event)
