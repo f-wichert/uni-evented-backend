@@ -29,6 +29,7 @@
         "dotenv": "^16.0.3",
         "envsafe": "^2.0.3",
         "express": "^4.18.2",
+        "express-async-errors": "^3.1.1",
         "express-fileupload": "^1.4.0",
         "fluent-ffmpeg": "^2.1.2",
         "hls-server": "^1.5.0",

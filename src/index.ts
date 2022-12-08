@@ -1,5 +1,8 @@
 import compression from 'compression';
 import express from 'express';
+// This patches express to handle async rejections in route handlers,
+// avoiding having to wrap everything in `asyncHandler`s.
+import 'express-async-errors';
 
 import fileUpload from 'express-fileupload';
 import fs from 'fs';
@@ -11,7 +14,6 @@ import config from './config';
 import { connect } from './db';
 import User from './db/models/user';
 import routes from './routes';
-import { asyncHandler } from './utils';
 import { sendMail } from './utils/email';
 import { validateBody } from './utils/validate';
 
@@ -33,19 +35,19 @@ app.use('/api', routes);
 
 app.get(
     '/',
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         await User.findAll();
         res.json({ things: 'stuff' });
-    })
+    },
 );
 
 app.post(
     '/testemail',
     validateBody(z.object({ email: z.string() })),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         await sendMail(req.body.email, 'Test Mail', { text: 'hi there' });
         res.sendStatus(200);
-    })
+    },
 );
 
 async function init() {

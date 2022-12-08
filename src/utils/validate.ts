@@ -34,11 +34,12 @@ export function validateBody<TSchema extends ZodRawShape>(
         const parsed = schema.safeParse(req.body);
         if (parsed.success) {
             req.body = parsed.data;
-            return next();
+            next();
         } else {
-            const resData =
+            const error =
                 config.NODE_ENV === 'development' ? parsed.error.format() : 'invalid payload';
-            return res.status(400).send({ error: resData });
+            res.status(400).send({ error });
+            next(`Invalid request data: ${JSON.stringify(error)}`);
         }
     };
 }

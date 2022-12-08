@@ -4,7 +4,6 @@ import fs from 'fs';
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
 import { requireAuth } from '../passport';
-import { asyncHandler } from '../utils';
 import MediaProcessor, { ClipQuality, ImageQuality } from '../utils/mediaProcessing';
 
 // TODO: Use multer for file upload
@@ -81,19 +80,19 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
 router.post(
     '/clip',
     requireAuth,
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         await handleMediaUpload('video', req);
         res.send('ok!');
-    })
+    },
 );
 
 router.post(
     '/image',
     requireAuth,
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         await handleMediaUpload('image', req);
         res.send('ok!');
-    })
+    },
 );
 
 export default router;

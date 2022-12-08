@@ -7,7 +7,6 @@ import Event from '../db/models/event';
 import Media from '../db/models/media';
 import User from '../db/models/user';
 import { requireAuth } from '../passport';
-import { asyncHandler } from '../utils';
 import { haversine } from '../utils/math';
 import { dateSchema, validateBody } from '../utils/validate';
 
@@ -58,7 +57,7 @@ router.get(
             eventId: z.string().optional(),
         })
     ),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const user = req.user!;
         const { eventId } = req.body;
         const actualEventId = eventId || user.currentEventId;
@@ -86,7 +85,7 @@ router.get(
         assert(event, `no event with id ${actualEventId} found`);
 
         res.json(event);
-    })
+    },
 );
 
 /**
@@ -125,7 +124,7 @@ router.post(
             endDateTime: dateSchema.nullish(),
         })
     ),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const user = req.user!;
         const { name, lat, lon, startDateTime, endDateTime } = req.body;
         const actualStartDateTime = startDateTime || new Date();
@@ -148,7 +147,7 @@ router.post(
         res.json({
             eventId: event.id,
         });
-    })
+    },
 );
 
 router.post(
@@ -160,7 +159,7 @@ router.post(
             eventId: z.string().optional(),
         })
     ),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const user = req.user!;
         const { eventId } = req.body;
 
@@ -196,7 +195,7 @@ router.post(
         await event.save();
 
         res.json({});
-    })
+    },
 );
 
 /**
@@ -221,7 +220,7 @@ router.post(
             lon: z.number(),
         })
     ),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const user = req.user!;
         const { eventId, lat, lon } = req.body;
 
@@ -242,7 +241,7 @@ router.post(
         await user.save();
 
         res.json({});
-    })
+    },
 );
 
 /**
@@ -253,7 +252,7 @@ router.post(
 router.post(
     '/leave',
     requireAuth,
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const user = req.user!;
 
         assert(user.currentEventId, 'user is not attending an event');
@@ -262,7 +261,7 @@ router.post(
         await user.save();
 
         res.json({});
-    })
+    },
 );
 
 /**
@@ -325,7 +324,7 @@ router.get(
             maxRadius: z.number().optional(),
         })
     ),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const { statuses, loadMedia, loadUsers, lat, lon, maxResults, maxRadius } = req.body;
 
         const includes = [];
@@ -381,7 +380,7 @@ router.get(
         }
 
         res.json({ events: events });
-    })
+    },
 );
 
 export default router;

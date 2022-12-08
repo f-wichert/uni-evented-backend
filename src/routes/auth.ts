@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import User from '../db/models/user';
 import { createTokenForUser, requireAuth } from '../passport';
-import { asyncHandler } from '../utils';
 import { randomAscii } from '../utils/crypto';
 import { sendMail } from '../utils/email';
 import { validateBody } from '../utils/validate';
@@ -25,7 +24,7 @@ router.post(
     validateBody(
         z.object({ email: z.string().email(), username: z.string(), password: z.string() })
     ),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const { email, username, password } = req.body;
 
         // This is also enforced to be unique on the DB level, but we check
@@ -40,13 +39,13 @@ router.post(
         const user = await User.create({ email, username, password });
 
         res.json({ token: createTokenForUser(user) });
-    })
+    },
 );
 
 router.post(
     '/login',
     validateBody(z.object({ username: z.string(), password: z.string() })),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const { username, password } = req.body;
 
         // Try provided username for both email and username fields,
@@ -67,13 +66,13 @@ router.post(
         }
 
         res.json({ token: createTokenForUser(user) });
-    })
+    },
 );
 
 router.post(
     '/reset',
     validateBody(z.object({ email: z.string() })),
-    asyncHandler(async (req, res) => {
+    async (req, res) => {
         const { email } = req.body;
 
         const user = await User.findOne({ where: { email: email } });
@@ -96,7 +95,7 @@ router.post(
         });
 
         res.send({ status: 'ok' });
-    })
+    },
 );
 
 export default router;
