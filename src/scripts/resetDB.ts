@@ -53,11 +53,13 @@ async function generateTestdata() {
         lon: 9.654297,
     });
 
-    user.currentEventId = event.id;
-    user2.currentEventId = event.id;
     await event.addAttendee(user2);
-    await user.save();
-    await user2.save();
+    await event2.addAttendee(user3);
+    await event2.addAttendee(user4);
+    await event2.addAttendee(user5);
+
+    await user.update({ currentEventId: event.id });
+    await user2.update({ currentEventId: event.id });
 }
 
 void generateTestdata();
