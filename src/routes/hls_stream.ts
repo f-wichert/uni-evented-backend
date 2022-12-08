@@ -2,11 +2,13 @@ import { Router } from 'express';
 import fs from 'fs';
 import { extname } from 'path';
 
+import config from '../config';
+
 const router = Router();
 
 router.get('/:UUID/:filename', (req, res) => {
     const filename: string =
-        process.env.MEDIA_ROOT! + '/video' + '/' + req.params.UUID + '/' + req.params.filename;
+        config.MEDIA_ROOT + '/video/' + req.params.UUID + '/' + req.params.filename;
 
     fs.exists(filename, function (exists) {
         if (!exists) {
