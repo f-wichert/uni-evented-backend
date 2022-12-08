@@ -1,56 +1,43 @@
 import { Router } from 'express';
-import fs from 'fs';
+import { default as fsSync } from 'fs';
+import fs from 'fs/promises';
 import { extname } from 'path';
 
 import config from '../config';
 
 const router = Router();
 
-router.get('/:UUID/:filename', (req, res) => {
+router.get('/:UUID/:filename', async (req, res) => {
     const filename: string =
         config.MEDIA_ROOT + '/video/' + req.params.UUID + '/' + req.params.filename;
 
-    fs.exists(filename, function (exists) {
-        if (!exists) {
-            console.log('file not found: ' + filename);
-            res.writeHead(404, { 'Content-Type': 'text/plain' });
-            res.write(`file not found: %s\n${filename}`);
-            res.end();
-        } else {
-            console.log('sending file: ' + filename);
-            switch (extname(filename)) {
-                case '.m3u8':
-                    fs.readFile(filename, function (err, contents) {
-                        if (err) {
-                            res.writeHead(500);
-                            res.end();
-                        } else if (contents) {
-                            res.writeHead(200, {
-                                'Content-Type': 'application/vnd.apple.mpegurl',
-                                'Access-Control-Allow_Origin': '*',
-                            });
-                            res.end(contents, 'utf-8');
-                        } else {
-                            console.log('emptly playlist');
-                            res.writeHead(500);
-                            res.end();
-                        }
-                    });
-                    break;
-                case '.ts':
-                    res.writeHead(200, {
-                        'Content-Type': 'video/MP2T',
-                        'Access-Control-Allow_Origin': '*',
-                    });
-                    fs.createReadStream(filename).pipe(res);
-                    break;
-                default:
-                    console.log('unknown file type: ' + extname(filename));
-                    res.writeHead(500);
-                    res.end();
+    // check if the file exists
+    try {
+        await fs.access(filename, fs.constants.R_OK);
+    } catch {
+        res.sendStatus(404);
+        return;
+    }
+
+    console.log('sending file: ' + filename);
+    const ext = extname(filename);
+    switch (ext) {
+        case '.m3u8': {
+            const contents = await fs.readFile(filename);
+            if (!contents.length) {
+                throw new Error(`Empty playlist file: ${filename}`);
             }
+            res.header('Content-Type', 'application/vnd.apple.mpegurl');
+            res.send(contents);
+            break;
         }
-    });
+        case '.ts':
+            res.header('Content-Type', 'video/MP2T');
+            fsSync.createReadStream(filename).pipe(res);
+            break;
+        default:
+            throw new Error(`Unknown file type: ${ext}`);
+    }
 });
 
 export default router;

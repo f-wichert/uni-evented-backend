@@ -5,7 +5,7 @@ import express from 'express';
 import 'express-async-errors';
 
 import fileUpload from 'express-fileupload';
-import fs from 'fs';
+import fs from 'fs/promises';
 import morgan from 'morgan';
 import passport from 'passport';
 
@@ -42,7 +42,7 @@ async function init() {
         config.MEDIA_ROOT + '/image',
         config.MEDIA_UPLOAD_ROOT,
     ]) {
-        await fs.promises.mkdir(path, { recursive: true });
+        await fs.mkdir(path, { recursive: true });
     }
 
     app.listen(config.PORT, () => {

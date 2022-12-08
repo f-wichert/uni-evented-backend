@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { Request, Router } from 'express';
-import fs from 'fs';
+import fs from 'fs/promises';
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
 import MediaProcessor, { ClipQuality, ImageQuality } from '../utils/mediaProcessing';
@@ -44,7 +44,7 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
     const mediaPath = `${config.MEDIA_ROOT}/${mediaType}/${media.id}`;
 
     try {
-        await fs.promises.mkdir(mediaPath, { recursive: true });
+        await fs.mkdir(mediaPath, { recursive: true });
         await file.mv(uploadPath);
         await mediaProcessor.process(
             mediaType,
@@ -57,12 +57,12 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
         media
             .destroy()
             .catch((error) => console.error(`failed to remove ${media.id}: ${String(error)}`));
-        void fs.promises
+        void fs
             .rm(mediaPath, { recursive: true })
             .catch((error) => console.error(`failed to remove ${mediaPath}: ${String(error)}`));
         throw error;
     } finally {
-        void fs.promises
+        void fs
             .rm(uploadPath)
             .catch((error) => console.error(`failed to remove ${uploadPath}: ${String(error)}`));
     }
