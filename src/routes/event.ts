@@ -370,14 +370,12 @@ router.get(
                 );
             }
 
-            // TODO: always sort?
-            events.sort((event1, event2) => {
-                const dist1 = haversine(lat, lon, event1.lat, event1.lon);
-                const dist2 = haversine(lat, lon, event2.lat, event2.lon);
-                return dist1 - dist2;
-            });
-
             if (maxResults && maxResults < events.length) {
+                events.sort((event1, event2) => {
+                    const dist1 = haversine(lat, lon, event1.lat, event1.lon);
+                    const dist2 = haversine(lat, lon, event2.lat, event2.lon);
+                    return dist1 - dist2;
+                });
                 events = events.splice(0, maxResults);
             }
         }
