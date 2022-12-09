@@ -18,7 +18,7 @@ export async function connect() {
         await sequelize.query('CREATE EXTENSION IF NOT EXISTS citext;');
     }
 
-    console.log(`Successfully connected to ${config.DB_PATH}.`);
+    console.log(`Successfully connected to ${config.DB_PATH.replace(/:[^:/]+@/, ':*****@')}.`);
 }
 
 export async function setupDatabase(force = false) {
