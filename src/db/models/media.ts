@@ -16,11 +16,12 @@ import {
     Table,
 } from 'sequelize-typescript';
 
-import { ForeignUUIDColumn } from '../utils';
+import { Enum, ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
 
-export type MediaType = 'image' | 'video';
+const MediaTypes = ['image', 'video'] as const;
+export type MediaType = typeof MediaTypes[number];
 
 @Table
 export default class Media extends Model<InferAttributes<Media>, InferCreationAttributes<Media>> {
@@ -29,8 +30,9 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
     @Column(DataTypes.UUID)
     declare id: CreationOptional<string>;
 
+    @Enum(MediaTypes)
     @AllowNull(false)
-    @Column(DataTypes.ENUM('image', 'video'))
+    @Column(DataTypes.STRING)
     declare type: MediaType;
 
     @AllowNull(false)

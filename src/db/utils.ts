@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { AllowNull, Column, ForeignKey, ModelClassGetter } from 'sequelize-typescript';
+import { AllowNull, Column, ForeignKey, IsIn, ModelClassGetter } from 'sequelize-typescript';
 
 /**
  * Shortcut for common foreign key decorators.
@@ -35,3 +35,15 @@ export function ForeignUUIDColumn<TCreationAttributes extends {}, TModelAttribut
     };
 }
 /* eslint-enable @typescript-eslint/ban-types */
+
+/**
+ * Similar to `DataTypes.ENUM`, but using local validation since (1) only postgres supports
+ * enum types, and (2) a bug in sequelize currently prevents it from syncing enum types properly.
+ * (see https://github.com/sequelize/sequelize/issues/7649)
+ */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function Enum(values: readonly any[]) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    return IsIn([[...values]]);
+}
