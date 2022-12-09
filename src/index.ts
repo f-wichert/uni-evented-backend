@@ -29,6 +29,8 @@ app.use(
 // mount routers
 app.use('/api', routes);
 
+app.use('/media', express.static(config.MEDIA_ROOT));
+
 app.get('/', (req, res) => {
     res.json({ status: 'ok' });
 });
