@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { setupDatabase } from '../db';
+import { sequelize, setupDatabase } from '../db';
 import Event from '../db/models/event';
 import User from '../db/models/user';
 
@@ -60,6 +60,9 @@ async function generateTestdata() {
 
     await user.update({ currentEventId: event.id });
     await user2.update({ currentEventId: event.id });
+
+    // speed up script exit
+    await sequelize.close();
 }
 
 void generateTestdata();
