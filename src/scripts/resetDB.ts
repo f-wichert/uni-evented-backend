@@ -5,7 +5,7 @@ import { sequelize, setupDatabase } from '../db';
 import Event from '../db/models/event';
 import User from '../db/models/user';
 
-async function generateTestdata() {
+export async function generateTestdata() {
     // Wait for DB Setup bevore saving data
     await setupDatabase(true);
     console.log('Successfully reset Database');
@@ -65,4 +65,7 @@ async function generateTestdata() {
     await sequelize.close();
 }
 
-void generateTestdata();
+// only run if module invoked directly
+if (require.main === module) {
+    void generateTestdata();
+}
