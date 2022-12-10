@@ -12,7 +12,7 @@ const router = Router();
 
 // add routes here
 router.use('/auth', authRouter);
-if (config.NODE_ENV === 'development') {
+if (config.ENABLE_SECRET_ROUTES) {
     router.use('/secret', secretRouter);
 }
 // all routes following this middleware require authorization
