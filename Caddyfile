@@ -10,7 +10,7 @@ http://evented.live {
     encode gzip zstd
 
     handle_path /media/* {
-        root * /srv/static
+        root * /srv/media
         file_server
     }
 
