@@ -9,6 +9,7 @@ router.get(
     '/all_media',
     asyncHandler(async (req, res) => {
         const media = await Media.findAll();
+        console.log(`Media: ${media}`)
         res.json({ media: media });
     })
 );

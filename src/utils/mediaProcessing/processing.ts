@@ -1,7 +1,7 @@
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import sharp from 'sharp';
 import config from '../../config';
-import { MediaType } from '../../db/models/media';
+import { MediaType } from '../../types';
 import {
     ClipQuality,
     FfmpegJob,

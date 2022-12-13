@@ -19,8 +19,7 @@ import {
 import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
-
-export type MediaType = 'image' | 'video';
+import { MediaType } from '../../types';
 
 @Table
 export default class Media extends Model<InferAttributes<Media>, InferCreationAttributes<Media>> {
