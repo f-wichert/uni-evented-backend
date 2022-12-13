@@ -19,7 +19,7 @@ export default class MediaProcessor {
         id: string,
         input: string,
         output: string,
-        qualities: ClipQuality[] | ImageQuality[]
+        qualities: ClipQuality[] | ImageQuality[],
     ) {
         switch (mediaType) {
             case 'video':
@@ -44,7 +44,7 @@ export default class MediaProcessor {
     async processVideo(id: string, input: string, output: string, qualities: ClipQuality[]) {
         // attempt to extract the length of the video
         const probe: FfprobeData = await new Promise((resolve, reject) =>
-            ffmpeg.ffprobe(input, (err, data) => (data ? resolve(data) : reject(err)))
+            ffmpeg.ffprobe(input, (err, data) => (data ? resolve(data) : reject(err))),
         );
 
         const length = probe.format.duration;
@@ -61,7 +61,7 @@ export default class MediaProcessor {
         // inspired by https://stackoverflow.com/a/71985380
         let fmpg = ffmpeg(input, { timeout: config.FFMPEG_TIMEOUT })
             .addOptions(
-                new Array<string[]>(qualities.length).fill(['-map 0:v:0', '-map 0:a:0']).flat()
+                new Array<string[]>(qualities.length).fill(['-map 0:v:0', '-map 0:a:0']).flat(),
             )
             .addOptions(['-c:v libx264', '-crf 22', '-c:a aac']);
 

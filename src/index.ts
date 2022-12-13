@@ -1,16 +1,17 @@
 import compression from 'compression';
 import express from 'express';
+// This patches express to handle async rejections in route handlers,
+// avoiding having to wrap everything in `asyncHandler`s.
+import 'express-async-errors';
 
 import fileUpload from 'express-fileupload';
-import fs from 'fs';
+import fs from 'fs/promises';
 import morgan from 'morgan';
 import passport from 'passport';
 
 import config from './config';
 import { connect } from './db';
-import User from './db/models/user';
 import routes from './routes';
-import { asyncHandler } from './utils';
 
 const app = express();
 
@@ -22,25 +23,16 @@ app.use(passport.initialize());
 app.use(
     fileUpload({
         limits: { fileSize: 50 * 1024 * 1024 },
-    })
+    }),
 );
 
 // mount routers
 app.use('/api', routes);
 
-app.get(
-    '/',
-    asyncHandler(async (req, res) => {
-        await User.findAll();
-        res.json({ things: 'stuff' });
-    })
-);
+app.use('/media', express.static(config.MEDIA_ROOT));
 
-app.get('/email', (req, res) => {
-    console.log('Sending Email');
-    // sendSimpleMail('laurenz.kammeyer@gmx.de', 'TestMail', '<h1> Hallo von Bot 4 </h1>')
-    console.log('Send Mail');
-    res.send('<h1> Top </h1>');
+app.get('/', (req, res) => {
+    res.json({ status: 'ok' });
 });
 
 async function init() {
@@ -52,13 +44,12 @@ async function init() {
         config.MEDIA_ROOT + '/image',
         config.MEDIA_UPLOAD_ROOT,
     ]) {
-        await fs.promises.mkdir(path, { recursive: true });
+        await fs.mkdir(path, { recursive: true });
     }
 
     app.listen(config.PORT, () => {
         console.log(`Server is running at http://localhost:${config.PORT}`);
     });
-    console.log('finished Setup');
 }
 
 void init();

@@ -24,19 +24,6 @@ import User from './db/models/user';
    (see routes/auth.ts)
 */
 
-// merge custom user type into express request type declaration
-// (this globally changes the type of `req.user` to our `User` db model)
-// see https://github.com/DefinitelyTyped/DefinitelyTyped/commit/91c229dbdb653dbf0da91992f525905893cbeb91#r34812715
-// ==========
-
-type UserModel = User;
-declare global {
-    namespace Express {
-        // eslint-disable-next-line @typescript-eslint/no-empty-interface
-        interface User extends UserModel {}
-    }
-}
-
 // JWT stuff
 // ==========
 
@@ -72,8 +59,8 @@ passport.use(
                 throw new Error('Unknown user ID!');
             }
             return user;
-        })
-    )
+        }),
+    ),
 );
 
 // define some middlewares

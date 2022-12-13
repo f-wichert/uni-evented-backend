@@ -1,0 +1,62 @@
+version: '3'
+
+_logging: &logging_conf
+  logging:
+    options:
+      max-size: "20m"
+      max-file: "2"
+      compress: "true"
+
+
+services:
+  app:
+    image: evented/backend
+    restart: unless-stopped
+
+    build: .
+
+    volumes:
+      - './.env:/app/.env:ro'
+      - 'media:/app/media'
+
+    expose:
+      - 3001
+
+    <<: *logging_conf
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: 'evented'
+      POSTGRES_PASSWORD: 'CHANGEME'  ##########
+      POSTGRES_DB: 'evented'
+
+    volumes:
+      - 'postgres:/var/lib/postgresql/data'
+
+    <<: *logging_conf
+
+  caddy:
+    image: caddy:2.6
+    restart: unless-stopped
+
+    volumes:
+      - './Caddyfile:/etc/caddy/Caddyfile:ro'
+      - 'caddy_config:/config'
+      - 'caddy_data:/data'
+      # shared static media files from backend
+      - 'media:/srv/media:ro'
+
+    ports:
+      - '80:80'
+      - '443:443'
+
+    <<: *logging_conf
+
+volumes:
+  media:
+  postgres:
+  caddy_config:
+  caddy_data:

@@ -18,7 +18,7 @@ export class ClipQuality {
         vBitrate: number,
         aBitrate: number,
         aSamplerate: number,
-        aChannels: number
+        aChannels: number,
     ) {
         this.width = width;
         this.height = height;
@@ -82,7 +82,7 @@ export class MediaProcessingQueue {
         this.queue.push(job);
         return new Promise<void>((resolve, reject) => {
             const listener = (result: object | void, qjob: FfmpegJob) => {
-                if (qjob.id == job.id) {
+                if (qjob.id === job.id) {
                     result instanceof Object ? reject(result) : resolve(result);
                     this.queue.removeListener('success', listener);
                     this.queue.removeListener('error', listener);

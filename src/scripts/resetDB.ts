@@ -1,22 +1,42 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { setupDatabase } from '../db';
+import { sequelize, setupDatabase } from '../db';
 import Event from '../db/models/event';
 import User from '../db/models/user';
 import Media from '../db/models/media'
 
-async function generateTestdata() {
+export async function generateTestdata() {
     // Wait for DB Setup bevore saving data
     await setupDatabase(true);
     console.log('Successfully reset Database');
 
     // Write your Testdata here
-    const user = await User.create({ username: 'Lorenzo', password: 'Verysecure' });
-    const user2 = await User.create({ username: 'Notlorenzo', password: 'Verysecure' });
-    const user3 = await User.create({ username: 'Reallorenzo', password: 'Verysecure' });
-    const user4 = await User.create({ username: 'Alice', password: 'Verysecure' });
-    const user5 = await User.create({ username: 'Bob', password: 'Verysecure' });
+    const user = await User.create({
+        username: 'Lorenzo',
+        password: 'Verysecure',
+        email: 'test1@evented.live',
+    });
+    const user2 = await User.create({
+        username: 'Notlorenzo',
+        password: 'Verysecure',
+        email: 'test2@evented.live',
+    });
+    const user3 = await User.create({
+        username: 'Reallorenzo',
+        password: 'Verysecure',
+        email: 'test3@evented.live',
+    });
+    const user4 = await User.create({
+        username: 'Alice',
+        password: 'Verysecure',
+        email: 'test4@evented.live',
+    });
+    const user5 = await User.create({
+        username: 'Bob',
+        password: 'Verysecure',
+        email: 'test5@evented.live',
+    });
 
     
     const event = await Event.create({
@@ -39,11 +59,19 @@ async function generateTestdata() {
     const movie01 = await Media.create({id: 'abcd', type:'video', fileAvailable:true, eventId:event.id, userId:user2.id})
 
 
-    user3.currentEventId = event.id;
-    user2.currentEventId = event.id;
     await event.addAttendee(user2);
-    await user.save();
-    await user2.save();
+    await event2.addAttendee(user3);
+    await event2.addAttendee(user4);
+    await event2.addAttendee(user5);
+
+    await user.update({ currentEventId: event.id });
+    await user2.update({ currentEventId: event.id });
+
+    // speed up script exit
+    await sequelize.close();
 }
 
-void generateTestdata();
+// only run if module invoked directly
+if (require.main === module) {
+    void generateTestdata();
+}

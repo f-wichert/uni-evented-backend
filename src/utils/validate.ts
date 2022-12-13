@@ -25,7 +25,7 @@ import config from '../config';
 
 export function validateBody<TSchema extends ZodRawShape>(
     schema: ZodObject<TSchema, any>,
-    strict = true
+    strict = true,
 ): RequestHandler<ParamsDictionary, any, z.infer<ZodObject<TSchema>>, any> {
     return (req, res, next) => {
         if (strict) {
@@ -34,15 +34,16 @@ export function validateBody<TSchema extends ZodRawShape>(
         const parsed = schema.safeParse(req.body);
         if (parsed.success) {
             req.body = parsed.data;
-            return next();
+            next();
         } else {
-            const resData =
+            const error =
                 config.NODE_ENV === 'development' ? parsed.error.format() : 'invalid payload';
-            return res.status(400).send({ error: resData });
+            res.status(400).send({ error });
+            next(`Invalid request data: ${JSON.stringify(error)}`);
         }
     };
 }
 
 export const dateSchema = z.preprocess((arg: unknown) => {
-    if (typeof arg == 'string' || arg instanceof Date) return new Date(arg);
+    if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
 }, z.date());

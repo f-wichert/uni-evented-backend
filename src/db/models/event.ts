@@ -23,12 +23,13 @@ import {
     Table,
 } from 'sequelize-typescript';
 
-import { ForeignUUIDColumn } from '../utils';
+import { Enum, ForeignUUIDColumn } from '../utils';
 import EventAttendee from './eventAttendee';
 import Media from './media';
 import User from './user';
 
-type EventStatus = 'scheduled' | 'active' | 'completed';
+const EventStatuses = ['scheduled', 'active', 'completed'] as const;
+type EventStatus = typeof EventStatuses[number];
 
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
@@ -42,9 +43,10 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column
     declare name: string;
 
+    @Enum(EventStatuses)
     @AllowNull(false)
     @Default('active')
-    @Column(DataTypes.ENUM('scheduled', 'active', 'completed'))
+    @Column(DataTypes.STRING)
     declare status: CreationOptional<EventStatus>;
 
     @Min(-90)

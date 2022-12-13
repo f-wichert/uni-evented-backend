@@ -1,11 +1,8 @@
 import assert from 'assert';
 import { Request, Router } from 'express';
-import fs from 'fs';
+import fs from 'fs/promises';
 import config from '../config';
-import { MediaType } from '../types';
-import Media from '../db/models/media';
-import { requireAuth } from '../passport';
-import { asyncHandler } from '../utils';
+import Media, { MediaType } from '../db/models/media';
 import MediaProcessor, { ClipQuality, ImageQuality } from '../utils/mediaProcessing';
 
 // TODO: Use multer for file upload
@@ -47,25 +44,25 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
     const mediaPath = `${config.MEDIA_ROOT}/${mediaType}/${media.id}`;
 
     try {
-        await fs.promises.mkdir(mediaPath, { recursive: true });
+        await fs.mkdir(mediaPath, { recursive: true });
         await file.mv(uploadPath);
         await mediaProcessor.process(
             mediaType,
             media.id,
             uploadPath,
             mediaPath,
-            mediaType == 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES
+            mediaType === 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES,
         );
     } catch (error) {
         media
             .destroy()
             .catch((error) => console.error(`failed to remove ${media.id}: ${String(error)}`));
-        void fs.promises
+        void fs
             .rm(mediaPath, { recursive: true })
             .catch((error) => console.error(`failed to remove ${mediaPath}: ${String(error)}`));
         throw error;
     } finally {
-        void fs.promises
+        void fs
             .rm(uploadPath)
             .catch((error) => console.error(`failed to remove ${uploadPath}: ${String(error)}`));
     }
@@ -79,22 +76,14 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
 
 // endpoint accepts a request with a single file
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
-router.post(
-    '/clip',
-    requireAuth,
-    asyncHandler(async (req, res) => {
-        await handleMediaUpload('video', req);
-        res.send('ok!');
-    })
-);
+router.post('/clip', async (req, res) => {
+    await handleMediaUpload('video', req);
+    res.send('ok!');
+});
 
-router.post(
-    '/image',
-    requireAuth,
-    asyncHandler(async (req, res) => {
-        await handleMediaUpload('image', req);
-        res.send('ok!');
-    })
-);
+router.post('/image', async (req, res) => {
+    await handleMediaUpload('image', req);
+    res.send('ok!');
+});
 
 export default router;
