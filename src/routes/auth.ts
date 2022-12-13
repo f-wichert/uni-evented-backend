@@ -11,11 +11,14 @@ const router = Router();
 
 router.get('/info', requireAuth, (req, res) => {
     const user = req.user!;
+    const { id, email, username, displayName, currentEventId } = user;
+
     res.json({
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        displayName: user.displayName,
+        id,
+        email,
+        username,
+        displayName,
+        currentEventId,
     });
 });
 
