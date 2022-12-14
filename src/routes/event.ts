@@ -48,7 +48,7 @@ const router = Router();
  *  }
  */
 router.get(
-    '/info',
+    '/info/:eventID',
     validateBody(
         z.object({
             // if not specified will use user.currentEventId
@@ -57,7 +57,8 @@ router.get(
     ),
     async (req, res) => {
         const user = req.user!;
-        const { eventId } = req.body;
+        // const { eventId } = req.body;
+        const eventId = req.params.eventID;
         const actualEventId = eventId || user.currentEventId;
 
         assert(actualEventId, 'no eventId specified and user is not attening an event');
