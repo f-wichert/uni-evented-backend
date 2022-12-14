@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Request, Router } from 'express';
+import { Request, Response, Router } from 'express';
 import fs from 'fs/promises';
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
@@ -22,7 +22,7 @@ const IMAGE_QUALITIES = [
 
 const mediaProcessor = new MediaProcessor();
 
-async function handleMediaUpload(mediaType: MediaType, req: Request) {
+async function handleMediaUpload(mediaType: MediaType, req: Request, res: Response) {
     assert(req.files && Object.keys(req.files).length === 1, 'No or too many files uploaded');
 
     const file = req.files[config.UPLOAD_INPUT_NAME_FIELD];
@@ -68,22 +68,20 @@ async function handleMediaUpload(mediaType: MediaType, req: Request) {
     }
 
     media.fileAvailable = true;
-    media
-        .save()
-        .then(() => console.log(`media ${media.id} now available`))
-        .catch((error) => console.error(`failed to save media ${media.id}: ${String(error)}`));
+    await media.save();
+    console.log(`media ${media.id} now available`);
+
+    res.send(media);
 }
 
 // endpoint accepts a request with a single file
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
 router.post('/clip', async (req, res) => {
-    await handleMediaUpload('video', req);
-    res.send('ok!');
+    await handleMediaUpload('video', req, res);
 });
 
 router.post('/image', async (req, res) => {
-    await handleMediaUpload('image', req);
-    res.send('ok!');
+    await handleMediaUpload('image', req, res);
 });
 
 export default router;
