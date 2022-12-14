@@ -227,8 +227,8 @@ router.post(
         assert(event);
 
         // TODO: make configurable?
-        const maxEventDistance = 10.0;
-        assert(haversine(lat, lon, event.lat, event.lon) <= maxEventDistance);
+        // const maxEventDistance = 10.0;
+        // assert(haversine(lat, lon, event.lat, event.lon) <= maxEventDistance);
 
         // TODO: implement more join conditions (maxAttendees, etc.)
 
