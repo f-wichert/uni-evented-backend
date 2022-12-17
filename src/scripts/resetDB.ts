@@ -3,8 +3,8 @@ dotenv.config();
 
 import { sequelize, setupDatabase } from '../db';
 import Event from '../db/models/event';
+import Media from '../db/models/media';
 import User from '../db/models/user';
-import Media from '../db/models/media'
 
 export async function generateTestdata() {
     // Wait for DB Setup bevore saving data
@@ -38,7 +38,6 @@ export async function generateTestdata() {
         email: 'test5@evented.live',
     });
 
-    
     const event = await Event.create({
         name: 'cool event',
         startDateTime: new Date(),
@@ -46,7 +45,7 @@ export async function generateTestdata() {
         lat: 49.877432,
         lon: 8.654297,
     });
-    
+
     const event2 = await Event.create({
         name: 'actually cool event',
         startDateTime: new Date(),
@@ -54,10 +53,15 @@ export async function generateTestdata() {
         lat: 50.877432,
         lon: 9.654297,
     });
-    
-    // Default Media for testing
-    const movie01 = await Media.create({id: 'abcd', type:'video', fileAvailable:true, eventId:event.id, userId:user2.id})
 
+    // Default Media for testing
+    const movie01 = await Media.create({
+        id: 'abcd',
+        type: 'video',
+        fileAvailable: true,
+        eventId: event.id,
+        userId: user2.id,
+    });
 
     await event.addAttendee(user2);
     await event2.addAttendee(user3);
