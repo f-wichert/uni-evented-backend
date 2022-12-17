@@ -3,7 +3,6 @@ dotenv.config();
 
 import { sequelize, setupDatabase } from '../db';
 import Event from '../db/models/event';
-import Media from '../db/models/media';
 import User from '../db/models/user';
 
 export async function generateTestdata() {
@@ -52,15 +51,6 @@ export async function generateTestdata() {
         hostId: user3.id,
         lat: 50.877432,
         lon: 9.654297,
-    });
-
-    // Default Media for testing
-    const movie01 = await Media.create({
-        id: 'abcd',
-        type: 'video',
-        fileAvailable: true,
-        eventId: event.id,
-        userId: user2.id,
     });
 
     await event.addAttendee(user2);

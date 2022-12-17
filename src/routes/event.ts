@@ -128,7 +128,7 @@ router.post(
         const actualStartDateTime = startDateTime || new Date();
 
         // TODO: more validation
-        assert(!user.currentEventId, 'user is already attending an event');
+        // assert(!user.currentEventId, 'user is already attending an event');
         assert(!endDateTime || actualStartDateTime < endDateTime, 'start time is after end time');
 
         // TODO: how do we handle multiple scheduled / overlapping events?
@@ -227,8 +227,8 @@ router.post(
         assert(event);
 
         // TODO: make configurable?
-        const maxEventDistance = 10.0;
-        assert(haversine(lat, lon, event.lat, event.lon) <= maxEventDistance);
+        // const maxEventDistance = 10.0;
+        // assert(haversine(lat, lon, event.lat, event.lon) <= maxEventDistance);
 
         // TODO: implement more join conditions (maxAttendees, etc.)
 
@@ -371,6 +371,88 @@ router.get(
         }
 
         res.json({ events: events });
+    },
+);
+
+/**
+ * Find own events, that should be shown on the Events Screen
+ *
+ * input
+ *  {
+ *      statuses?: ['scheduled' | 'active' | 'completed']
+ *  }
+ *
+ * returns
+ *  { myEvents: [
+ *      id: string
+ *      name: string
+ *      lat: number
+ *      lon: number
+ *      startDateTime: Date
+ *      endDateTime: Date | null
+ *  ],
+ *  activeEvent: [
+ *      id: string
+ *      name: string
+ *      lat: number
+ *      lon: number
+ *      startDateTime: Date
+ *      endDateTime: Date | null
+ *  ],
+ *  followedEvents: [
+ *      id: string
+ *      name: string
+ *      lat: number
+ *      lon: number
+ *      startDateTime: Date
+ *      endDateTime: Date | null
+ *  ],
+ *  followerEvents: [
+ *      id: string
+ *      name: string
+ *      lat: number
+ *      lon: number
+ *      startDateTime: Date
+ *      endDateTime: Date | null
+ *  ],
+ * }
+ */
+router.get(
+    '/relevantEvents',
+    validateBody(
+        z.object({
+            statuses: z.array(z.string()).optional(),
+        }),
+    ),
+    async (req, res) => {
+        const { statuses } = req.body;
+        const user = req.user;
+
+        const myEvents = await Event.findAll({
+            where: {
+                status: {
+                    [Op.or]: statuses ? statuses : [],
+                },
+                hostId: user?.id,
+            },
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+        });
+
+        let activeEvent: Event[] = [];
+
+        if (user?.currentEventId) {
+            activeEvent = await Event.findAll({
+                where: {
+                    id: user?.currentEventId,
+                },
+                attributes: { exclude: ['createdAt', 'updatedAt'] },
+            });
+        }
+
+        const followedEvents: Event[] = [];
+        const followerEvents: Event[] = [];
+
+        res.json({ myEvents, activeEvent, followedEvents, followerEvents });
     },
 );
 
