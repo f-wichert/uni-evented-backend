@@ -3,22 +3,11 @@ import { Request, Response, Router } from 'express';
 import fs from 'fs/promises';
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
-import MediaProcessor, { ClipQuality, ImageQuality } from '../utils/mediaProcessing';
+import MediaProcessor from '../utils/mediaProcessing';
 
 // TODO: Use multer for file upload
 
 const router = Router();
-
-const CLIP_QUALITIES = [
-    new ClipQuality(480, 854, 600, 32, 44100, 1),
-    new ClipQuality(720, 1280, 1500, 64, 44100, 2),
-];
-
-const IMAGE_QUALITIES = [
-    new ImageQuality('high', 1080, 1920),
-    new ImageQuality('medium', 720, 1280),
-    new ImageQuality('low', 480, 854),
-];
 
 const mediaProcessor = new MediaProcessor();
 
@@ -46,13 +35,7 @@ async function handleMediaUpload(mediaType: MediaType, req: Request, res: Respon
     try {
         await fs.mkdir(mediaPath, { recursive: true });
         await file.mv(uploadPath);
-        await mediaProcessor.process(
-            mediaType,
-            media.id,
-            uploadPath,
-            mediaPath,
-            mediaType === 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES,
-        );
+        await mediaProcessor.process(mediaType, media.id, uploadPath, mediaPath);
     } catch (error) {
         media
             .destroy()

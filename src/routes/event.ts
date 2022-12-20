@@ -374,7 +374,6 @@ router.get(
     },
 );
 
-
 /**
  * Find own events, that should be shown on the Events Screen
  *
@@ -435,7 +434,6 @@ router.get(
                     [Op.or]: statuses ? statuses : [],
                 },
                 hostId: user?.id,
-
             },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
         });
@@ -451,8 +449,8 @@ router.get(
             });
         }
 
-        let followedEvents: Event[] = [];
-        let followerEvents: Event[] = [];
+        const followedEvents: Event[] = [];
+        const followerEvents: Event[] = [];
 
         res.json({ myEvents, activeEvent, followedEvents, followerEvents });
     },
