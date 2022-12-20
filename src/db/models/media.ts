@@ -20,7 +20,7 @@ import { Enum, ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
 
-const MediaTypes = ['image', 'video'] as const;
+const MediaTypes = ['image', 'video', 'avatar'] as const;
 export type MediaType = typeof MediaTypes[number];
 
 @Table
