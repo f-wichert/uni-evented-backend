@@ -20,14 +20,14 @@ async function handleMediaUpload(mediaType: MediaType | 'avatar', req: Request, 
     const user = req.user!;
     const eventId = user.currentEventId;
 
-    assert(eventId, 'user is not attending an event');
+    assert(mediaType === 'avatar' || eventId, 'user is not attending an event');
 
     const media =
         mediaType !== 'avatar'
             ? await Media.create({
                   type: mediaType,
                   userId: user.id,
-                  eventId: eventId,
+                  eventId: eventId!,
               })
             : undefined;
     const id = media ? media.id : user.id;
@@ -57,7 +57,7 @@ async function handleMediaUpload(mediaType: MediaType | 'avatar', req: Request, 
     await media?.update({ fileAvailable: true });
     console.log(`media ${id} now available`);
 
-    res.send(media);
+    res.json(media ?? {});
 }
 
 // endpoint accepts a request with a single file
