@@ -51,8 +51,8 @@ router.get(
     '/info/:eventID',
     validateParams(
         z.object({
-            // if not specified will use user.currentEventId
-            eventID: z.string().optional(),
+            // if not specified will use user.currentEventId  // TODO: remove this default
+            eventID: z.string().uuid().optional(),
         }),
     ),
     async (req, res) => {
@@ -177,6 +177,7 @@ router.post(
         assert(event.status !== 'completed', 'event aready completed');
 
         // remove all current attendees from the event
+        // TODO: use bulk update
         const userSavePromises = event.attendees!.map((user) => {
             user.currentEventId = null;
             return user.save();
@@ -296,6 +297,7 @@ router.post('/leave', async (req, res) => {
  *      }]
  *  ]}
  */
+// TODO: using request bodies with the GET method is discouraged
 router.get(
     '/find',
     validateBody(

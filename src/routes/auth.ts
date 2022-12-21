@@ -72,7 +72,7 @@ router.post(
     },
 );
 
-router.post('/reset', validateBody(z.object({ email: z.string() })), async (req, res) => {
+router.post('/reset', validateBody(z.object({ email: z.string().email() })), async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ where: { email: email } });

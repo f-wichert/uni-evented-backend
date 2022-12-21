@@ -93,7 +93,7 @@ async function processMediaFile(
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
 router.post(
     '/clip/:eventID',
-    validateParams(z.object({ eventID: z.string() })),
+    validateParams(z.object({ eventID: z.string().uuid() })),
     async (req, res) => {
         const file = getFile(req);
         const media = await processMediaFile(file, 'video', req.user!.id, req.params.eventID);
@@ -103,7 +103,7 @@ router.post(
 
 router.post(
     '/image/:eventID',
-    validateParams(z.object({ eventID: z.string() })),
+    validateParams(z.object({ eventID: z.string().uuid() })),
     async (req, res) => {
         const file = getFile(req);
         const media = await processMediaFile(file, 'image', req.user!.id, req.params.eventID);

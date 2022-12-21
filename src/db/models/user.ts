@@ -56,6 +56,7 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
 
     // Validators run before create/update hooks, which is what we want;
     // bcrypt is capped at 72 bytes
+    // TODO: add some requirements like 1+ uppercase/lowercase/number chars
     @Length({ min: 8, max: 64 })
     @AllowNull(false)
     @Column(DataTypes.STRING)
