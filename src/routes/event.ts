@@ -51,13 +51,11 @@ router.get(
     '/info/:eventID',
     validateParams(
         z.object({
-            // if not specified will use user.currentEventId  // TODO: remove this default
-            eventID: z.string().uuid().optional(),
+            eventID: z.string().uuid(),
         }),
     ),
     async (req, res) => {
-        const user = req.user!;
-        const eventId = req.params.eventID ?? user.currentEventId;
+        const eventId = req.params.eventID;
 
         assert(eventId, 'no eventID specified and user is not attening an event');
 
@@ -147,20 +145,15 @@ router.post(
     '/close',
     validateBody(
         z.object({
-            /** if not specified try to get currently attended event */
-            eventId: z.string().optional(),
+            eventId: z.string(),
         }),
     ),
     async (req, res) => {
         const user = req.user!;
         const { eventId } = req.body;
 
-        const actualEventId = eventId ?? user.currentEventId;
-
-        assert(actualEventId, 'no eventId found');
-
         const event = await Event.findOne({
-            where: { id: actualEventId },
+            where: { id: eventId },
             include: [
                 {
                     model: User,
@@ -169,10 +162,10 @@ router.post(
             ],
         });
 
-        assert(event, `no event with id: ${actualEventId}`);
+        assert(event, `no event with id: ${eventId}`);
         assert(
             event.hostId === user.id,
-            `${user.id} tried to close event ${actualEventId}, but host is ${event.hostId}`,
+            `${user.id} tried to close event ${eventId}, but host is ${event.hostId}`,
         );
         assert(event.status !== 'completed', 'event aready completed');
 
@@ -208,13 +201,15 @@ router.post(
     validateBody(
         z.object({
             eventId: z.string(),
+            // TODO: remove lat/lon, there isn't really a point in checking them
+            //       on the server side if there's also client-side validation
             lat: z.number(),
             lon: z.number(),
         }),
     ),
     async (req, res) => {
         const user = req.user!;
-        const { eventId, lat, lon } = req.body;
+        const { eventId /*lat, lon*/ } = req.body;
 
         assert(!user.currentEventId, 'user is already attending an event');
 
