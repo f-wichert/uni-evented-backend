@@ -2,9 +2,12 @@ import assert from 'assert';
 import { Request, Response, Router } from 'express';
 import fs from 'fs/promises';
 import { validate as uuidValidate } from 'uuid';
+import { z } from 'zod';
+
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
 import MediaProcessor from '../utils/mediaProcessing';
+import { validateParams } from '../utils/validate';
 
 // TODO: Use multer for file upload
 
@@ -67,14 +70,21 @@ async function handleMediaUpload(mediaType: MediaType | 'avatar', req: Request, 
 
 // endpoint accepts a request with a single file
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
-router.post('/clip/:eventID', async (req, res) => {
-    console.log('Trying to save clip');
-    await handleMediaUpload('video', req, res);
-});
+router.post(
+    '/clip/:eventID',
+    validateParams(z.object({ eventID: z.string() })),
+    async (req, res) => {
+        await handleMediaUpload('video', req, res);
+    },
+);
 
-router.post('/image/:eventID', async (req, res) => {
-    await handleMediaUpload('image', req, res);
-});
+router.post(
+    '/image/:eventID',
+    validateParams(z.object({ eventID: z.string() })),
+    async (req, res) => {
+        await handleMediaUpload('image', req, res);
+    },
+);
 
 router.post('/avatar', async (req, res) => {
     await handleMediaUpload('avatar', req, res);

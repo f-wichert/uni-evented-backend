@@ -7,7 +7,7 @@ import Event from '../db/models/event';
 import Media from '../db/models/media';
 import User from '../db/models/user';
 import { haversine } from '../utils/math';
-import { dateSchema, validateBody } from '../utils/validate';
+import { dateSchema, validateBody, validateParams } from '../utils/validate';
 
 const router = Router();
 
@@ -49,22 +49,20 @@ const router = Router();
  */
 router.get(
     '/info/:eventID',
-    validateBody(
+    validateParams(
         z.object({
             // if not specified will use user.currentEventId
-            eventId: z.string().optional(),
+            eventID: z.string().optional(),
         }),
     ),
     async (req, res) => {
         const user = req.user!;
-        // const { eventId } = req.body;
-        const eventId = req.params.eventID;
-        const actualEventId = eventId ?? user.currentEventId;
+        const eventId = req.params.eventID ?? user.currentEventId;
 
-        assert(actualEventId, 'no eventId specified and user is not attening an event');
+        assert(eventId, 'no eventID specified and user is not attening an event');
 
         const event = await Event.findOne({
-            where: { id: actualEventId },
+            where: { id: eventId },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
             include: [
                 { model: Media, as: 'media', attributes: { exclude: ['createdAt', 'updatedAt'] } },
@@ -81,7 +79,7 @@ router.get(
             ],
         });
 
-        assert(event, `no event with id ${actualEventId} found`);
+        assert(event, `no event with id ${eventId} found`);
 
         res.json(event);
     },

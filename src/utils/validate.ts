@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { RequestHandler } from 'express';
@@ -23,25 +24,51 @@ import config from '../config';
 
 // heavily inspired by https://github.com/Aquila169/zod-express-middleware
 
-export function validateBody<TSchema extends ZodRawShape>(
-    schema: ZodObject<TSchema, any>,
-    strict = true,
-): RequestHandler<ParamsDictionary, any, z.infer<ZodObject<TSchema>>, any> {
+// use strict by default if running in dev mode
+const STRICT_DEFAULT = config.NODE_ENV !== 'production';
+
+function internalValidate(
+    schema: ZodObject<any, any>,
+    field: 'params' | 'body' | 'query',
+): RequestHandler<any, any, any, any> {
     return (req, res, next) => {
-        if (strict) {
-            schema = schema.strict();
-        }
-        const parsed = schema.safeParse(req.body);
+        const parsed = schema.safeParse(req[field]);
         if (parsed.success) {
-            req.body = parsed.data;
+            req[field] = parsed.data;
             next();
         } else {
             const error =
-                config.NODE_ENV === 'development' ? parsed.error.format() : 'invalid payload';
+                config.NODE_ENV === 'development'
+                    ? parsed.error.format()
+                    : `invalid request ${field}`;
             res.status(400).send({ error });
-            next(`Invalid request data: ${JSON.stringify(error)}`);
+            next(`Invalid request ${field}: ${JSON.stringify(error)}`);
         }
     };
+}
+
+export function validateParams<TSchema extends ZodRawShape>(
+    schema: ZodObject<TSchema, any>,
+    strict = STRICT_DEFAULT,
+): RequestHandler<z.infer<ZodObject<TSchema>>, any, any, any> {
+    if (strict) schema = schema.strict();
+    return internalValidate(schema, 'params');
+}
+
+export function validateBody<TSchema extends ZodRawShape>(
+    schema: ZodObject<TSchema, any>,
+    strict = STRICT_DEFAULT,
+): RequestHandler<ParamsDictionary, any, z.infer<ZodObject<TSchema>>, any> {
+    if (strict) schema = schema.strict();
+    return internalValidate(schema, 'body');
+}
+
+export function validateQuery<TSchema extends ZodRawShape>(
+    schema: ZodObject<TSchema, any>,
+    strict = STRICT_DEFAULT,
+): RequestHandler<ParamsDictionary, any, any, z.infer<ZodObject<TSchema>>> {
+    if (strict) schema = schema.strict();
+    return internalValidate(schema, 'query');
 }
 
 export const dateSchema = z.preprocess((arg: unknown) => {
