@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import httpError from 'http-errors';
 import { z } from 'zod';
 
 import User from '../db/models/user';
@@ -35,8 +36,8 @@ router.post(
         const existing = await User.getByEmailOrUsername(email, username);
         if (existing) {
             if (existing.username.toLowerCase() === username.toLowerCase())
-                throw new Error('Username already taken!');
-            throw new Error('User with given email already exists!');
+                throw httpError.Conflict('Username already taken');
+            throw httpError.Conflict('Username with given email already exists');
         }
 
         const user = await User.create({ email, username, password });
@@ -55,12 +56,12 @@ router.post(
         // i.e. allow login using email as well
         const user = await User.getByEmailOrUsername(username, username);
         if (!user) {
-            throw new Error(`No user named ${username}!`);
+            throw httpError.NotFound(`No user named '${username}'`);
         }
 
         // Verify provided password (may also be reset token)
         if (!(await user.verifyPassword(password))) {
-            throw new Error('Incorrect password!');
+            throw httpError.Unauthorized('Incorrect password');
         }
 
         // if authorized and the user has a reset token, remove it
@@ -77,7 +78,7 @@ router.post('/reset', validateBody(z.object({ email: z.string().email() })), asy
 
     const user = await User.findOne({ where: { email: email } });
     if (!user) {
-        throw new Error(`User not found!`);
+        throw httpError.NotFound(`User not found`);
     }
 
     // generate random reset token, store in database

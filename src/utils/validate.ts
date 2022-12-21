@@ -41,7 +41,7 @@ function internalValidate(
                 config.NODE_ENV === 'development'
                     ? parsed.error.format()
                     : `invalid request ${field}`;
-            res.status(400).send({ error });
+            res.status(422).send({ error });
             next(`Invalid request ${field}: ${JSON.stringify(error)}`);
         }
     };

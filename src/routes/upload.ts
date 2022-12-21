@@ -1,6 +1,7 @@
 import { Request, Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs/promises';
+import httpError from 'http-errors';
 import path from 'path';
 import { z } from 'zod';
 
@@ -23,7 +24,7 @@ function getFile(req: Request): UploadedFile {
         }
     }
 
-    throw new Error('No or too many files uploaded');
+    throw httpError.BadRequest('No or too many files uploaded');
 }
 
 async function processFile(

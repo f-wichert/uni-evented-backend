@@ -1,4 +1,5 @@
 import { Handler } from 'express';
+import httpError from 'http-errors';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
@@ -56,7 +57,7 @@ passport.use(
             // it doesn't check whether `userId` exists at all (which is fine)
             const user = await User.findByPk(payload.userId);
             if (!user) {
-                throw new Error('Unknown user ID!');
+                throw httpError.NotFound('Unknown user ID');
             }
             return user;
         }),
