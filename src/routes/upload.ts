@@ -11,7 +11,7 @@ const router = Router();
 
 const mediaProcessor = new MediaProcessor();
 
-async function handleMediaUpload(mediaType: MediaType, req: Request, res: Response) {
+async function handleMediaUpload(mediaType: MediaType | 'avatar', req: Request, res: Response) {
     assert(req.files && Object.keys(req.files).length === 1, 'No or too many files uploaded');
 
     const file = req.files[config.UPLOAD_INPUT_NAME_FIELD];

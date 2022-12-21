@@ -9,12 +9,13 @@ export default class MediaProcessor {
     private readonly videoQueue = new MediaProcessingQueue();
     private readonly imageQueue = new MediaProcessingQueue();
 
-    async process(mediaType: MediaType, id: string, input: string, output: string) {
+    async process(mediaType: MediaType | 'avatar', id: string, input: string, output: string) {
         switch (mediaType) {
             case 'video':
                 await this.processVideo(id, input, output, QUALITIES[mediaType]);
                 break;
             case 'image':
+            case 'avatar':
                 await this.processImage(id, input, output, QUALITIES[mediaType]);
                 break;
         }
