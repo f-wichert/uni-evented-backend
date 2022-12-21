@@ -37,8 +37,8 @@ export class MediaProcessingQueue {
     process(job: MediaProcessingJob): Promise<void> {
         this.queue.push(job);
         return new Promise<void>((resolve, reject) => {
-            const listener = (result: object | void, qjob: FfmpegJob) => {
-                if (qjob.id === job.id) {
+            const listener = (result: object | void, qjob: MediaProcessingJob) => {
+                if (qjob === job) {
                     result instanceof Object ? reject(result) : resolve(result);
                     this.queue.removeListener('success', listener);
                     this.queue.removeListener('error', listener);
