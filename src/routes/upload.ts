@@ -1,7 +1,7 @@
-import assert from 'assert';
-import { Request, Response, Router } from 'express';
+import { Request, Router } from 'express';
+import { UploadedFile } from 'express-fileupload';
 import fs from 'fs/promises';
-import { validate as uuidValidate } from 'uuid';
+import path from 'path';
 import { z } from 'zod';
 
 import config from '../config';
@@ -15,57 +15,78 @@ const router = Router();
 
 const mediaProcessor = new MediaProcessor();
 
-async function handleMediaUpload(mediaType: MediaType | 'avatar', req: Request, res: Response) {
-    assert(req.files && Object.keys(req.files).length === 1, 'No or too many files uploaded');
-    assert(
-        uuidValidate(req.params.eventID),
-        'Given Event-UUID for media upload was not a valid UUID!',
-    );
-
-    const file = req.files[config.UPLOAD_INPUT_NAME_FIELD];
-    assert(!Array.isArray(file));
-
-    const user = req.user!;
-    const eventId = req.params.eventID;
-
-    assert(mediaType === 'avatar' || eventId, 'user is not attending an event');
-
-    const media =
-        mediaType !== 'avatar'
-            ? await Media.create({
-                  type: mediaType,
-                  userId: user.id,
-                  eventId: eventId!,
-              })
-            : undefined;
-    const id = media ? media.id : user.id;
-
-    const fileExtension = file.name.substring(file.name.lastIndexOf('.'));
-    const uploadPath = `${config.MEDIA_UPLOAD_ROOT}/${id}${fileExtension}`;
-    const mediaPath = `${config.MEDIA_ROOT}/${mediaType}/${id}`;
-
-    try {
-        await fs.mkdir(mediaPath, { recursive: true });
-        await file.mv(uploadPath);
-        await mediaProcessor.process(mediaType, id, uploadPath, mediaPath);
-    } catch (error) {
-        media
-            ?.destroy()
-            .catch((error) => console.error(`failed to remove ${id}: ${String(error)}`));
-        void fs
-            .rm(mediaPath, { recursive: true })
-            .catch((error) => console.error(`failed to remove ${mediaPath}: ${String(error)}`));
-        throw error;
-    } finally {
-        void fs
-            .rm(uploadPath)
-            .catch((error) => console.error(`failed to remove ${uploadPath}: ${String(error)}`));
+function getFile(req: Request): UploadedFile {
+    if (req.files && Object.keys(req.files).length === 1) {
+        const file = req.files[config.UPLOAD_INPUT_NAME_FIELD];
+        if (!Array.isArray(file)) {
+            return file;
+        }
     }
 
-    await media?.update({ fileAvailable: true });
-    console.log(`media ${id} now available`);
+    throw new Error('No or too many files uploaded');
+}
 
-    res.json(media ?? {});
+async function processFile(
+    file: UploadedFile,
+    mediaType: MediaType | 'avatar',
+    id: string,
+): Promise<void> {
+    const uploadFilePath = `${config.MEDIA_UPLOAD_ROOT}/${id}${path.extname(file.name)}`;
+    const mediaDirPath = `${config.MEDIA_ROOT}/${mediaType}/${id}`;
+
+    try {
+        // create final directory
+        await fs.mkdir(mediaDirPath, { recursive: true });
+        // move (ephemeral) uploaded file to temporary location
+        await file.mv(uploadFilePath);
+        // process uploaded file
+        await mediaProcessor.process(mediaType, id, uploadFilePath, mediaDirPath);
+    } catch (error) {
+        // try to remove the directory we created
+        fs.rm(mediaDirPath, { recursive: true }).catch((error) =>
+            console.error(`failed to remove ${mediaDirPath}: ${String(error)}`),
+        );
+        // re-throw error
+        throw error;
+    } finally {
+        // always cleanup the temporary file
+        fs.rm(uploadFilePath).catch((error) =>
+            console.error(`failed to remove ${uploadFilePath}: ${String(error)}`),
+        );
+    }
+
+    console.log(`media ${id} (${mediaType}) now available`);
+}
+
+async function processMediaFile(
+    file: UploadedFile,
+    mediaType: MediaType,
+    userId: string,
+    eventId: string,
+): Promise<Media> {
+    // create entry in database
+    // TODO: check if user is attendee of event
+    const media = await Media.create({
+        type: mediaType,
+        userId: userId,
+        eventId: eventId,
+    });
+
+    try {
+        await processFile(file, mediaType, media.id);
+    } catch (error) {
+        // if something went wrong while processing, remove created db entry again
+        media
+            .destroy()
+            .catch((error) =>
+                console.error(`failed to remove media entry ${media.id}: ${String(error)}`),
+            );
+        throw error;
+    }
+
+    // at this point, the file was processed and is available
+    await media.update({ fileAvailable: true });
+    return media;
 }
 
 // endpoint accepts a request with a single file
@@ -74,7 +95,9 @@ router.post(
     '/clip/:eventID',
     validateParams(z.object({ eventID: z.string() })),
     async (req, res) => {
-        await handleMediaUpload('video', req, res);
+        const file = getFile(req);
+        const media = await processMediaFile(file, 'video', req.user!.id, req.params.eventID);
+        res.json(media);
     },
 );
 
@@ -82,12 +105,16 @@ router.post(
     '/image/:eventID',
     validateParams(z.object({ eventID: z.string() })),
     async (req, res) => {
-        await handleMediaUpload('image', req, res);
+        const file = getFile(req);
+        const media = await processMediaFile(file, 'image', req.user!.id, req.params.eventID);
+        res.json(media);
     },
 );
 
 router.post('/avatar', async (req, res) => {
-    await handleMediaUpload('avatar', req, res);
+    const file = getFile(req);
+    await processFile(file, 'avatar', req.user!.id);
+    res.json({});
 });
 
 export default router;

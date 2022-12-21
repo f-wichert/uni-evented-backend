@@ -38,14 +38,8 @@ app.get('/', (req, res) => {
 async function init() {
     await connect();
 
-    // create media directories if they don't exists
-    for (const path of [
-        config.MEDIA_ROOT + '/video',
-        config.MEDIA_ROOT + '/image',
-        config.MEDIA_UPLOAD_ROOT,
-    ]) {
-        await fs.mkdir(path, { recursive: true });
-    }
+    // create media directories if they don't exist
+    await fs.mkdir(config.MEDIA_UPLOAD_ROOT, { recursive: true });
 
     app.listen(config.PORT, () => {
         console.log(`Server is running at http://localhost:${config.PORT}`);
