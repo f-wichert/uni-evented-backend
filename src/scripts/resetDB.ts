@@ -40,7 +40,7 @@ export async function generateTestdata() {
     const event = await Event.create({
         name: 'cool event',
         startDateTime: new Date(),
-        hostId: user4.id,
+        hostId: user.id,
         lat: 49.877432,
         lon: 8.654297,
     });
@@ -48,12 +48,13 @@ export async function generateTestdata() {
     const event2 = await Event.create({
         name: 'actually cool event',
         startDateTime: new Date(),
-        hostId: user3.id,
-        lat: 50.877432,
-        lon: 9.654297,
+        hostId: user.id,
+        lat: 49.867432,
+        lon: 8.644297,
     });
 
     await event.addAttendee(user2);
+    await event2.addAttendee(user);
     await event2.addAttendee(user3);
     await event2.addAttendee(user4);
     await event2.addAttendee(user5);

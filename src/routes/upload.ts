@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { Request, Response, Router } from 'express';
 import fs from 'fs/promises';
+import { validate as uuidValidate } from 'uuid';
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
 import MediaProcessor from '../utils/mediaProcessing';
@@ -13,12 +14,16 @@ const mediaProcessor = new MediaProcessor();
 
 async function handleMediaUpload(mediaType: MediaType | 'avatar', req: Request, res: Response) {
     assert(req.files && Object.keys(req.files).length === 1, 'No or too many files uploaded');
+    assert(
+        uuidValidate(req.params.eventID),
+        'Given Event-UUID for media upload was not a valid UUID!',
+    );
 
     const file = req.files[config.UPLOAD_INPUT_NAME_FIELD];
     assert(!Array.isArray(file));
 
     const user = req.user!;
-    const eventId = user.currentEventId;
+    const eventId = req.params.eventID;
 
     assert(mediaType === 'avatar' || eventId, 'user is not attending an event');
 
@@ -62,11 +67,12 @@ async function handleMediaUpload(mediaType: MediaType | 'avatar', req: Request, 
 
 // endpoint accepts a request with a single file
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
-router.post('/clip', async (req, res) => {
+router.post('/clip/:eventID', async (req, res) => {
+    console.log('Trying to save clip');
     await handleMediaUpload('video', req, res);
 });
 
-router.post('/image', async (req, res) => {
+router.post('/image/:eventID', async (req, res) => {
     await handleMediaUpload('image', req, res);
 });
 
