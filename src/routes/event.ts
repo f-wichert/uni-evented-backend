@@ -59,7 +59,7 @@ router.get(
         const user = req.user!;
         // const { eventId } = req.body;
         const eventId = req.params.eventID;
-        const actualEventId = eventId || user.currentEventId;
+        const actualEventId = eventId ?? user.currentEventId;
 
         assert(actualEventId, 'no eventId specified and user is not attening an event');
 
@@ -125,13 +125,10 @@ router.post(
     async (req, res) => {
         const user = req.user!;
         const { name, lat, lon, startDateTime, endDateTime } = req.body;
-        const actualStartDateTime = startDateTime || new Date();
+        const actualStartDateTime = startDateTime ?? new Date();
 
         // TODO: more validation
-        // assert(!user.currentEventId, 'user is already attending an event');
         assert(!endDateTime || actualStartDateTime < endDateTime, 'start time is after end time');
-
-        // TODO: how do we handle multiple scheduled / overlapping events?
 
         const event = await Event.create({
             name: name,
@@ -160,7 +157,7 @@ router.post(
         const user = req.user!;
         const { eventId } = req.body;
 
-        const actualEventId = eventId || user.currentEventId;
+        const actualEventId = eventId ?? user.currentEventId;
 
         assert(actualEventId, 'no eventId found');
 
@@ -250,8 +247,7 @@ router.post('/leave', async (req, res) => {
 
     assert(user.currentEventId, 'user is not attending an event');
 
-    user.currentEventId = null;
-    await user.save();
+    await user.update({ currentEventId: null });
 
     res.json({});
 });
@@ -426,7 +422,7 @@ router.get(
     ),
     async (req, res) => {
         const { statuses } = req.body;
-        const user = req.user;
+        const user = req.user!;
 
         const myEvents = await Event.findAll({
             where: {
@@ -438,16 +434,14 @@ router.get(
             attributes: { exclude: ['createdAt', 'updatedAt'] },
         });
 
-        let activeEvent: Event[] = [];
-
-        if (user?.currentEventId) {
-            activeEvent = await Event.findAll({
-                where: {
-                    id: user?.currentEventId,
-                },
-                attributes: { exclude: ['createdAt', 'updatedAt'] },
-            });
-        }
+        const activeEvent = user.currentEventId
+            ? await Event.findAll({
+                  where: {
+                      id: user.currentEventId,
+                  },
+                  attributes: { exclude: ['createdAt', 'updatedAt'] },
+              })
+            : [];
 
         const followedEvents: Event[] = [];
         const followerEvents: Event[] = [];

@@ -4,22 +4,11 @@ import fs from 'fs/promises';
 import { validate as uuidValidate } from 'uuid';
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
-import MediaProcessor, { ClipQuality, ImageQuality } from '../utils/mediaProcessing';
+import MediaProcessor from '../utils/mediaProcessing';
 
 // TODO: Use multer for file upload
 
 const router = Router();
-
-const CLIP_QUALITIES = [
-    new ClipQuality(480, 854, 600, 32, 44100, 1),
-    new ClipQuality(720, 1280, 1500, 64, 44100, 2),
-];
-
-const IMAGE_QUALITIES = [
-    new ImageQuality('high', 1080, 1920),
-    new ImageQuality('medium', 720, 1280),
-    new ImageQuality('low', 480, 854),
-];
 
 const mediaProcessor = new MediaProcessor();
 
@@ -38,30 +27,28 @@ async function handleMediaUpload(mediaType: MediaType, req: Request, res: Respon
 
     assert(eventId, 'user is not attending an event');
 
-    const media = await Media.create({
-        type: mediaType,
-        userId: user.id,
-        eventId: eventId,
-    });
+    const media =
+        mediaType !== 'avatar'
+            ? await Media.create({
+                  type: mediaType,
+                  userId: user.id,
+                  eventId: eventId,
+              })
+            : undefined;
+    const id = media ? media.id : user.id;
 
     const fileExtension = file.name.substring(file.name.lastIndexOf('.'));
-    const uploadPath = `${config.MEDIA_UPLOAD_ROOT}/${media.id}${fileExtension}`;
-    const mediaPath = `${config.MEDIA_ROOT}/${mediaType}/${media.id}`;
+    const uploadPath = `${config.MEDIA_UPLOAD_ROOT}/${id}${fileExtension}`;
+    const mediaPath = `${config.MEDIA_ROOT}/${mediaType}/${id}`;
 
     try {
         await fs.mkdir(mediaPath, { recursive: true });
         await file.mv(uploadPath);
-        await mediaProcessor.process(
-            mediaType,
-            media.id,
-            uploadPath,
-            mediaPath,
-            mediaType === 'video' ? CLIP_QUALITIES : IMAGE_QUALITIES,
-        );
+        await mediaProcessor.process(mediaType, id, uploadPath, mediaPath);
     } catch (error) {
         media
-            .destroy()
-            .catch((error) => console.error(`failed to remove ${media.id}: ${String(error)}`));
+            ?.destroy()
+            .catch((error) => console.error(`failed to remove ${id}: ${String(error)}`));
         void fs
             .rm(mediaPath, { recursive: true })
             .catch((error) => console.error(`failed to remove ${mediaPath}: ${String(error)}`));
@@ -72,9 +59,8 @@ async function handleMediaUpload(mediaType: MediaType, req: Request, res: Respon
             .catch((error) => console.error(`failed to remove ${uploadPath}: ${String(error)}`));
     }
 
-    media.fileAvailable = true;
-    await media.save();
-    console.log(`media ${media.id} now available`);
+    await media?.update({ fileAvailable: true });
+    console.log(`media ${id} now available`);
 
     res.send(media);
 }
@@ -88,6 +74,10 @@ router.post('/clip/:eventID', async (req, res) => {
 
 router.post('/image/:eventID', async (req, res) => {
     await handleMediaUpload('image', req, res);
+});
+
+router.post('/avatar', async (req, res) => {
+    await handleMediaUpload('avatar', req, res);
 });
 
 export default router;

@@ -3,50 +3,6 @@ import { FfmpegCommand } from 'fluent-ffmpeg';
 import Queue from 'queue';
 import { Sharp } from 'sharp';
 
-export class ClipQuality {
-    readonly width: number;
-    readonly height: number;
-    readonly vBitrate: number;
-    readonly vBufsize: number;
-    readonly aBitrate: number;
-    readonly aSamplerate: number;
-    readonly aChannels: number;
-
-    constructor(
-        width: number,
-        height: number,
-        vBitrate: number,
-        aBitrate: number,
-        aSamplerate: number,
-        aChannels: number,
-    ) {
-        this.width = width;
-        this.height = height;
-        this.vBitrate = vBitrate;
-        this.vBufsize = 2 * vBitrate;
-        this.aBitrate = aBitrate;
-        this.aSamplerate = aSamplerate;
-        this.aChannels = aChannels;
-    }
-}
-
-// simple inclusion checking with type safety, inspired by
-// https://stackoverflow.com/a/56792762
-export const imageQualityNames = <const>['high', 'medium', 'low'];
-export type ImageQualityName = typeof imageQualityNames[number];
-
-export class ImageQuality {
-    readonly name: ImageQualityName;
-    readonly width: number;
-    readonly height: number;
-
-    constructor(name: ImageQualityName, width: number, height: number) {
-        this.name = name;
-        this.width = width;
-        this.height = height;
-    }
-}
-
 interface MediaProcessingJob {
     id: string;
     (): void;
@@ -99,7 +55,7 @@ export class MediaProcessingQueue {
  * Wraps a `FfmpegCommad` in a Promise and executes it
  * @param fmpg the command to be executed
  * @returns a Promise that resolves if the command execution was successful
- * and rejects of it wasn't
+ * and rejects if it wasn't
  */
 function ffmpegPromise(fmpg: FfmpegCommand): Promise<void> {
     return new Promise((resolve, reject) => {
