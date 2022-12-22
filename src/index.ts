@@ -12,6 +12,7 @@ import passport from 'passport';
 
 import config from './config';
 import { connect } from './db';
+import Event from './db/models/event';
 import routes from './routes';
 
 const app = express();
@@ -35,6 +36,14 @@ app.use('/media', express.static(config.MEDIA_ROOT));
 
 app.get('/', (req, res) => {
     res.json({ status: 'ok' });
+});
+
+app.get('/debug', async (req, res) => {
+    const _ = await Event.findAll();
+    const user = _[0];
+    const debugValue = user.currentAttendees;
+    console.dir(debugValue);
+    res.send('Top');
 });
 
 // error handling

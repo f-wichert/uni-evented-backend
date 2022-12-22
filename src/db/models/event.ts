@@ -70,6 +70,17 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.DATE)
     declare endDateTime?: Date | null;
 
+    @Column({
+        type: DataTypes.VIRTUAL,
+        get() {
+            return 5;
+        },
+        set(value) {
+            console.log('ERROR! - The numberOfAttendees Value is read-only and can not be set!');
+        },
+    })
+    declare numberOfAttendees: CreationOptional<number>;
+
     // relationships
 
     @ForeignUUIDColumn(() => User)
