@@ -1,5 +1,5 @@
 import compression from 'compression';
-import express, { ErrorRequestHandler } from 'express';
+import express from 'express';
 // This patches express to handle async rejections in route handlers,
 // avoiding having to wrap everything in `asyncHandler`s.
 import 'express-async-errors';
@@ -14,6 +14,7 @@ import config from './config';
 import { connect } from './db';
 import Event from './db/models/event';
 import User from './db/models/user';
+import errorHandler from './errorHandler';
 import routes from './routes';
 
 const app = express();
@@ -53,30 +54,7 @@ app.get('/debug', async (req, res) => {
 app.use((req, res, next) => {
     next(httpError.NotFound(`Cannot ${req.method} ${req.path}`));
 });
-
-// needs explicit `ErrorRequestHandler` due to https://github.com/DefinitelyTyped/DefinitelyTyped/issues/4212
-const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    // just forward and do nothing if headers are already set, since it'd be too late to set a status now
-    if (res.headersSent) return next(err);
-
-    // take code + message from error if possible
-    let code = 500;
-    let message = 'Internal Server Error';
-    if (httpError.isHttpError(err)) {
-        code = err.statusCode;
-        message = err.message;
-    }
-
-    const body: { error: string; stack?: string[] } = { error: message };
-
-    // add stack to response, if not running in production mode
-    const stack = (err as Error).stack;
-    if (config.NODE_ENV !== 'production' && stack && typeof stack === 'string') {
-        body.stack = stack.split('\n');
-    }
-
-    res.status(code).json(body);
-};
+// main error handler
 app.use(errorHandler);
 
 async function init() {
