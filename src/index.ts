@@ -13,7 +13,6 @@ import passport from 'passport';
 import config from './config';
 import { connect } from './db';
 import Event from './db/models/event';
-import User from './db/models/user';
 import errorHandler from './errorHandler';
 import routes from './routes';
 
@@ -41,10 +40,15 @@ app.get('/', (req, res) => {
 });
 
 app.get('/debug', async (req, res) => {
-    const _ = await Event.findAll({ include: [{ model: User, as: 'attendees' }] });
-    const user = _[1];
-    const debugValue = user.attendees?.length;
+    // const _ = await Event.findOne({ include: [{ model: User, as: 'attendees' }] });
+    // const user = _!;
+    // const debugValue = user.attendees?.map((attendee) => (attendee.username));
+    const tmp2 = await Event.findAll();
+    const tmp = tmp2[0];
+    const debugValue = tmp.numberOfAttendees;
+    console.log('Debug Value: ');
     console.dir(debugValue);
+    console.log('End of Debug Value!');
     res.send('Top');
 });
 
