@@ -13,6 +13,7 @@ import passport from 'passport';
 import config from './config';
 import { connect } from './db';
 import Event from './db/models/event';
+import User from './db/models/user';
 import routes from './routes';
 
 const app = express();
@@ -39,9 +40,9 @@ app.get('/', (req, res) => {
 });
 
 app.get('/debug', async (req, res) => {
-    const _ = await Event.findAll();
-    const user = _[0];
-    const debugValue = user.currentAttendees;
+    const _ = await Event.findAll({ include: [{ model: User, as: 'attendees' }] });
+    const user = _[1];
+    const debugValue = user.attendees?.length;
     console.dir(debugValue);
     res.send('Top');
 });
