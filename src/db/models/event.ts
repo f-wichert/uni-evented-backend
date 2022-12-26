@@ -6,6 +6,7 @@ import {
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
+    Op,
 } from 'sequelize';
 import {
     AfterCreate,
@@ -96,5 +97,24 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     static async afterCreateHook(event: Event) {
         // automatically add host as attendee on creation
         await event.addAttendee(event.hostId, { through: { status: 'interested' } });
+    }
+
+    // methods
+
+    /**
+     * @returns the average rating of the event as a number in [1..=5]
+     * or null if there are no ratings
+     */
+    async getRating() {
+        const eventAttendees = await EventAttendee.findAll({
+            where: {
+                eventId: this.id,
+                rating: { [Op.not]: null },
+            },
+        });
+        return eventAttendees.length > 0
+            ? eventAttendees.map((ea) => ea.rating! as number).reduce((a, c) => a + c) /
+                  eventAttendees.length
+            : null;
     }
 }

@@ -1,5 +1,11 @@
-import { DataTypes, ForeignKey, InferAttributes, InferCreationAttributes } from 'sequelize';
-import { AllowNull, Column, Model, Table } from 'sequelize-typescript';
+import {
+    CreationOptional,
+    DataTypes,
+    ForeignKey,
+    InferAttributes,
+    InferCreationAttributes,
+} from 'sequelize';
+import { AllowNull, Column, DataType, Model, Table } from 'sequelize-typescript';
 
 import { Enum, ForeignUUIDColumn } from '../utils';
 import Event from './event';
@@ -13,6 +19,9 @@ import User from './user';
 
 export const EventAttendeeStatuses = ['interested', 'attending', 'left', 'banned'] as const;
 export type EventAttendeeStatus = typeof EventAttendeeStatuses[number];
+
+export const EventAttendeeRatings = [1, 2, 3, 4, 5] as const;
+export type EventAttendeeRating = typeof EventAttendeeRatings[number];
 
 @Table({ timestamps: false })
 export default class EventAttendee extends Model<
@@ -29,4 +38,10 @@ export default class EventAttendee extends Model<
     @AllowNull(false)
     @Column(DataTypes.STRING)
     declare status: EventAttendeeStatus;
+
+    // null if the user has not yet rated the event
+    @Enum(EventAttendeeRatings)
+    @AllowNull(true)
+    @Column(DataType.SMALLINT)
+    declare rating: CreationOptional<EventAttendeeRating | null>;
 }
