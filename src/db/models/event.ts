@@ -25,7 +25,9 @@ import {
 
 import { Enum, ForeignUUIDColumn } from '../utils';
 import EventAttendee from './eventAttendee';
+import EventTags from './eventTags';
 import Media from './media';
+import Tag from './tag';
 import User from './user';
 
 const EventStatuses = ['scheduled', 'active', 'completed'] as const;
@@ -33,6 +35,8 @@ type EventStatus = typeof EventStatuses[number];
 
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
+    [x: string]: any;
+
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
@@ -74,10 +78,12 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column({
         type: DataTypes.VIRTUAL,
         async get(this: Event): Promise<number | undefined> {
-            const result = await Event.findByPk(this.getDataValue('id'), {
-                include: [{ model: User, as: 'attendees' }],
-            });
-            return result?.attendees?.length;
+            // const result = await Event.findByPk(this.getDataValue('id'), {
+            //     include: [{ model: User, as: 'attendees' }],
+            // });
+            // return result?.attendees?.length;
+            const event = await Event.findByPk(this.getDataValue('id'));
+            return event!.countAttendees() as number;
         },
         set(value) {
             console.log('ERROR! - The numberOfAttendees Value is read-only and can not be set!');
@@ -99,9 +105,11 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.STRING)
     declare description: CreationOptional<string>;
 
-    // declare tags
-
     // relationships
+
+    // declare tags
+    @BelongsToMany(() => Tag, () => EventTags)
+    declare tags: NonAttribute<Tag[]>;
 
     @ForeignUUIDColumn(() => User)
     declare hostId: ForeignKey<string>;

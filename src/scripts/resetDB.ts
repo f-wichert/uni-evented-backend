@@ -4,11 +4,48 @@ dotenv.config();
 import { sequelize, setupDatabase } from '../db';
 import Event from '../db/models/event';
 import User from '../db/models/user';
+import Tag from '../db/models/tag';
 
 export async function generateTestdata() {
     // Wait for DB Setup bevore saving data
     await setupDatabase(true);
     console.log('Successfully reset Database');
+
+    const PartyTag = await Tag.create({
+        label: 'Party',
+        value: 'party',
+        color: 'blue',
+    })
+
+    const BoardgamesTag = await Tag.create({
+        label: 'Boardgames',
+        value: 'boardgames',
+        color: 'brown',
+    })
+
+    const SportTag = await Tag.create({
+        label: 'Sport',
+        value: 'sport',
+        color: 'green',
+    })
+
+    const DrinkingTag = await Tag.create({
+        label: 'Drinking',
+        value: 'drinking',
+        color: 'orange',
+    })
+
+    const MusicTag = await Tag.create({
+        label: 'Music',
+        value: 'music',
+        color: 'violet',
+    })
+
+    const TechnoTag = await Tag.create({
+        label: 'Techno',
+        value: 'techno',
+        color: 'red',
+    })
 
     // Write your Testdata here
     const user = await User.create({
