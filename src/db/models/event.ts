@@ -87,7 +87,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
             // });
             // return result?.attendees?.length;
             const event = await Event.findByPk(this.getDataValue('id'));
-            return event.countAttendees();
+            return event!.countAttendees();
         },
         set(value) {
             console.log('ERROR! - The numberOfAttendees Value is read-only and can not be set!');

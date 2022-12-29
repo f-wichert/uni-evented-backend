@@ -1,5 +1,19 @@
-import { CreationOptional, DataTypes, InferAttributes, InferCreationAttributes, NonAttribute } from 'sequelize';
-import { BelongsToMany, Column, Default, Length, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import {
+    CreationOptional,
+    DataTypes,
+    InferAttributes,
+    InferCreationAttributes,
+    NonAttribute,
+} from 'sequelize';
+import {
+    BelongsToMany,
+    Column,
+    Default,
+    Length,
+    Model,
+    PrimaryKey,
+    Table,
+} from 'sequelize-typescript';
 import Event from './event';
 import EventTags from './eventTags';
 
@@ -25,5 +39,5 @@ export default class Tag extends Model<InferAttributes<Tag>, InferCreationAttrib
     declare parent: CreationOptional<string>;
 
     @BelongsToMany(() => Event, () => EventTags)
-    declare listOfEventsWithThisTag: NonAttribute<Event[]>
+    declare listOfEventsWithThisTag: NonAttribute<Event[]>;
 }
