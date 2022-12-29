@@ -4,7 +4,6 @@ import { Model, Table } from 'sequelize-typescript';
 import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import Tag from './tag';
-import User from './user';
 
 // n.b. This table doesn't *have* to be declared explicitly,
 // we could also just have sequelize automatically infer the association table

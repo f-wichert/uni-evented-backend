@@ -3,6 +3,7 @@ import {
     DataTypes,
     ForeignKey,
     HasManyAddAssociationMixin,
+    HasManyGetAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -74,6 +75,9 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.DATE)
     declare endDateTime?: Date | null;
 
+    // Shuts up the linter
+    declare countAttendees: () => number;
+
     /**  Async property to get number of attendees. Has to be awaitet and is read-only */
     @Column({
         type: DataTypes.VIRTUAL,
@@ -83,7 +87,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
             // });
             // return result?.attendees?.length;
             const event = await Event.findByPk(this.getDataValue('id'));
-            return event!.countAttendees() as number;
+            return event.countAttendees();
         },
         set(value) {
             console.log('ERROR! - The numberOfAttendees Value is read-only and can not be set!');
@@ -110,6 +114,8 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     // declare tags
     @BelongsToMany(() => Tag, () => EventTags)
     declare tags: NonAttribute<Tag[]>;
+    declare addTag: HasManyAddAssociationMixin<Tag, string>;
+    declare getTags: HasManyGetAssociationsMixin<Tag>;
 
     @ForeignUUIDColumn(() => User)
     declare hostId: ForeignKey<string>;
