@@ -8,6 +8,7 @@ import eventRouter from './event';
 import infoRouter from './info';
 import secretRouter from './secret';
 import uploadRouter from './upload';
+import userRouter from './user';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/event', eventRouter);
 router.use('/info', infoRouter);
 router.use('/upload', uploadRouter);
 router.use('/discover', discoverRouter);
+router.use('/user', userRouter);
 
 export default router;

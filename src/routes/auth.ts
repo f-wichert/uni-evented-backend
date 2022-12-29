@@ -3,25 +3,12 @@ import httpError from 'http-errors';
 import { z } from 'zod';
 
 import User from '../db/models/user';
-import { createTokenForUser, requireAuth } from '../passport';
+import { createTokenForUser } from '../passport';
 import { randomAscii } from '../utils/crypto';
 import { sendMail } from '../utils/email';
 import { validateBody } from '../utils/validate';
 
 const router = Router();
-
-router.get('/info', requireAuth, (req, res) => {
-    const user = req.user!;
-    const { id, email, username, displayName, currentEventId } = user;
-
-    res.json({
-        id,
-        email,
-        username,
-        displayName,
-        currentEventId,
-    });
-});
 
 router.post(
     '/register',
