@@ -46,7 +46,7 @@ app.get('/debug', async (req, res) => {
 
     // A bunch of unnecessarry bullshit conversions to satisfy the linter
     const tmp2 = await Event.findAll();
-    const tmp = tmp2[1];
+    const tmp = tmp2[0];
     const debugValue2 = tmp.numberOfAttendees as unknown as Promise<number>;
     const debugValue = await debugValue2;
 

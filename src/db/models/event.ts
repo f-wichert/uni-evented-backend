@@ -1,4 +1,5 @@
 import {
+    BelongsToManyAddAssociationMixin,
     CreationOptional,
     DataTypes,
     ForeignKey,
@@ -7,6 +8,7 @@ import {
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
+    Op,
 } from 'sequelize';
 import {
     AfterCreate,
@@ -126,7 +128,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     // connected through `EventAttendee` table
     @BelongsToMany(() => User, () => EventAttendee)
     declare attendees?: NonAttribute<User[]>;
-    declare addAttendee: HasManyAddAssociationMixin<User, string>;
+    declare addAttendee: BelongsToManyAddAssociationMixin<User, string>;
     // + getAttendees, removeAttendee, hasAttendee, countAttendee also exist, see docs
 
     @HasMany(() => User)
@@ -140,6 +142,25 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @AfterCreate
     static async afterCreateHook(event: Event) {
         // automatically add host as attendee on creation
-        await event.addAttendee(event.hostId);
+        await event.addAttendee(event.hostId, { through: { status: 'interested' } });
+    }
+
+    // methods
+
+    /**
+     * @returns the average rating of the event as a number in [1..=5]
+     * or null if there are no ratings
+     */
+    async getRating() {
+        const eventAttendees = await EventAttendee.findAll({
+            where: {
+                eventId: this.id,
+                rating: { [Op.not]: null },
+            },
+        });
+        return eventAttendees.length > 0
+            ? eventAttendees.map((ea) => ea.rating! as number).reduce((a, c) => a + c) /
+                  eventAttendees.length
+            : null;
     }
 }

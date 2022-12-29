@@ -90,12 +90,11 @@ export async function generateTestdata() {
         lon: 8.644297,
     });
 
-    // Add Users to Events
-    await event.addAttendee(user2);
-    await event2.addAttendee(user);
-    await event2.addAttendee(user3);
-    await event2.addAttendee(user4);
-    await event2.addAttendee(user5);
+    await event.addAttendee(user2, { through: { status: 'attending' } });
+    await event2.addAttendee(user, { through: { status: 'attending' } });
+    await event2.addAttendee(user3, { through: { status: 'attending' } });
+    await event2.addAttendee(user4, { through: { status: 'attending' } });
+    await event2.addAttendee(user5, { through: { status: 'attending' } });
 
     // Add Tags to Events
     await event.addTag(PartyTag);
