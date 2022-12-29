@@ -98,6 +98,9 @@ export async function generateTestdata() {
 
     // Add Tags to Events
     await event.addTag(PartyTag);
+    await event.addTag(SportTag);
+    await event2.addTag(BoardgamesTag);
+    await event2.addTag(DrinkingTag);
 
     await user.update({ currentEventId: event.id });
     await user2.update({ currentEventId: event.id });
