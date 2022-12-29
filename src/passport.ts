@@ -57,7 +57,7 @@ passport.use(
             // it doesn't check whether `userId` exists at all (which is fine)
             const user = await User.findByPk(payload.userId);
             if (!user) {
-                throw httpError.NotFound('Unknown user ID');
+                throw httpError.Unauthorized('Unknown user ID');
             }
             return user;
         }),
