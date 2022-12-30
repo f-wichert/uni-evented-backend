@@ -3,6 +3,7 @@ import config from '../config';
 
 import { requireAuth } from '../passport';
 import authRouter from './auth';
+import discoverRouter from './discover';
 import eventRouter from './event';
 import infoRouter from './info';
 import secretRouter from './secret';
@@ -20,5 +21,6 @@ router.use(requireAuth);
 router.use('/event', eventRouter);
 router.use('/info', infoRouter);
 router.use('/upload', uploadRouter);
+router.use('/discover', discoverRouter);
 
 export default router;
