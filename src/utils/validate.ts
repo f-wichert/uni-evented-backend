@@ -24,9 +24,6 @@ import config from '../config';
 
 // heavily inspired by https://github.com/Aquila169/zod-express-middleware
 
-// use strict by default if running in dev mode
-const STRICT_DEFAULT = config.NODE_ENV !== 'production';
-
 function internalValidate(
     schema: ZodObject<any, any>,
     field: 'params' | 'body' | 'query',
@@ -49,7 +46,7 @@ function internalValidate(
 
 export function validateParams<TSchema extends ZodRawShape>(
     schema: ZodObject<TSchema, any>,
-    strict = STRICT_DEFAULT,
+    strict = true,
 ): RequestHandler<z.infer<ZodObject<TSchema>>, any, any, any> {
     if (strict) schema = schema.strict();
     return internalValidate(schema, 'params');
@@ -57,7 +54,7 @@ export function validateParams<TSchema extends ZodRawShape>(
 
 export function validateBody<TSchema extends ZodRawShape>(
     schema: ZodObject<TSchema, any>,
-    strict = STRICT_DEFAULT,
+    strict = true,
 ): RequestHandler<ParamsDictionary, any, z.infer<ZodObject<TSchema>>, any> {
     if (strict) schema = schema.strict();
     return internalValidate(schema, 'body');
@@ -65,7 +62,7 @@ export function validateBody<TSchema extends ZodRawShape>(
 
 export function validateQuery<TSchema extends ZodRawShape>(
     schema: ZodObject<TSchema, any>,
-    strict = STRICT_DEFAULT,
+    strict = true,
 ): RequestHandler<ParamsDictionary, any, any, z.infer<ZodObject<TSchema>>> {
     if (strict) schema = schema.strict();
     return internalValidate(schema, 'query');

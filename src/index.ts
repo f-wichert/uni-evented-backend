@@ -12,6 +12,7 @@ import passport from 'passport';
 
 import config from './config';
 import { connect } from './db';
+import Event from './db/models/event';
 import errorHandler from './errorHandler';
 import routes from './routes';
 
@@ -36,6 +37,26 @@ app.use('/media', express.static(config.MEDIA_ROOT));
 
 app.get('/', (req, res) => {
     res.json({ status: 'ok' });
+});
+
+app.get('/debug', async (req, res) => {
+    // const _ = await Event.findOne({ include: [{ model: User, as: 'attendees' }] });
+    // const user = _!;
+    // const debugValue = user.attendees?.map((attendee) => (attendee.username));
+
+    // A bunch of unnecessarry bullshit conversions to satisfy the linter
+    const tmp2 = await Event.findAll();
+    const tmp = tmp2[0];
+    const debugValue2 = tmp.numberOfAttendees as unknown as Promise<number>;
+    const debugValue = await debugValue2;
+
+    // const debugValue2 = await tmp.getTags();
+    // const debugValue = debugValue2[0].label;
+
+    console.log('Debug Value: ');
+    console.dir(debugValue);
+    console.log('End of Debug Value!');
+    res.send('Top');
 });
 
 // error handling
