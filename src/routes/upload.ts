@@ -92,18 +92,14 @@ async function processMediaFile(
 
 // endpoint accepts a request with a single file
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
-router.post(
-    '/clip/:eventID',
-    validateParams(z.object({ eventID: z.string().uuid() })),
-    async (req, res) => {
-        const file = getFile(req);
-        const media = await processMediaFile(file, 'video', req.user!.id, req.params.eventID);
-        res.json(media);
-    },
-);
+router.post('/clip', validateParams(z.object({ eventID: z.string().uuid() })), async (req, res) => {
+    const file = getFile(req);
+    const media = await processMediaFile(file, 'video', req.user!.id, req.params.eventID);
+    res.json(media);
+});
 
 router.post(
-    '/image/:eventID',
+    '/image',
     validateParams(z.object({ eventID: z.string().uuid() })),
     async (req, res) => {
         const file = getFile(req);
