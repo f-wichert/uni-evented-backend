@@ -25,7 +25,7 @@ import {
 } from 'sequelize-typescript';
 
 import { hashPassword, verifyPassword } from '../../utils/crypto';
-import Event, { EventStatus } from './event';
+import Event from './event';
 import EventAttendee from './eventAttendee';
 
 @Table
@@ -119,14 +119,17 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     }
 
     async getCurrentEventId() {
-        return (await this.getCurrentEventAttendee())?.eventId;
+        return (await this.getCurrentEventAttendee())?.eventId ?? null;
     }
 
     async getCurrentEvent() {
-        return await Event.findOne({
-            where: { id: await this.getCurrentEventId() },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
-        });
+        const currentEventId = await this.getCurrentEventId();
+        return currentEventId
+            ? await Event.findOne({
+                  where: { id: currentEventId },
+                  attributes: { exclude: ['createdAt', 'updatedAt'] },
+              })
+            : null;
     }
 
     async setCurrentEventId(eventId: string | null) {
@@ -152,7 +155,7 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         await event.addAttendee(this, { through: { status: 'attending' } });
     }
 
-    async getHostedEvents(statuses?: EventStatus[]) {
+    async getHostedEvents(statuses?: string[]) {
         return await Event.findAll({
             where: {
                 status: {

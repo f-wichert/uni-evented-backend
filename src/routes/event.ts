@@ -423,7 +423,7 @@ router.get(
         const { statuses } = req.body;
         const user = req.user!;
 
-        const myEvents = await user.getHostedEvents();
+        const myEvents = await user.getHostedEvents(statuses);
 
         const currentEvent = await user.getCurrentEvent();
         const activeEvent = currentEvent ? [currentEvent] : [];
