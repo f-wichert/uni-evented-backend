@@ -17,8 +17,7 @@ const router = Router();
  *
  * input
  *  {
- *      // if not specified, will use user.currentEventId
- *      eventId?: string
+ *      eventId: string
  *  }
  *
  * returns
@@ -47,16 +46,14 @@ const router = Router();
  *  }
  */
 router.get(
-    '/info/:eventID',
+    '/info/:eventId',
     validateParams(
         z.object({
-            eventID: z.string().uuid(),
+            eventId: z.string().uuid(),
         }),
     ),
     async (req, res) => {
-        const eventId = req.params.eventID;
-
-        assert(eventId, 'no eventID specified and user is not attening an event');
+        const { eventId } = req.params;
 
         const event = await Event.findOne({
             where: { id: eventId },
@@ -68,11 +65,11 @@ router.get(
                     as: 'attendees',
                     attributes: ['id', 'username', 'displayName'],
                 },
-                {
-                    model: User,
-                    as: 'currentAttendees',
-                    attributes: ['id', 'username', 'displayName'],
-                },
+                // {
+                //     model: User,
+                //     as: 'currentAttendees',
+                //     attributes: ['id', 'username', 'displayName'],
+                // },
             ],
         });
 
@@ -151,12 +148,6 @@ router.post(
 
         const event = await Event.findOne({
             where: { id: eventId },
-            include: [
-                {
-                    model: User,
-                    as: 'attendees',
-                },
-            ],
         });
 
         assert(event, `no event with id: ${eventId}`);
@@ -167,15 +158,12 @@ router.post(
         assert(event.status !== 'completed', 'event aready completed');
 
         // remove all current attendees from the event
-        // TODO: use bulk update
-        const userSavePromises = event.attendees!.map((user) => {
-            user.currentEventId = null;
-            return user.save();
-        });
-        await Promise.all(userSavePromises);
+        await EventAttendee.update(
+            { status: 'left' },
+            { where: { eventId: eventId, status: 'attending' } },
+        );
 
-        event.status = 'completed';
-        await event.save();
+        await event.update({ status: 'completed' });
 
         res.json({});
     },
@@ -206,7 +194,7 @@ router.post(
         const user = req.user!;
         const { eventId /*lat, lon*/ } = req.body;
 
-        assert(!user.currentEventId, 'user is already attending an event');
+        assert(!(await user.getCurrentEventId()), 'user is already attending an event');
 
         const event = await Event.findOne({ where: { id: eventId } });
 
@@ -218,9 +206,7 @@ router.post(
 
         // TODO: implement more join conditions (maxAttendees, etc.)
 
-        await event.addAttendee(user);
-        user.currentEventId = event.id;
-        await user.save();
+        await user.setCurrentEvent(event);
 
         res.json({});
     },
@@ -232,9 +218,7 @@ router.post(
 router.post('/leave', async (req, res) => {
     const user = req.user!;
 
-    assert(user.currentEventId, 'user is not attending an event');
-
-    await user.update({ currentEventId: null });
+    await user.setCurrentEvent(null);
 
     res.json({});
 });
@@ -259,7 +243,7 @@ router.post(
 
         assert(eventAttendee);
 
-        await eventAttendee.update('rating', rating);
+        await eventAttendee.update({ rating: rating });
 
         res.json({});
     },
@@ -343,11 +327,12 @@ router.get(
                     as: 'attendees',
                     attributes: ['id', 'username', 'displayName'],
                 },
-                {
-                    model: User,
-                    as: 'currentAttendees',
-                    attributes: ['id', 'username', 'displayName'],
-                },
+                // TODO: figure out how to do this without currentAttendees
+                // {
+                //     model: User,
+                //     as: 'currentAttendees',
+                //     attributes: ['id', 'username', 'displayName'],
+                // },
             );
         }
 
@@ -438,24 +423,10 @@ router.get(
         const { statuses } = req.body;
         const user = req.user!;
 
-        const myEvents = await Event.findAll({
-            where: {
-                status: {
-                    [Op.or]: statuses ? statuses : [],
-                },
-                hostId: user?.id,
-            },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
-        });
+        const myEvents = await user.getHostedEvents();
 
-        const activeEvent = user.currentEventId
-            ? await Event.findAll({
-                  where: {
-                      id: user.currentEventId,
-                  },
-                  attributes: { exclude: ['createdAt', 'updatedAt'] },
-              })
-            : [];
+        const currentEvent = await user.getCurrentEvent();
+        const activeEvent = currentEvent ? [currentEvent] : [];
 
         const followedEvents: Event[] = [];
         const followerEvents: Event[] = [];

@@ -2,7 +2,6 @@ import crypto from 'crypto';
 import {
     CreationOptional,
     DataTypes,
-    ForeignKey,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -12,7 +11,6 @@ import {
     AllowNull,
     BeforeCreate,
     BeforeUpdate,
-    BelongsTo,
     BelongsToMany,
     Column,
     Default,
@@ -27,8 +25,7 @@ import {
 } from 'sequelize-typescript';
 
 import { hashPassword, verifyPassword } from '../../utils/crypto';
-import { ForeignUUIDColumn } from '../utils';
-import Event from './event';
+import Event, { EventStatus } from './event';
 import EventAttendee from './eventAttendee';
 
 @Table
@@ -70,13 +67,6 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
     declare displayName?: string | null;
-
-    // can be null if user is not attending an event
-    @ForeignUUIDColumn(() => Event, { optional: true })
-    declare currentEventId?: ForeignKey<string> | null;
-
-    @BelongsTo(() => Event)
-    declare currentEvent?: NonAttribute<Event> | null;
 
     // relationships
 
@@ -120,5 +110,57 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         }
 
         return valid;
+    }
+
+    async getCurrentEventAttendee() {
+        return await EventAttendee.findOne({
+            where: { userId: this.id, status: 'attending' },
+        });
+    }
+
+    async getCurrentEventId() {
+        return (await this.getCurrentEventAttendee())?.eventId;
+    }
+
+    async getCurrentEvent() {
+        return await Event.findOne({
+            where: { id: await this.getCurrentEventId() },
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+        });
+    }
+
+    async setCurrentEventId(eventId: string | null) {
+        const event = eventId ? await Event.findOne({ where: { id: eventId } }) : null;
+
+        if (eventId && !event) {
+            throw new Error(`No Event with id ${eventId}`);
+        }
+
+        await this.setCurrentEvent(event);
+    }
+
+    async setCurrentEvent(event: Event | null) {
+        const currentEventAttendee = await this.getCurrentEventAttendee();
+        if (currentEventAttendee) {
+            await currentEventAttendee.update({ status: 'left' });
+        }
+
+        if (!event) {
+            return;
+        }
+
+        await event.addAttendee(this, { through: { status: 'attending' } });
+    }
+
+    async getHostedEvents(statuses?: EventStatus[]) {
+        return await Event.findAll({
+            where: {
+                status: {
+                    [Op.or]: statuses ? statuses : [],
+                },
+                hostId: this.id,
+            },
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+        });
     }
 }

@@ -33,8 +33,8 @@ import Media from './media';
 import Tag from './tag';
 import User from './user';
 
-const EventStatuses = ['scheduled', 'active', 'completed'] as const;
-type EventStatus = typeof EventStatuses[number];
+export const EventStatuses = ['scheduled', 'active', 'completed'] as const;
+export type EventStatus = typeof EventStatuses[number];
 
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
@@ -125,9 +125,6 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare attendees?: NonAttribute<User[]>;
     declare addAttendee: BelongsToManyAddAssociationMixin<User, string>;
     // + getAttendees, removeAttendee, hasAttendee, countAttendee also exist, see docs
-
-    @HasMany(() => User)
-    declare currentAttendees?: NonAttribute<User[]>;
 
     @HasMany(() => Media)
     declare media?: NonAttribute<Media[]>;

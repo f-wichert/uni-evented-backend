@@ -90,20 +90,17 @@ export async function generateTestdata() {
         lon: 8.644297,
     });
 
-    await event.addAttendee(user2, { through: { status: 'attending' } });
-    await event2.addAttendee(user, { through: { status: 'attending' } });
-    await event2.addAttendee(user3, { through: { status: 'attending' } });
-    await event2.addAttendee(user4, { through: { status: 'attending' } });
-    await event2.addAttendee(user5, { through: { status: 'attending' } });
+    await user2.setCurrentEvent(event);
+    await user.setCurrentEvent(event2);
+    await user3.setCurrentEvent(event2);
+    await user4.setCurrentEvent(event2);
+    await user5.setCurrentEvent(event2);
 
     // Add Tags to Events
     await event.addTag(PartyTag);
     await event.addTag(SportTag);
     await event2.addTag(BoardgamesTag);
     await event2.addTag(DrinkingTag);
-
-    await user.update({ currentEventId: event.id });
-    await user2.update({ currentEventId: event.id });
 
     // speed up script exit
     await sequelize.close();

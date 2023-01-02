@@ -10,16 +10,16 @@ import { validateBody } from '../utils/validate';
 
 const router = Router();
 
-router.get('/info', requireAuth, (req, res) => {
+router.get('/info', requireAuth, async (req, res) => {
     const user = req.user!;
-    const { id, email, username, displayName, currentEventId } = user;
+    const { id, email, username, displayName } = user;
 
     res.json({
         id,
         email,
         username,
         displayName,
-        currentEventId,
+        currentEventId: await user.getCurrentEventId(),
     });
 });
 
