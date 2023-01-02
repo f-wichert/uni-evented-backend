@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 import { z } from 'zod';
 
 import Event from '../db/models/event';
+import EventAttendee from '../db/models/eventAttendee';
 import Media from '../db/models/media';
 import User from '../db/models/user';
 import { haversine } from '../utils/math';
@@ -13,8 +14,6 @@ const router = Router();
 
 /**
  * Get information about a specified event
- *
- * Auth required
  *
  * input
  *  {
@@ -85,8 +84,6 @@ router.get(
 
 /**
  * Create a new event
- *
- * Auth required
  *
  * input
  *  {
@@ -187,8 +184,6 @@ router.post(
 /**
  * Join an event if it is close enough
  *
- * Auth required
- *
  * input
  *  {
  *      eventId: string
@@ -233,8 +228,6 @@ router.post(
 
 /**
  * Leave the currently attended event
- *
- * Auth required
  */
 router.post('/leave', async (req, res) => {
     const user = req.user!;
@@ -245,6 +238,32 @@ router.post('/leave', async (req, res) => {
 
     res.json({});
 });
+
+/**
+ * Rate an event
+ */
+router.post(
+    '/rate',
+    validateBody(z.object({ eventID: z.string().uuid(), rating: z.number().min(1).max(5) })),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventID, rating } = req.body;
+
+        const eventAttendee = await EventAttendee.findOne({
+            where: {
+                eventId: eventID,
+                userId: user.id,
+                status: { [Op.or]: ['attending', 'left'] },
+            },
+        });
+
+        assert(eventAttendee);
+
+        await eventAttendee.update('rating', rating);
+
+        res.json({});
+    },
+);
 
 /**
  * Find events, based on which input options are specified
