@@ -6,9 +6,35 @@ import { z } from 'zod';
 import Event from '../db/models/event';
 import EventAttendee from '../db/models/eventAttendee';
 import Media from '../db/models/media';
+import Tag from '../db/models/tag';
 import User from '../db/models/user';
 import { haversine } from '../utils/math';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
+
+async function getEventForResponse(id: string) {
+    return await Event.findOne({
+        where: { id },
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+        include: [
+            { model: Media, as: 'media', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+            {
+                model: User,
+                as: 'attendees',
+                attributes: ['id', 'username', 'displayName'],
+            },
+            {
+                model: User,
+                as: 'currentAttendees',
+                attributes: ['id', 'username', 'displayName'],
+            },
+            {
+                model: Tag,
+                as: 'tags',
+                attributes: ['label', 'color', 'value', 'parent'],
+            },
+        ],
+    });
+}
 
 const router = Router();
 
@@ -43,6 +69,16 @@ const router = Router();
  *          username: string
  *          displayName: string | null
  *      }]
+ *      tags: [{
+ *          label: string
+ *          color: string
+ *          value: string
+ *          parent: string
+ *          EventTags: {
+ *              tagID: TAG UUID PK
+ *              eventId: Event UUID PK
+ *          }
+ *      }]
  *  }
  */
 router.get(
@@ -54,27 +90,9 @@ router.get(
     ),
     async (req, res) => {
         const { eventId } = req.params;
-
-        const event = await Event.findOne({
-            where: { id: eventId },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
-            include: [
-                { model: Media, as: 'media', attributes: { exclude: ['createdAt', 'updatedAt'] } },
-                {
-                    model: User,
-                    as: 'attendees',
-                    attributes: ['id', 'username', 'displayName'],
-                },
-                // {
-                //     model: User,
-                //     as: 'currentAttendees',
-                //     attributes: ['id', 'username', 'displayName'],
-                // },
-            ],
-        });
-
+        assert(eventId, 'no eventID specified and user is not attening an event');
+        const event = await getEventForResponse(eventId);
         assert(event, `no event with id ${eventId} found`);
-
         res.json(event);
     },
 );
@@ -120,7 +138,7 @@ router.post(
         // TODO: more validation
         assert(!endDateTime || actualStartDateTime < endDateTime, 'start time is after end time');
 
-        const event = await Event.create({
+        let event = await Event.create({
             name: name,
             lat: lat,
             lon: lon,
@@ -129,9 +147,10 @@ router.post(
             hostId: user.id,
         });
 
-        res.json({
-            eventId: event.id,
-        });
+        // fetch full event from db for consistency
+        event = (await getEventForResponse(event.id))!;
+
+        res.json(event);
     },
 );
 
