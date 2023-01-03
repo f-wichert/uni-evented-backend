@@ -77,3 +77,7 @@ export function validateQuery<TSchema extends ZodRawShape>(
 export const dateSchema = z.preprocess((arg: unknown) => {
     if (typeof arg === 'string' || arg instanceof Date) return new Date(arg);
 }, z.date());
+
+export const base64Schema = z.string().transform((data) => {
+    return Buffer.from(data, 'base64');
+});

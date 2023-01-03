@@ -4,14 +4,14 @@ import { z } from 'zod';
 
 import User from '../db/models/user';
 import { pick } from '../utils';
-import { validateBody, validateParams } from '../utils/validate';
+import { base64Schema, validateBody, validateParams } from '../utils/validate';
 
 const router = Router();
 
 const userIDSchema = z.string().uuid().or(z.literal('@me'));
 
 function formatUserForResponse(user: User) {
-    return pick(user, ['id', 'username', 'displayName']);
+    return pick(user, ['id', 'username', 'displayName', 'avatarHash']);
 }
 
 router.get(
@@ -45,7 +45,13 @@ router.get(
 router.patch(
     '/:userID',
     validateParams(z.object({ userID: userIDSchema })),
-    validateBody(z.object({ username: z.string().optional(), displayName: z.string().nullish() })),
+    validateBody(
+        z.object({
+            username: z.string().optional(),
+            displayName: z.string().nullish(),
+            avatar: base64Schema.optional(),
+        }),
+    ),
     async (req, res) => {
         const { userID } = req.params;
 
@@ -55,9 +61,17 @@ router.patch(
             throw httpError.Forbidden();
         }
 
-        const user = await req.user!.update({
+        let user = req.user!;
+
+        let avatarHash: string | undefined = undefined;
+        if (req.body.avatar) {
+            avatarHash = await user.handleAvatarUpdate(req.body.avatar);
+        }
+
+        user = await req.user!.update({
             username: req.body.username,
             displayName: req.body.displayName,
+            avatarHash: avatarHash,
         });
 
         res.json(formatUserForResponse(user));

@@ -20,12 +20,12 @@ async function getEventForResponse(id: string) {
             {
                 model: User,
                 as: 'attendees',
-                attributes: ['id', 'username', 'displayName'],
+                attributes: ['id', 'username', 'displayName', 'avatarHash'],
             },
             {
                 model: User,
                 as: 'currentAttendees',
-                attributes: ['id', 'username', 'displayName'],
+                attributes: ['id', 'username', 'displayName', 'avatarHash'],
             },
             {
                 model: Tag,
@@ -64,11 +64,13 @@ const router = Router();
  *          id: string
  *          username: string
  *          displayName: string | null
+ *          avatarHash: string | null
  *      }]
  *      currentAttendees: [{
  *          id: string
  *          username: string
  *          displayName: string | null
+ *          avatarHash: string | null
  *      }]
  *      tags: [{
  *          label: string
@@ -320,11 +322,13 @@ router.post(
  *          id: string
  *          username: string
  *          displayName: string | null
+ *          avatarHash: string | null
  *      }]
  *      currentAttendees: [{
  *          id: string
  *          username: string
  *          displayName: string | null
+ *          avatarHash: string | null
  *      }]
  *  ]}
  */
@@ -358,12 +362,12 @@ router.get(
                 {
                     model: User,
                     as: 'attendees',
-                    attributes: ['id', 'username', 'displayName'],
+                    attributes: ['id', 'username', 'displayName', 'avatarHash'],
                 },
                 {
                     model: User,
                     as: 'currentAttendees',
-                    attributes: ['id', 'username', 'displayName'],
+                    attributes: ['id', 'username', 'displayName', 'avatarHash'],
                 },
             );
         }

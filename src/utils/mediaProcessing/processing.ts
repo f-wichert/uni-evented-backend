@@ -1,5 +1,7 @@
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
+import fs from 'fs/promises';
 import sharp from 'sharp';
+
 import config from '../../config';
 import { MediaType } from '../../db/models/media';
 import QUALITIES, { ClipQuality, ImageQuality } from './quality';
@@ -9,16 +11,46 @@ export default class MediaProcessor {
     private readonly videoQueue = new MediaProcessingQueue();
     private readonly imageQueue = new MediaProcessingQueue({ concurrency: 3 });
 
-    async process(mediaType: MediaType | 'avatar', id: string, input: string, output: string) {
+    async handleUpload(
+        mediaType: MediaType | 'avatar',
+        id: string,
+        process: (outputDir: string) => Promise<void>,
+    ) {
+        const outputDir = `${config.MEDIA_ROOT}/${mediaType}/${id}`;
+
+        try {
+            // create final directory
+            await fs.mkdir(outputDir, { recursive: true });
+            // process file
+            await process(outputDir);
+        } catch (error) {
+            // try to remove the directory we created
+            fs.rm(outputDir, { recursive: true }).catch((error) =>
+                console.error(`failed to remove ${outputDir}: ${String(error)}`),
+            );
+            // re-throw error
+            throw error;
+        }
+
+        console.log(`media ${id} (${mediaType}) now available`);
+    }
+
+    async process(mediaType: MediaType, id: string, input: string, output: string): Promise<void> {
         switch (mediaType) {
             case 'video':
                 await this.processVideo(id, input, output, QUALITIES[mediaType]);
                 break;
             case 'image':
-            case 'avatar':
                 await this.processImage(id, input, output, QUALITIES[mediaType]);
                 break;
+            default:
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                throw new Error(`unknown media type: ${mediaType}`);
         }
+    }
+
+    async processAvatar(id: string, input: Buffer, output: string): Promise<void> {
+        await this.processImage(id, input, output, QUALITIES['avatar']);
     }
 
     /**
@@ -84,7 +116,12 @@ export default class MediaProcessor {
         await this.videoQueue.process(job);
     }
 
-    async processImage(id: string, input: string, output: string, qualities: ImageQuality[]) {
+    async processImage(
+        id: string,
+        input: string | Buffer,
+        output: string,
+        qualities: ImageQuality[],
+    ) {
         const meta = await sharp(input).metadata();
         const { orientation } = meta;
 

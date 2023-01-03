@@ -14,7 +14,8 @@ import { validateBody } from '../utils/validate';
 
 const router = Router();
 
-const mediaProcessor = new MediaProcessor();
+// FIXME: exporting as a workaround; should probably make everything static instead.
+export const mediaProcessor = new MediaProcessor();
 
 function getFile(req: Request): UploadedFile {
     if (req.files && Object.keys(req.files).length === 1) {
@@ -27,36 +28,22 @@ function getFile(req: Request): UploadedFile {
     throw httpError.BadRequest('No or too many files uploaded');
 }
 
-async function processFile(
-    file: UploadedFile,
-    mediaType: MediaType | 'avatar',
-    id: string,
-): Promise<void> {
+async function processFile(file: UploadedFile, mediaType: MediaType, id: string): Promise<void> {
     const uploadFilePath = `${config.MEDIA_UPLOAD_ROOT}/${id}${path.extname(file.name)}`;
-    const mediaDirPath = `${config.MEDIA_ROOT}/${mediaType}/${id}`;
 
     try {
-        // create final directory
-        await fs.mkdir(mediaDirPath, { recursive: true });
-        // move (ephemeral) uploaded file to temporary location
-        await file.mv(uploadFilePath);
-        // process uploaded file
-        await mediaProcessor.process(mediaType, id, uploadFilePath, mediaDirPath);
-    } catch (error) {
-        // try to remove the directory we created
-        fs.rm(mediaDirPath, { recursive: true }).catch((error) =>
-            console.error(`failed to remove ${mediaDirPath}: ${String(error)}`),
-        );
-        // re-throw error
-        throw error;
+        await mediaProcessor.handleUpload(mediaType, id, async (outputDir) => {
+            // move (ephemeral) uploaded file to temporary location
+            await file.mv(uploadFilePath);
+            // process uploaded file
+            await mediaProcessor.process(mediaType, id, uploadFilePath, outputDir);
+        });
     } finally {
         // always cleanup the temporary file
         fs.rm(uploadFilePath).catch((error) =>
             console.error(`failed to remove ${uploadFilePath}: ${String(error)}`),
         );
     }
-
-    console.log(`media ${id} (${mediaType}) now available`);
 }
 
 async function processMediaFile(
@@ -102,12 +89,6 @@ router.post('/image', validateBody(z.object({ eventID: z.string().uuid() })), as
     const file = getFile(req);
     const media = await processMediaFile(file, 'image', req.user!.id, req.body.eventID);
     res.json(media);
-});
-
-router.post('/avatar', async (req, res) => {
-    const file = getFile(req);
-    await processFile(file, 'avatar', req.user!.id);
-    res.json({});
 });
 
 export default router;

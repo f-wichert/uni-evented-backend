@@ -26,7 +26,8 @@ import {
     Unique,
 } from 'sequelize-typescript';
 
-import { hashPassword, verifyPassword } from '../../utils/crypto';
+import { mediaProcessor } from '../../routes/upload';
+import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import EventAttendee from './eventAttendee';
@@ -70,6 +71,9 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
     declare displayName?: string | null;
+
+    @Column(DataTypes.STRING)
+    declare avatarHash?: string | null;
 
     // can be null if user is not attending an event
     @ForeignUUIDColumn(() => Event, { optional: true })
@@ -120,5 +124,20 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         }
 
         return valid;
+    }
+
+    // FIXME: remove old avatar images (?)
+    async handleAvatarUpdate(input: Buffer): Promise<string> {
+        const imageHash = hash(input, 'sha1');
+
+        await mediaProcessor.handleUpload(
+            'avatar',
+            `${this.id}/${imageHash}`,
+            async (outputDir) => {
+                await mediaProcessor.processAvatar(imageHash, input, outputDir);
+            },
+        );
+
+        return imageHash;
     }
 }
