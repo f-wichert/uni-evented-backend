@@ -8,7 +8,7 @@ import { z } from 'zod';
 import config from '../config';
 import Media, { MediaType } from '../db/models/media';
 import MediaProcessor from '../utils/mediaProcessing';
-import { validateParams } from '../utils/validate';
+import { validateBody } from '../utils/validate';
 
 // TODO: Use multer for file upload
 
@@ -92,25 +92,17 @@ async function processMediaFile(
 
 // endpoint accepts a request with a single file
 // in a field named config.CLIP_UPLOAD_INPUT_NAME_FIELD
-router.post(
-    '/clip/:eventID',
-    validateParams(z.object({ eventID: z.string().uuid() })),
-    async (req, res) => {
-        const file = getFile(req);
-        const media = await processMediaFile(file, 'video', req.user!.id, req.params.eventID);
-        res.json(media);
-    },
-);
+router.post('/clip', validateBody(z.object({ eventID: z.string().uuid() })), async (req, res) => {
+    const file = getFile(req);
+    const media = await processMediaFile(file, 'video', req.user!.id, req.body.eventID);
+    res.json(media);
+});
 
-router.post(
-    '/image/:eventID',
-    validateParams(z.object({ eventID: z.string().uuid() })),
-    async (req, res) => {
-        const file = getFile(req);
-        const media = await processMediaFile(file, 'image', req.user!.id, req.params.eventID);
-        res.json(media);
-    },
-);
+router.post('/image', validateBody(z.object({ eventID: z.string().uuid() })), async (req, res) => {
+    const file = getFile(req);
+    const media = await processMediaFile(file, 'image', req.user!.id, req.body.eventID);
+    res.json(media);
+});
 
 router.post('/avatar', async (req, res) => {
     const file = getFile(req);

@@ -4,18 +4,42 @@ import { Op } from 'sequelize';
 import { z } from 'zod';
 
 import Event from '../db/models/event';
+import EventAttendee from '../db/models/eventAttendee';
 import Media from '../db/models/media';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
 import { haversine } from '../utils/math';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
 
+async function getEventForResponse(id: string) {
+    return await Event.findOne({
+        where: { id },
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+        include: [
+            { model: Media, as: 'media', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+            {
+                model: User,
+                as: 'attendees',
+                attributes: ['id', 'username', 'displayName'],
+            },
+            {
+                model: User,
+                as: 'currentAttendees',
+                attributes: ['id', 'username', 'displayName'],
+            },
+            {
+                model: Tag,
+                as: 'tags',
+                attributes: ['label', 'color', 'value', 'parent'],
+            },
+        ],
+    });
+}
+
 const router = Router();
 
 /**
  * Get information about a specified event
- *
- * Auth required
  *
  * input
  *  {
@@ -46,6 +70,16 @@ const router = Router();
  *          username: string
  *          displayName: string | null
  *      }]
+ *      tags: [{
+ *          label: string
+ *          color: string
+ *          value: string
+ *          parent: string
+ *          EventTags: {
+ *              tagID: TAG UUID PK
+ *              eventId: Event UUID PK
+ *          }
+ *      }]
  *  }
  */
 router.get(
@@ -57,42 +91,15 @@ router.get(
     ),
     async (req, res) => {
         const eventId = req.params.eventID;
-
         assert(eventId, 'no eventID specified and user is not attening an event');
-
-        const event = await Event.findOne({
-            where: { id: eventId },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
-            include: [
-                { model: Media, as: 'media', attributes: { exclude: ['createdAt', 'updatedAt'] } },
-                {
-                    model: User,
-                    as: 'attendees',
-                    attributes: ['id', 'username', 'displayName'],
-                },
-                {
-                    model: User,
-                    as: 'currentAttendees',
-                    attributes: ['id', 'username', 'displayName'],
-                },
-                {
-                    model: Tag,
-                    as: 'tags',
-                    attributes: ['label', 'color', 'value', 'parent'],
-                },
-            ],
-        });
-
+        const event = await getEventForResponse(eventId);
         assert(event, `no event with id ${eventId} found`);
-
         res.json(event);
     },
 );
 
 /**
  * Create a new event
- *
- * Auth required
  *
  * input
  *  {
@@ -132,7 +139,7 @@ router.post(
         // TODO: more validation
         assert(!endDateTime || actualStartDateTime < endDateTime, 'start time is after end time');
 
-        const event = await Event.create({
+        let event = await Event.create({
             name: name,
             lat: lat,
             lon: lon,
@@ -141,9 +148,10 @@ router.post(
             hostId: user.id,
         });
 
-        res.json({
-            eventId: event.id,
-        });
+        // fetch full event from db for consistency
+        event = (await getEventForResponse(event.id))!;
+
+        res.json(event);
     },
 );
 
@@ -193,8 +201,6 @@ router.post(
 /**
  * Join an event if it is close enough
  *
- * Auth required
- *
  * input
  *  {
  *      eventId: string
@@ -239,8 +245,6 @@ router.post(
 
 /**
  * Leave the currently attended event
- *
- * Auth required
  */
 router.post('/leave', async (req, res) => {
     const user = req.user!;
@@ -251,6 +255,32 @@ router.post('/leave', async (req, res) => {
 
     res.json({});
 });
+
+/**
+ * Rate an event
+ */
+router.post(
+    '/rate',
+    validateBody(z.object({ eventID: z.string().uuid(), rating: z.number().min(1).max(5) })),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventID, rating } = req.body;
+
+        const eventAttendee = await EventAttendee.findOne({
+            where: {
+                eventId: eventID,
+                userId: user.id,
+                status: { [Op.or]: ['attending', 'left'] },
+            },
+        });
+
+        assert(eventAttendee);
+
+        await eventAttendee.update('rating', rating);
+
+        res.json({});
+    },
+);
 
 /**
  * Find events, based on which input options are specified

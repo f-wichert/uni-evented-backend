@@ -5,7 +5,7 @@ import {
     InferAttributes,
     InferCreationAttributes,
 } from 'sequelize';
-import { AllowNull, Column, DataType, Model, Table } from 'sequelize-typescript';
+import { AllowNull, Column, DataType, Max, Min, Model, Table } from 'sequelize-typescript';
 
 import { Enum, ForeignUUIDColumn } from '../utils';
 import Event from './event';
@@ -40,8 +40,9 @@ export default class EventAttendee extends Model<
     declare status: EventAttendeeStatus;
 
     // null if the user has not yet rated the event
-    @Enum(EventAttendeeRatings)
+    @Min(1)
+    @Max(5)
     @AllowNull(true)
     @Column(DataType.SMALLINT)
-    declare rating: CreationOptional<EventAttendeeRating | null>;
+    declare rating: CreationOptional<number | null>;
 }

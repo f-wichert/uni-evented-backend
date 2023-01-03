@@ -35,7 +35,7 @@ const IMAGE_QUALITIES: ImageQuality[] = [
         resizeOptions: { fit: 'inside' },
     },
     {
-        name: 'high',
+        name: 'low',
         width: 480,
         height: 854,
         resizeOptions: { fit: 'inside' },
@@ -45,8 +45,8 @@ const IMAGE_QUALITIES: ImageQuality[] = [
 const AVATAR_QUALITIES: ImageQuality[] = [
     {
         name: 'high',
-        width: 256,
-        height: 256,
+        width: 512,
+        height: 512,
         resizeOptions: { fit: 'cover' },
     },
 ];

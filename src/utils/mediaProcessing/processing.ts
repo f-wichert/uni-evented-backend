@@ -7,7 +7,7 @@ import { FfmpegJob, MediaProcessingQueue, SharpJob } from './queue';
 
 export default class MediaProcessor {
     private readonly videoQueue = new MediaProcessingQueue();
-    private readonly imageQueue = new MediaProcessingQueue();
+    private readonly imageQueue = new MediaProcessingQueue({ concurrency: 3 });
 
     async process(mediaType: MediaType | 'avatar', id: string, input: string, output: string) {
         switch (mediaType) {
@@ -53,7 +53,7 @@ export default class MediaProcessor {
             .addOptions(
                 new Array<string[]>(qualities.length).fill(['-map 0:v:0', '-map 0:a:0']).flat(),
             )
-            .addOptions(['-c:v libx264', '-crf 22', '-c:a aac']);
+            .addOptions(['-c:v libx264', '-c:a aac']);
 
         let streamMapString = '';
 
@@ -90,27 +90,23 @@ export default class MediaProcessor {
 
         // if the orientation exif tag is between 5 and 8 the image is in portrait
         // and has to be handled differently when resizing
-        const isPortrait = orientation && 5 <= orientation && orientation <= 8;
+        const isPortrait = orientation !== undefined && 5 <= orientation && orientation <= 8;
 
-        const promises = [];
+        await Promise.all(
+            qualities.map((quality) => {
+                // swap width and height if image is tagged as portrait
+                const [width, height] = isPortrait
+                    ? [quality.height, quality.width]
+                    : [quality.width, quality.height];
 
-        for (const quality of qualities) {
-            // swap width and height if image is tagged as portrait
-            const [width, height] = isPortrait
-                ? [quality.height, quality.width]
-                : [quality.width, quality.height];
+                const sharpObj = sharp(input)
+                    .withMetadata()
+                    .resize(width, height, quality.resizeOptions)
+                    .jpeg({ mozjpeg: true });
 
-            const sharpObj = sharp(input)
-                .withMetadata()
-                .resize(width, height, quality.resizeOptions)
-                .jpeg({ mozjpeg: true });
-
-            const job = new SharpJob(id, sharpObj, `${output}/${quality.name}.jpg`);
-
-            promises.push(this.imageQueue.process(job));
-            // await this.imageQueue.process(job);
-        }
-
-        await Promise.all(promises);
+                const job = new SharpJob(id, sharpObj, `${output}/${quality.name}.jpg`);
+                return this.imageQueue.process(job);
+            }),
+        );
     }
 }

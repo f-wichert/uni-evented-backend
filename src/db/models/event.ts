@@ -101,11 +101,6 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.STRING)
     declare address: CreationOptional<string>; // TODO: CreationOptional for now, because it is nowhere implemented yet. Should later be made manditory
 
-    @AllowNull(true)
-    @Default(null)
-    @Column(DataTypes.SMALLINT)
-    declare rating: CreationOptional<number>;
-
     @Length({ max: 300 })
     @Default('No Description')
     @Column(DataTypes.STRING)
