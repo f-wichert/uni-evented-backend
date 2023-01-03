@@ -22,11 +22,11 @@ async function getEventForResponse(id: string) {
                 as: 'attendees',
                 attributes: ['id', 'username', 'displayName'],
             },
-            {
-                model: User,
-                as: 'currentAttendees',
-                attributes: ['id', 'username', 'displayName'],
-            },
+            // {
+            //     model: User,
+            //     as: 'currentAttendees',
+            //     attributes: ['id', 'username', 'displayName'],
+            // },
             {
                 model: Tag,
                 as: 'tags',
