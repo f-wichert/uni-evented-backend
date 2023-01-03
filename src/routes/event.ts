@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import Event from '../db/models/event';
 import Media from '../db/models/media';
+import Tag from '../db/models/tag';
 import User from '../db/models/user';
 import { haversine } from '../utils/math';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
@@ -73,6 +74,11 @@ router.get(
                     model: User,
                     as: 'currentAttendees',
                     attributes: ['id', 'username', 'displayName'],
+                },
+                {
+                    model: Tag,
+                    as: 'tags',
+                    attributes: ['label', 'color', 'value', 'parent'],
                 },
             ],
         });
