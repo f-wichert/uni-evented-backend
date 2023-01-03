@@ -3,9 +3,20 @@
 
 import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { z, ZodObject, ZodRawShape } from 'zod';
+import { z, ZodError, ZodObject, ZodRawShape } from 'zod';
 
-import config from '../config';
+type FieldType = 'params' | 'body' | 'query';
+
+export class RequestValidationError extends Error {
+    readonly parent: z.ZodError<any>;
+    readonly field: FieldType;
+
+    constructor(parent: ZodError<any>, field: FieldType) {
+        super(parent.message);
+        this.parent = parent;
+        this.field = field;
+    }
+}
 
 /** Usage:
  *  ```javascript
@@ -26,7 +37,7 @@ import config from '../config';
 
 function internalValidate(
     schema: ZodObject<any, any>,
-    field: 'params' | 'body' | 'query',
+    field: FieldType,
 ): RequestHandler<any, any, any, any> {
     return (req, res, next) => {
         const parsed = schema.safeParse(req[field]);
@@ -34,12 +45,7 @@ function internalValidate(
             req[field] = parsed.data;
             next();
         } else {
-            const error =
-                config.NODE_ENV === 'development'
-                    ? parsed.error.format()
-                    : `invalid request ${field}`;
-            res.status(422).send({ error });
-            next(`Invalid request ${field}: ${JSON.stringify(error)}`);
+            throw new RequestValidationError(parsed.error, field);
         }
     };
 }
