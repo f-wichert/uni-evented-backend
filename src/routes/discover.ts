@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { Op } from 'sequelize';
 
+import recommendationListForUser from '../recommendationAlgorithm';
 import Event from '../db/models/event';
 import Media from '../db/models/media';
+import User from '../db/models/user';
 
 const router = Router();
 
@@ -25,6 +27,10 @@ router.get('/', async (req, res) => {
             required: true,
         },
     });
+
+    const testUser = await User.findOne()
+
+    console.log(recommendationListForUser(testUser!))
 
     res.json(events);
 });
