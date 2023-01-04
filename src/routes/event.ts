@@ -21,12 +21,8 @@ async function getEventForResponse(id: string) {
                 model: User,
                 as: 'attendees',
                 attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                through: { as: 'eventAttendee', attributes: ['status'] },
             },
-            // {
-            //     model: User,
-            //     as: 'currentAttendees',
-            //     attributes: ['id', 'username', 'displayName', 'avatarHash'],
-            // },
             {
                 model: Tag,
                 as: 'tags',
@@ -356,12 +352,8 @@ router.get(
                               model: User,
                               as: 'attendees',
                               attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                              through: { as: 'eventAttendee', attributes: ['status'] },
                           },
-                          // {
-                          //     model: User,
-                          //     as: 'currentAttendees',
-                          //     attributes: ['id', 'username', 'displayName', 'avatarHash'],
-                          // },
                       ]
                     : []),
             ],
