@@ -11,96 +11,97 @@ export async function generateTestdata() {
     await setupDatabase(true);
     console.log('Successfully reset Database');
 
-    const PartyTag = await Tag.create({
-        label: 'Party',
-        value: 'party',
-        color: 'blue',
-    });
+    const [PartyTag, BoardgamesTag, SportTag, DrinkingTag, MusicTag, TechnoTag] = await Promise.all(
+        [
+            Tag.create({
+                label: 'Party',
+                value: 'party',
+                color: 'blue',
+            }),
+            Tag.create({
+                label: 'Boardgames',
+                value: 'boardgames',
+                color: 'brown',
+            }),
+            Tag.create({
+                label: 'Sport',
+                value: 'sport',
+                color: 'green',
+            }),
+            Tag.create({
+                label: 'Drinking',
+                value: 'drinking',
+                color: 'orange',
+            }),
+            Tag.create({
+                label: 'Music',
+                value: 'music',
+                color: 'violet',
+            }),
+            Tag.create({
+                label: 'Techno',
+                value: 'techno',
+                color: 'red',
+            }),
+        ],
+    );
 
-    const BoardgamesTag = await Tag.create({
-        label: 'Boardgames',
-        value: 'boardgames',
-        color: 'brown',
-    });
+    const users = await Promise.all([
+        User.create({
+            username: 'Lorenzo',
+            password: 'Verysecure',
+            email: 'test1@evented.live',
+        }),
+        User.create({
+            username: 'Notlorenzo',
+            password: 'Verysecure',
+            email: 'test2@evented.live',
+        }),
+        User.create({
+            username: 'Reallorenzo',
+            password: 'Verysecure',
+            email: 'test3@evented.live',
+        }),
+        User.create({
+            username: 'Alice',
+            password: 'Verysecure',
+            email: 'test4@evented.live',
+        }),
+        User.create({
+            username: 'Bob',
+            password: 'Verysecure',
+            email: 'test5@evented.live',
+        }),
+    ]);
 
-    const SportTag = await Tag.create({
-        label: 'Sport',
-        value: 'sport',
-        color: 'green',
-    });
+    const events = await Promise.all([
+        Event.create({
+            name: 'cool event',
+            startDateTime: new Date(),
+            hostId: users[0].id,
+            lat: 49.877432,
+            lon: 8.654297,
+        }),
+        Event.create({
+            name: 'actually cool event',
+            startDateTime: new Date(),
+            hostId: users[0].id,
+            lat: 49.867432,
+            lon: 8.644297,
+        }),
+    ]);
 
-    const DrinkingTag = await Tag.create({
-        label: 'Drinking',
-        value: 'drinking',
-        color: 'orange',
-    });
-
-    const MusicTag = await Tag.create({
-        label: 'Music',
-        value: 'music',
-        color: 'violet',
-    });
-
-    const TechnoTag = await Tag.create({
-        label: 'Techno',
-        value: 'techno',
-        color: 'red',
-    });
-
-    // Write your Testdata here
-    const user = await User.create({
-        username: 'Lorenzo',
-        password: 'Verysecure',
-        email: 'test1@evented.live',
-    });
-    const user2 = await User.create({
-        username: 'Notlorenzo',
-        password: 'Verysecure',
-        email: 'test2@evented.live',
-    });
-    const user3 = await User.create({
-        username: 'Reallorenzo',
-        password: 'Verysecure',
-        email: 'test3@evented.live',
-    });
-    const user4 = await User.create({
-        username: 'Alice',
-        password: 'Verysecure',
-        email: 'test4@evented.live',
-    });
-    const user5 = await User.create({
-        username: 'Bob',
-        password: 'Verysecure',
-        email: 'test5@evented.live',
-    });
-
-    const event = await Event.create({
-        name: 'cool event',
-        startDateTime: new Date(),
-        hostId: user.id,
-        lat: 49.877432,
-        lon: 8.654297,
-    });
-
-    const event2 = await Event.create({
-        name: 'actually cool event',
-        startDateTime: new Date(),
-        hostId: user.id,
-        lat: 49.867432,
-        lon: 8.644297,
-    });
-
-    await user2.setCurrentEvent(event);
-    await user.setCurrentEvent(event2);
-    await user3.setCurrentEvent(event2);
-    await user4.setCurrentEvent(event2);
-    await user5.setCurrentEvent(event2);
-
-    // Add Tags to Events
-    await event.addTag(PartyTag);
-    await event.addTag(SportTag);
-    await event2.addTag(BoardgamesTag);
-    await event2.addTag(DrinkingTag);
+    await Promise.all([
+        users[1].setCurrentEvent(events[0]),
+        users[0].setCurrentEvent(events[1]),
+        users[2].setCurrentEvent(events[1]),
+        users[3].setCurrentEvent(events[1]),
+        users[4].setCurrentEvent(events[1]),
+        events[0].addTag(PartyTag),
+        events[0].addTag(SportTag),
+        events[1].addTag(BoardgamesTag),
+        events[1].addTag(DrinkingTag),
+    ]);
 
     // speed up script exit
     await sequelize.close();
