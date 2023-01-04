@@ -40,11 +40,6 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
     @Column(DataTypes.BOOLEAN)
     declare fileAvailable: CreationOptional<boolean>;
 
-    @AllowNull(false)
-    @Default(0)
-    @Column(DataTypes.INTEGER)
-    declare length: CreationOptional<number>;
-
     // relationships
 
     @ForeignUUIDColumn(() => Event)
