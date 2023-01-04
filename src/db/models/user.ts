@@ -26,8 +26,8 @@ import {
     Unique,
 } from 'sequelize-typescript';
 
-import { mediaProcessor } from '../../routes/upload';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
+import MediaProcessor from '../../utils/mediaProcessing';
 import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import EventAttendee from './eventAttendee';
@@ -130,11 +130,11 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     async handleAvatarUpdate(input: Buffer): Promise<string> {
         const imageHash = hash(input, 'sha1');
 
-        await mediaProcessor.handleUpload(
+        await MediaProcessor.handleUpload(
             'avatar',
             `${this.id}/${imageHash}`,
             async (outputDir) => {
-                await mediaProcessor.processAvatar(imageHash, input, outputDir);
+                await MediaProcessor.processAvatar(imageHash, input, outputDir);
             },
         );
 

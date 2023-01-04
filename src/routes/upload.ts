@@ -14,9 +14,6 @@ import { validateBody } from '../utils/validate';
 
 const router = Router();
 
-// FIXME: exporting as a workaround; should probably make everything static instead.
-export const mediaProcessor = new MediaProcessor();
-
 function getFile(req: Request): UploadedFile {
     if (req.files && Object.keys(req.files).length === 1) {
         const file = req.files[config.UPLOAD_INPUT_NAME_FIELD];
@@ -32,11 +29,11 @@ async function processFile(file: UploadedFile, mediaType: MediaType, id: string)
     const uploadFilePath = `${config.MEDIA_UPLOAD_ROOT}/${id}${path.extname(file.name)}`;
 
     try {
-        await mediaProcessor.handleUpload(mediaType, id, async (outputDir) => {
+        await MediaProcessor.handleUpload(mediaType, id, async (outputDir) => {
             // move (ephemeral) uploaded file to temporary location
             await file.mv(uploadFilePath);
             // process uploaded file
-            await mediaProcessor.process(mediaType, id, uploadFilePath, outputDir);
+            await MediaProcessor.process(mediaType, id, uploadFilePath, outputDir);
         });
     } finally {
         // always cleanup the temporary file

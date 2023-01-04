@@ -8,10 +8,10 @@ import QUALITIES, { ClipQuality, ImageQuality } from './quality';
 import { FfmpegJob, MediaProcessingQueue, SharpJob } from './queue';
 
 export default class MediaProcessor {
-    private readonly videoQueue = new MediaProcessingQueue();
-    private readonly imageQueue = new MediaProcessingQueue({ concurrency: 3 });
+    private static readonly videoQueue = new MediaProcessingQueue();
+    private static readonly imageQueue = new MediaProcessingQueue({ concurrency: 3 });
 
-    async handleUpload(
+    static async handleUpload(
         mediaType: MediaType | 'avatar',
         id: string,
         process: (outputDir: string) => Promise<void>,
@@ -35,7 +35,12 @@ export default class MediaProcessor {
         console.log(`media ${id} (${mediaType}) now available`);
     }
 
-    async process(mediaType: MediaType, id: string, input: string, output: string): Promise<void> {
+    static async process(
+        mediaType: MediaType,
+        id: string,
+        input: string,
+        output: string,
+    ): Promise<void> {
         switch (mediaType) {
             case 'video':
                 await this.processVideo(id, input, output, QUALITIES[mediaType]);
@@ -49,7 +54,7 @@ export default class MediaProcessor {
         }
     }
 
-    async processAvatar(id: string, input: Buffer, output: string): Promise<void> {
+    static async processAvatar(id: string, input: Buffer, output: string): Promise<void> {
         await this.processImage(id, input, output, QUALITIES['avatar']);
     }
 
@@ -63,7 +68,7 @@ export default class MediaProcessor {
      * @param input input file path
      * @param output output directory path
      */
-    async processVideo(id: string, input: string, output: string, qualities: ClipQuality[]) {
+    static async processVideo(id: string, input: string, output: string, qualities: ClipQuality[]) {
         // attempt to extract the length of the video
         const probe: FfprobeData = await new Promise((resolve, reject) =>
             ffmpeg.ffprobe(input, (err, data) => (data ? resolve(data) : reject(err))),
@@ -116,7 +121,7 @@ export default class MediaProcessor {
         await this.videoQueue.process(job);
     }
 
-    async processImage(
+    static async processImage(
         id: string,
         input: string | Buffer,
         output: string,
