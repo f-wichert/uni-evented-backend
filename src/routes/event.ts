@@ -327,63 +327,51 @@ router.get(
             loadMedia: z.boolean().optional(),
             lat: z.number().optional(),
             lon: z.number().optional(),
-            maxResults: z.number().optional(),
             maxRadius: z.number().optional(),
         }),
     ),
     async (req, res) => {
-        const { statuses, loadMedia, loadUsers, lat, lon, maxResults, maxRadius } = req.body;
-
-        const includes = [];
-        if (loadMedia) {
-            includes.push({
-                model: Media,
-                as: 'media',
-                attributes: { exclude: ['createdAt', 'updatedAt'] },
-            });
-        }
-        if (loadUsers) {
-            includes.push(
-                {
-                    model: User,
-                    as: 'attendees',
-                    attributes: ['id', 'username', 'displayName', 'avatarHash'],
-                },
-                // {
-                //     model: User,
-                //     as: 'currentAttendees',
-                //     attributes: ['id', 'username', 'displayName', 'avatarHash'],
-                // },
-            );
-        }
+        const { statuses, loadMedia, loadUsers, lat, lon, maxRadius } = req.body;
 
         let events = await Event.findAll({
             where: {
                 status: {
-                    [Op.or]: statuses ? statuses : [],
+                    [Op.or]: statuses ?? [],
                 },
             },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
-            include: includes,
+            include: [
+                ...(loadMedia
+                    ? [
+                          {
+                              model: Media,
+                              as: 'media',
+                              attributes: { exclude: ['createdAt', 'updatedAt'] },
+                          },
+                      ]
+                    : []),
+                ...(loadUsers
+                    ? [
+                          {
+                              model: User,
+                              as: 'attendees',
+                              attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                          },
+                          // {
+                          //     model: User,
+                          //     as: 'currentAttendees',
+                          //     attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                          // },
+                      ]
+                    : []),
+            ],
         });
 
-        // location specified
-        if (lat && lon) {
+        if (lat !== undefined && lon !== undefined && maxRadius !== undefined) {
             // filter out events that are too far away
-            if (maxRadius) {
-                events = events.filter(
-                    (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius,
-                );
-            }
-
-            if (maxResults && maxResults < events.length) {
-                events.sort((event1, event2) => {
-                    const dist1 = haversine(lat, lon, event1.lat, event1.lon);
-                    const dist2 = haversine(lat, lon, event2.lat, event2.lon);
-                    return dist1 - dist2;
-                });
-                events = events.splice(0, maxResults);
-            }
+            events = events.filter(
+                (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius,
+            );
         }
 
         res.json({ events: events });
