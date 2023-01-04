@@ -252,17 +252,18 @@ router.post(
         const user = req.user!;
         const { eventID, rating } = req.body;
 
-        const eventAttendee = await EventAttendee.findOne({
-            where: {
-                eventId: eventID,
-                userId: user.id,
-                status: { [Op.or]: ['attending', 'left'] },
+        const [affectedRows] = await EventAttendee.update(
+            { rating: rating },
+            {
+                where: {
+                    eventId: eventID,
+                    userId: user.id,
+                    status: { [Op.or]: ['attending', 'left'] },
+                },
             },
-        });
+        );
 
-        assert(eventAttendee);
-
-        await eventAttendee.update({ rating: rating });
+        assert(affectedRows === 1);
 
         res.json({});
     },
