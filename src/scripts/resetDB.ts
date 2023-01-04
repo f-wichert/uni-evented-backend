@@ -13,83 +13,87 @@ export async function generateTestdata() {
 
     const [PartyTag, BoardgamesTag, SportTag, DrinkingTag, MusicTag, TechnoTag] = await Promise.all(
         [
-            Tag.create({
+            {
                 label: 'Party',
                 value: 'party',
                 color: 'blue',
-            }),
-            Tag.create({
+            },
+            {
                 label: 'Boardgames',
                 value: 'boardgames',
                 color: 'brown',
-            }),
-            Tag.create({
+            },
+            {
                 label: 'Sport',
                 value: 'sport',
                 color: 'green',
-            }),
-            Tag.create({
+            },
+            {
                 label: 'Drinking',
                 value: 'drinking',
                 color: 'orange',
-            }),
-            Tag.create({
+            },
+            {
                 label: 'Music',
                 value: 'music',
                 color: 'violet',
-            }),
-            Tag.create({
+            },
+            {
                 label: 'Techno',
                 value: 'techno',
                 color: 'red',
-            }),
-        ],
+            },
+        ].map((tag) => Tag.create(tag)),
     );
 
-    const users = await Promise.all([
-        User.create({
-            username: 'Lorenzo',
-            password: 'Verysecure',
-            email: 'test1@evented.live',
-        }),
-        User.create({
-            username: 'Notlorenzo',
-            password: 'Verysecure',
-            email: 'test2@evented.live',
-        }),
-        User.create({
-            username: 'Reallorenzo',
-            password: 'Verysecure',
-            email: 'test3@evented.live',
-        }),
-        User.create({
-            username: 'Alice',
-            password: 'Verysecure',
-            email: 'test4@evented.live',
-        }),
-        User.create({
-            username: 'Bob',
-            password: 'Verysecure',
-            email: 'test5@evented.live',
-        }),
-    ]);
+    const users = await Promise.all(
+        [
+            {
+                username: 'Lorenzo',
+                password: 'Verysecure',
+                email: 'test1@evented.live',
+            },
+            {
+                username: 'Notlorenzo',
+                password: 'Verysecure',
+                email: 'test2@evented.live',
+            },
+            {
+                username: 'Reallorenzo',
+                password: 'Verysecure',
+                email: 'test3@evented.live',
+            },
+            {
+                username: 'Alice',
+                password: 'Verysecure',
+                email: 'test4@evented.live',
+            },
+            {
+                username: 'Bob',
+                password: 'Verysecure',
+                email: 'test5@evented.live',
+            },
+        ].map((user) => User.create(user)),
+    );
 
-    const events = await Promise.all([
-        Event.create({
-            name: 'cool event',
-            startDateTime: new Date(),
-            hostId: users[0].id,
-            lat: 49.877432,
-            lon: 8.654297,
-        }),
-        Event.create({
-            name: 'actually cool event',
-            startDateTime: new Date(),
-            hostId: users[0].id,
-            lat: 49.867432,
-            lon: 8.644297,
-        }),
-    ]);
+    const events = await Promise.all(
+        [
+            {
+                name: 'cool event',
+                startDateTime: new Date(),
+                hostId: users[0].id,
+                lat: 49.877432,
+                lon: 8.654297,
+            },
+            {
+                name: 'actually cool event',
+                startDateTime: new Date(),
+                hostId: users[0].id,
+                lat: 49.867432,
+                lon: 8.644297,
+            },
+        ].map((event) => Event.create(event)),
+    );
 
     await Promise.all([
         users[1].setCurrentEvent(events[0]),
