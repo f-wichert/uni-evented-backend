@@ -147,14 +147,12 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     }
 
     async setCurrentEvent(event: Event | null) {
-        const currentEventAttendee = await this.getCurrentEventAttendee();
-        if (currentEventAttendee) {
-            await currentEventAttendee.update({ status: 'left' });
-        }
+        await EventAttendee.update(
+            { status: 'left' },
+            { where: { userId: this.id, status: 'attending' } },
+        );
 
-        if (!event) {
-            return;
-        }
+        if (!event) return;
 
         await event.addAttendee(this, { through: { status: 'attending' } });
     }
