@@ -129,15 +129,14 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     async getCurrentEvent() {
         const currentEventId = await this.getCurrentEventId();
         return currentEventId
-            ? await Event.findOne({
-                  where: { id: currentEventId },
+            ? await Event.findByPk(currentEventId, {
                   attributes: { exclude: ['createdAt', 'updatedAt'] },
               })
             : null;
     }
 
     async setCurrentEventId(eventId: string | null) {
-        const event = eventId ? await Event.findOne({ where: { id: eventId } }) : null;
+        const event = eventId ? await Event.findByPk(eventId) : null;
 
         if (eventId && !event) {
             throw new Error(`No Event with id ${eventId}`);

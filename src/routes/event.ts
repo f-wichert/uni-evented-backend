@@ -167,9 +167,7 @@ router.post(
         const user = req.user!;
         const { eventId } = req.body;
 
-        const event = await Event.findOne({
-            where: { id: eventId },
-        });
+        const event = await Event.findByPk(eventId);
 
         assert(event, `no event with id: ${eventId}`);
         assert(
@@ -217,7 +215,7 @@ router.post(
 
         assert(!(await user.getCurrentEventId()), 'user is already attending an event');
 
-        const event = await Event.findOne({ where: { id: eventId } });
+        const event = await Event.findByPk(eventId);
 
         assert(event);
 
