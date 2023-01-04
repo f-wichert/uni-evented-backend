@@ -19,6 +19,7 @@ module.exports = {
     rules: {
         '@typescript-eslint/no-namespace': ['error', { allowDeclarations: true }],
         '@typescript-eslint/no-non-null-assertion': 'off',
+        '@typescript-eslint/restrict-template-expressions': ['error', { allowNullish: true }],
         eqeqeq: 'error',
     },
 };

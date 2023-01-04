@@ -24,7 +24,8 @@ import {
     Unique,
 } from 'sequelize-typescript';
 
-import { hashPassword, verifyPassword } from '../../utils/crypto';
+import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
+import MediaProcessor from '../../utils/mediaProcessing';
 import Event from './event';
 import EventAttendee from './eventAttendee';
 
@@ -67,6 +68,9 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Length({ min: 1, max: 16 })
     @Column(DataTypes.STRING)
     declare displayName?: string | null;
+
+    @Column(DataTypes.STRING)
+    declare avatarHash?: string | null;
 
     // relationships
 
@@ -165,5 +169,20 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
             },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
         });
+    }
+
+    // FIXME: remove old avatar images (?)
+    async handleAvatarUpdate(input: Buffer): Promise<string> {
+        const imageHash = hash(input, 'sha1');
+
+        await MediaProcessor.handleUpload(
+            'avatar',
+            `${this.id}/${imageHash}`,
+            async (outputDir) => {
+                await MediaProcessor.processAvatar(imageHash, input, outputDir);
+            },
+        );
+
+        return imageHash;
     }
 }
