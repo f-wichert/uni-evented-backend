@@ -1,5 +1,6 @@
 import {
     BelongsToManyAddAssociationMixin,
+    BelongsToManyCountAssociationsMixin,
     CreationOptional,
     DataTypes,
     ForeignKey,
@@ -77,9 +78,6 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.DATE)
     declare endDateTime?: Date | null;
 
-    // Shuts up the linter
-    declare countAttendees: () => number;
-
     @Default('No Address given')
     @Column(DataTypes.STRING)
     declare address: CreationOptional<string>; // TODO: CreationOptional for now, because it is nowhere implemented yet. Should later be made manditory
@@ -107,7 +105,8 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @BelongsToMany(() => User, () => EventAttendee)
     declare attendees?: NonAttribute<User[]>;
     declare addAttendee: BelongsToManyAddAssociationMixin<User, string>;
-    // + getAttendees, removeAttendee, hasAttendee, countAttendee also exist, see docs
+    declare countAttendees: BelongsToManyCountAssociationsMixin;
+    // + getAttendees, removeAttendee, hasAttendee also exist, see docs
 
     @HasMany(() => Media)
     declare media?: NonAttribute<Media[]>;
