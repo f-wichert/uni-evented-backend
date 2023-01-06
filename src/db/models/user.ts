@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import {
+    BelongsToManyAddAssociationMixin,
     CreationOptional,
     DataTypes,
     ForeignKey,
@@ -86,6 +87,14 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
 
     @HasMany(() => Event)
     declare hostedEvents?: NonAttribute<Event[]>;
+
+    // @BelongsToMany(() => User, () => FollowTable)
+    // declare leaders? : NonAttribute<User[]>;
+    // declare addLeader: BelongsToManyAddAssociationMixin<User, string>
+
+    @BelongsToMany(() => User, 'FollowerTable') //() => FollowTable)
+    declare followers?: NonAttribute<User[]>;
+    declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
 
     // hooks
 
