@@ -80,23 +80,6 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     // Shuts up the linter
     declare countAttendees: () => number;
 
-    /**  Async property to get number of attendees. Has to be awaitet and is read-only */
-    @Column({
-        type: DataTypes.VIRTUAL,
-        async get(this: Event): Promise<number | undefined> {
-            // const result = await Event.findByPk(this.getDataValue('id'), {
-            //     include: [{ model: User, as: 'attendees' }],
-            // });
-            // return result?.attendees?.length;
-            const event = await Event.findByPk(this.getDataValue('id'));
-            return event!.countAttendees();
-        },
-        set(value) {
-            console.log('ERROR! - The numberOfAttendees Value is read-only and can not be set!');
-        },
-    })
-    declare numberOfAttendees: CreationOptional<number>;
-
     @Default('No Address given')
     @Column(DataTypes.STRING)
     declare address: CreationOptional<string>; // TODO: CreationOptional for now, because it is nowhere implemented yet. Should later be made manditory
