@@ -1,5 +1,6 @@
 import {
     BelongsToManyAddAssociationMixin,
+    BelongsToManyCountAssociationsMixin,
     CreationOptional,
     DataTypes,
     ForeignKey,
@@ -33,8 +34,8 @@ import Media from './media';
 import Tag from './tag';
 import User from './user';
 
-const EventStatuses = ['scheduled', 'active', 'completed'] as const;
-type EventStatus = typeof EventStatuses[number];
+export const EventStatuses = ['scheduled', 'active', 'completed'] as const;
+export type EventStatus = typeof EventStatuses[number];
 
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
@@ -77,26 +78,6 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.DATE)
     declare endDateTime?: Date | null;
 
-    // Shuts up the linter
-    declare countAttendees: () => number;
-
-    /**  Async property to get number of attendees. Has to be awaitet and is read-only */
-    @Column({
-        type: DataTypes.VIRTUAL,
-        async get(this: Event): Promise<number | undefined> {
-            // const result = await Event.findByPk(this.getDataValue('id'), {
-            //     include: [{ model: User, as: 'attendees' }],
-            // });
-            // return result?.attendees?.length;
-            const event = await Event.findByPk(this.getDataValue('id'));
-            return event!.countAttendees();
-        },
-        set(value) {
-            console.log('ERROR! - The numberOfAttendees Value is read-only and can not be set!');
-        },
-    })
-    declare numberOfAttendees: CreationOptional<number>;
-
     @Default('No Address given')
     @Column(DataTypes.STRING)
     declare address: CreationOptional<string>; // TODO: CreationOptional for now, because it is nowhere implemented yet. Should later be made manditory
@@ -124,10 +105,8 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @BelongsToMany(() => User, () => EventAttendee)
     declare attendees?: NonAttribute<User[]>;
     declare addAttendee: BelongsToManyAddAssociationMixin<User, string>;
-    // + getAttendees, removeAttendee, hasAttendee, countAttendee also exist, see docs
-
-    @HasMany(() => User)
-    declare currentAttendees?: NonAttribute<User[]>;
+    declare countAttendees: BelongsToManyCountAssociationsMixin;
+    // + getAttendees, removeAttendee, hasAttendee also exist, see docs
 
     @HasMany(() => Media)
     declare media?: NonAttribute<Media[]>;
@@ -153,7 +132,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
                 rating: { [Op.not]: null },
             },
         });
-        return eventAttendees.length > 0
+        return eventAttendees.length
             ? eventAttendees.map((ea) => ea.rating! as number).reduce((a, c) => a + c) /
                   eventAttendees.length
             : null;

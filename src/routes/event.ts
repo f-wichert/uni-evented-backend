@@ -20,12 +20,8 @@ async function getEventForResponse(id: string) {
             {
                 model: User,
                 as: 'attendees',
-                attributes: ['id', 'username', 'displayName'],
-            },
-            {
-                model: User,
-                as: 'currentAttendees',
-                attributes: ['id', 'username', 'displayName'],
+                attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                through: { as: 'eventAttendee', attributes: ['status'] },
             },
             {
                 model: Tag,
@@ -43,8 +39,7 @@ const router = Router();
  *
  * input
  *  {
- *      // if not specified, will use user.currentEventId
- *      eventId?: string
+ *      eventId: string
  *  }
  *
  * returns
@@ -64,11 +59,13 @@ const router = Router();
  *          id: string
  *          username: string
  *          displayName: string | null
+ *          avatarHash: string | null
  *      }]
  *      currentAttendees: [{
  *          id: string
  *          username: string
  *          displayName: string | null
+ *          avatarHash: string | null
  *      }]
  *      tags: [{
  *          label: string
@@ -83,14 +80,14 @@ const router = Router();
  *  }
  */
 router.get(
-    '/info/:eventID',
+    '/info/:eventId',
     validateParams(
         z.object({
-            eventID: z.string().uuid(),
+            eventId: z.string().uuid(),
         }),
     ),
     async (req, res) => {
-        const eventId = req.params.eventID;
+        const { eventId } = req.params;
         assert(eventId, 'no eventID specified and user is not attening an event');
         const event = await getEventForResponse(eventId);
         assert(event, `no event with id ${eventId} found`);
@@ -166,15 +163,7 @@ router.post(
         const user = req.user!;
         const { eventId } = req.body;
 
-        const event = await Event.findOne({
-            where: { id: eventId },
-            include: [
-                {
-                    model: User,
-                    as: 'attendees',
-                },
-            ],
-        });
+        const event = await Event.findByPk(eventId);
 
         assert(event, `no event with id: ${eventId}`);
         assert(
@@ -184,15 +173,12 @@ router.post(
         assert(event.status !== 'completed', 'event aready completed');
 
         // remove all current attendees from the event
-        // TODO: use bulk update
-        const userSavePromises = event.attendees!.map((user) => {
-            user.currentEventId = null;
-            return user.save();
-        });
-        await Promise.all(userSavePromises);
+        await EventAttendee.update(
+            { status: 'left' },
+            { where: { eventId: eventId, status: 'attending' } },
+        );
 
-        event.status = 'completed';
-        await event.save();
+        await event.update({ status: 'completed' });
 
         res.json({});
     },
@@ -223,9 +209,9 @@ router.post(
         const user = req.user!;
         const { eventId /*lat, lon*/ } = req.body;
 
-        assert(!user.currentEventId, 'user is already attending an event');
+        assert(!(await user.getCurrentEventId()), 'user is already attending an event');
 
-        const event = await Event.findOne({ where: { id: eventId } });
+        const event = await Event.findByPk(eventId);
 
         assert(event);
 
@@ -235,9 +221,7 @@ router.post(
 
         // TODO: implement more join conditions (maxAttendees, etc.)
 
-        await event.addAttendee(user);
-        user.currentEventId = event.id;
-        await user.save();
+        await user.setCurrentEvent(event);
 
         res.json({});
     },
@@ -249,9 +233,7 @@ router.post(
 router.post('/leave', async (req, res) => {
     const user = req.user!;
 
-    assert(user.currentEventId, 'user is not attending an event');
-
-    await user.update({ currentEventId: null });
+    await user.setCurrentEvent(null);
 
     res.json({});
 });
@@ -266,17 +248,18 @@ router.post(
         const user = req.user!;
         const { eventID, rating } = req.body;
 
-        const eventAttendee = await EventAttendee.findOne({
-            where: {
-                eventId: eventID,
-                userId: user.id,
-                status: { [Op.or]: ['attending', 'left'] },
+        const [affectedRows] = await EventAttendee.update(
+            { rating: rating },
+            {
+                where: {
+                    eventId: eventID,
+                    userId: user.id,
+                    status: { [Op.or]: ['attending', 'left'] },
+                },
             },
-        });
+        );
 
-        assert(eventAttendee);
-
-        await eventAttendee.update('rating', rating);
+        assert(affectedRows === 1);
 
         res.json({});
     },
@@ -320,11 +303,13 @@ router.post(
  *          id: string
  *          username: string
  *          displayName: string | null
+ *          avatarHash: string | null
  *      }]
  *      currentAttendees: [{
  *          id: string
  *          username: string
  *          displayName: string | null
+ *          avatarHash: string | null
  *      }]
  *  ]}
  */
@@ -338,63 +323,47 @@ router.get(
             loadMedia: z.boolean().optional(),
             lat: z.number().optional(),
             lon: z.number().optional(),
-            maxResults: z.number().optional(),
             maxRadius: z.number().optional(),
         }),
     ),
     async (req, res) => {
-        const { statuses, loadMedia, loadUsers, lat, lon, maxResults, maxRadius } = req.body;
-
-        const includes = [];
-        if (loadMedia) {
-            includes.push({
-                model: Media,
-                as: 'media',
-                attributes: { exclude: ['createdAt', 'updatedAt'] },
-            });
-        }
-        if (loadUsers) {
-            includes.push(
-                {
-                    model: User,
-                    as: 'attendees',
-                    attributes: ['id', 'username', 'displayName'],
-                },
-                {
-                    model: User,
-                    as: 'currentAttendees',
-                    attributes: ['id', 'username', 'displayName'],
-                },
-            );
-        }
+        const { statuses, loadMedia, loadUsers, lat, lon, maxRadius } = req.body;
 
         let events = await Event.findAll({
             where: {
                 status: {
-                    [Op.or]: statuses ? statuses : [],
+                    [Op.or]: statuses ?? [],
                 },
             },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
-            include: includes,
+            include: [
+                ...(loadMedia
+                    ? [
+                          {
+                              model: Media,
+                              as: 'media',
+                              attributes: { exclude: ['createdAt', 'updatedAt'] },
+                          },
+                      ]
+                    : []),
+                ...(loadUsers
+                    ? [
+                          {
+                              model: User,
+                              as: 'attendees',
+                              attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                              through: { as: 'eventAttendee', attributes: ['status'] },
+                          },
+                      ]
+                    : []),
+            ],
         });
 
-        // location specified
-        if (lat && lon) {
+        if (lat !== undefined && lon !== undefined && maxRadius !== undefined) {
             // filter out events that are too far away
-            if (maxRadius) {
-                events = events.filter(
-                    (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius,
-                );
-            }
-
-            if (maxResults && maxResults < events.length) {
-                events.sort((event1, event2) => {
-                    const dist1 = haversine(lat, lon, event1.lat, event1.lon);
-                    const dist2 = haversine(lat, lon, event2.lat, event2.lon);
-                    return dist1 - dist2;
-                });
-                events = events.splice(0, maxResults);
-            }
+            events = events.filter(
+                (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius,
+            );
         }
 
         res.json({ events: events });
@@ -455,24 +424,10 @@ router.get(
         const { statuses } = req.body;
         const user = req.user!;
 
-        const myEvents = await Event.findAll({
-            where: {
-                status: {
-                    [Op.or]: statuses ? statuses : [],
-                },
-                hostId: user?.id,
-            },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
-        });
+        const myEvents = await user.getHostedEvents(statuses);
 
-        const activeEvent = user.currentEventId
-            ? await Event.findAll({
-                  where: {
-                      id: user.currentEventId,
-                  },
-                  attributes: { exclude: ['createdAt', 'updatedAt'] },
-              })
-            : [];
+        const currentEvent = await user.getCurrentEvent();
+        const activeEvent = currentEvent ? [currentEvent] : [];
 
         const followedEvents: Event[] = [];
         const followerEvents: Event[] = [];

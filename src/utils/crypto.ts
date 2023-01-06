@@ -21,3 +21,7 @@ export async function randomAscii(bytes: number): Promise<string> {
     // base58 is like base64, but without special (+=) or ambiguous (oOIl) characters
     return base58.encode(data);
 }
+
+export function hash(bytes: Buffer, algorithm: string): string {
+    return crypto.createHash(algorithm).update(bytes).digest('hex');
+}

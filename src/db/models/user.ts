@@ -3,7 +3,6 @@ import {
     BelongsToManyAddAssociationMixin,
     CreationOptional,
     DataTypes,
-    ForeignKey,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -13,7 +12,6 @@ import {
     AllowNull,
     BeforeCreate,
     BeforeUpdate,
-    BelongsTo,
     BelongsToMany,
     Column,
     Default,
@@ -27,8 +25,8 @@ import {
     Unique,
 } from 'sequelize-typescript';
 
-import { hashPassword, verifyPassword } from '../../utils/crypto';
-import { ForeignUUIDColumn } from '../utils';
+import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
+import MediaProcessor from '../../utils/mediaProcessing';
 import Event from './event';
 import EventAttendee from './eventAttendee';
 
@@ -72,12 +70,8 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Column(DataTypes.STRING)
     declare displayName?: string | null;
 
-    // can be null if user is not attending an event
-    @ForeignUUIDColumn(() => Event, { optional: true })
-    declare currentEventId?: ForeignKey<string> | null;
-
-    @BelongsTo(() => Event)
-    declare currentEvent?: NonAttribute<Event> | null;
+    @Column(DataTypes.STRING)
+    declare avatarHash?: string | null;
 
     // relationships
 
@@ -129,5 +123,81 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         }
 
         return valid;
+    }
+
+    async getCurrentEventAttendee() {
+        return await EventAttendee.findOne({
+            where: { userId: this.id, status: 'attending' },
+        });
+    }
+
+    async getCurrentEventId() {
+        return (await this.getCurrentEventAttendee())?.eventId ?? null;
+    }
+
+    async getCurrentEvent() {
+        const currentEventId = await this.getCurrentEventId();
+        return currentEventId
+            ? await Event.findByPk(currentEventId, {
+                  attributes: { exclude: ['createdAt', 'updatedAt'] },
+              })
+            : null;
+    }
+
+    async setCurrentEventId(eventId: string | null) {
+        const event = eventId ? await Event.findByPk(eventId) : null;
+
+        if (eventId && !event) {
+            throw new Error(`No Event with id ${eventId}`);
+        }
+
+        await this.setCurrentEvent(event);
+    }
+
+    async setCurrentEvent(event: Event | null) {
+        await EventAttendee.update(
+            { status: 'left' },
+            { where: { userId: this.id, status: 'attending' } },
+        );
+
+        if (!event) return;
+
+        await event.addAttendee(this, { through: { status: 'attending' } });
+    }
+
+    async getHostedEvents(statuses?: string[]) {
+        return await Event.findAll({
+            where: {
+                status: {
+                    [Op.or]: statuses ? statuses : [],
+                },
+                hostId: this.id,
+            },
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+        });
+    }
+
+    async getRating() {
+        const hostedEvents = await this.getHostedEvents();
+        const ratings = (await Promise.all(hostedEvents.map((event) => event.getRating()))).filter(
+            (rating) => rating !== null,
+        ) as number[];
+
+        return ratings.length ? ratings.reduce((a, c) => a + c) / ratings.length : null;
+    }
+
+    // FIXME: remove old avatar images (?)
+    async handleAvatarUpdate(input: Buffer): Promise<string> {
+        const imageHash = hash(input, 'sha1');
+
+        await MediaProcessor.handleUpload(
+            'avatar',
+            `${this.id}/${imageHash}`,
+            async (outputDir) => {
+                await MediaProcessor.processAvatar(imageHash, input, outputDir);
+            },
+        );
+
+        return imageHash;
     }
 }
