@@ -3,6 +3,7 @@ dotenv.config();
 
 import { sequelize, setupDatabase } from '../db';
 import Event from '../db/models/event';
+import Message from '../db/models/message';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
 
@@ -88,6 +89,13 @@ export async function generateTestdata() {
         hostId: user.id,
         lat: 49.867432,
         lon: 8.644297,
+    });
+
+    const message1 = await Message.create({
+        message: 'This is a message',
+        sendTime: new Date(),
+        messageCorrespondent: user.id,
+        eventId: event.id,
     });
 
     await event.addAttendee(user2, { through: { status: 'attending' } });

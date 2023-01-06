@@ -6,6 +6,7 @@ import { z } from 'zod';
 import Event from '../db/models/event';
 import EventAttendee from '../db/models/eventAttendee';
 import Media from '../db/models/media';
+import Message from '../db/models/message';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
 import { haversine } from '../utils/math';
@@ -482,6 +483,50 @@ router.get(
         const followerEvents: Event[] = [];
 
         res.json({ myEvents, activeEvent, followedEvents, followerEvents });
+    },
+);
+
+router.get(
+    '/getMessages',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const { eventId } = req.body;
+
+        const messages = await Message.findAll({
+            where: {
+                eventId: eventId,
+            },
+        });
+
+        res.json({ messages: messages });
+    },
+);
+
+router.post(
+    '/sendMessage',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+            messageContent: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId, messageContent } = req.body;
+
+        const message = await Message.create({
+            eventId: eventId,
+            message: messageContent,
+            messageCorrespondent: user.id,
+        });
+
+        res.json({
+            error: false,
+        });
     },
 );
 
