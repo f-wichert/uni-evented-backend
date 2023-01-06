@@ -168,6 +168,15 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         });
     }
 
+    async getRating() {
+        const hostedEvents = await this.getHostedEvents();
+        const ratings = (await Promise.all(hostedEvents.map((event) => event.getRating()))).filter(
+            (rating) => rating !== null,
+        ) as number[];
+
+        return ratings.length ? ratings.reduce((a, c) => a + c) / ratings.length : null;
+    }
+
     // FIXME: remove old avatar images (?)
     async handleAvatarUpdate(input: Buffer): Promise<string> {
         const imageHash = hash(input, 'sha1');

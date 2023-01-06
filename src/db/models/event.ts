@@ -132,7 +132,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
                 rating: { [Op.not]: null },
             },
         });
-        return eventAttendees.length > 0
+        return eventAttendees.length
             ? eventAttendees.map((ea) => ea.rating! as number).reduce((a, c) => a + c) /
                   eventAttendees.length
             : null;
