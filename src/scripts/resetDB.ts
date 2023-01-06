@@ -105,8 +105,12 @@ export async function generateTestdata() {
     await user.update({ currentEventId: event.id });
     await user2.update({ currentEventId: event.id });
 
+    // Not yet implemented
+    // await user.addFollower(user2)
+
     // speed up script exit
     await sequelize.close();
+    console.log('Successfully created new Data!');
 }
 
 // only run if module invoked directly

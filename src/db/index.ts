@@ -8,6 +8,9 @@ import config from '../config';
 export const sequelize = new Sequelize(config.DB_PATH, {
     // Load all files from `./models`
     models: [__dirname + '/models'],
+
+    // Disable logging, because it makes it impossible to find debug output
+    logging: false,
 });
 
 export async function connect() {
