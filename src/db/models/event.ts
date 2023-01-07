@@ -39,8 +39,6 @@ export type EventStatus = typeof EventStatuses[number];
 
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
-    [x: string]: any;
-
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
@@ -110,6 +108,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
 
     @HasMany(() => Media)
     declare media?: NonAttribute<Media[]>;
+    declare getMedia: HasManyGetAssociationsMixin<Media>;
 
     // hooks
 

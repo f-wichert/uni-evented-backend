@@ -88,10 +88,31 @@ router.get(
     ),
     async (req, res) => {
         const { eventId } = req.params;
-        assert(eventId, 'no eventID specified and user is not attening an event');
         const event = await getEventForResponse(eventId);
         assert(event, `no event with id ${eventId} found`);
         res.json(event);
+    },
+);
+
+router.get(
+    '/info/:eventId/media',
+    validateParams(
+        z.object({
+            eventId: z.string().uuid(),
+        }),
+    ),
+    async (req, res) => {
+        const { eventId } = req.params;
+        const event = await Event.findByPk(eventId);
+        assert(event, `no event with id ${eventId} found`);
+
+        const media = await event.getMedia({
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+            where: {
+                fileAvailable: true,
+            },
+        });
+        res.json(media);
     },
 );
 

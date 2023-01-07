@@ -47,7 +47,8 @@ app.get('/debug', async (req, res) => {
     // A bunch of unnecessarry bullshit conversions to satisfy the linter
     const tmp2 = await Event.findAll();
     const tmp = tmp2[0];
-    const debugValue2 = tmp.numberOfAttendees as unknown as Promise<number>;
+    // eslint-disable-next-line
+    const debugValue2 = (tmp as any).numberOfAttendees as Promise<number>;
     const debugValue = await debugValue2;
 
     // const debugValue2 = await tmp.getTags();
