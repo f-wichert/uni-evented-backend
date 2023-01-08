@@ -86,7 +86,7 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     // declare leaders? : NonAttribute<User[]>;
     // declare addLeader: BelongsToManyAddAssociationMixin<User, string>
 
-    @BelongsToMany(() => User, 'FollowerTable') //() => FollowTable)
+    @BelongsToMany(() => User, 'FollowerTable', 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
 
