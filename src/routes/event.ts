@@ -486,7 +486,7 @@ router.get(
     },
 );
 
-router.get(
+router.post(
     '/getMessages',
     validateBody(
         z.object({
