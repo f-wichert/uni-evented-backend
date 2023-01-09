@@ -31,7 +31,7 @@ router.get(
         res.json({
             ...formatUserForResponse(user),
             // include more fields if request is current user
-            ...(isMe ? { currentEventId: await user.getCurrentEventId() } : {}),
+            ...(isMe ? { email: user.email, currentEventId: await user.getCurrentEventId() } : {}),
         });
     },
 );
