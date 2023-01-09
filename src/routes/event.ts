@@ -58,13 +58,13 @@ const router = Router();
  *      attendees: [{
  *          id: string
  *          username: string
- *          displayName: string | null
+ *          displayName: string
  *          avatarHash: string | null
  *      }]
  *      currentAttendees: [{
  *          id: string
  *          username: string
- *          displayName: string | null
+ *          displayName: string
  *          avatarHash: string | null
  *      }]
  *      tags: [{
@@ -323,13 +323,13 @@ router.post(
  *      attendees: [{
  *          id: string
  *          username: string
- *          displayName: string | null
+ *          displayName: string
  *          avatarHash: string | null
  *      }]
  *      currentAttendees: [{
  *          id: string
  *          username: string
- *          displayName: string | null
+ *          displayName: string
  *          avatarHash: string | null
  *      }]
  *  ]}

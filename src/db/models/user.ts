@@ -66,9 +66,11 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Column(DataTypes.STRING)
     declare passwordResetToken?: string | null;
 
-    @Length({ min: 1, max: 16 })
+    @Length({ max: 32 })
+    @AllowNull(false)
+    @Default('')
     @Column(DataTypes.STRING)
-    declare displayName?: string | null;
+    declare displayName?: string;
 
     @Column(DataTypes.STRING)
     declare avatarHash?: string | null;

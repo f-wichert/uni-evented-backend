@@ -42,7 +42,7 @@ router.patch(
     validateBody(
         z.object({
             username: z.string().optional(),
-            displayName: z.string().nullish(),
+            displayName: z.string().optional(),
             avatar: base64Schema.optional(),
         }),
     ),
