@@ -12,7 +12,7 @@ import passport from 'passport';
 
 import config from './config';
 import { connect } from './db';
-import Event from './db/models/event';
+import User from './db/models/user';
 import errorHandler from './errorHandler';
 import routes from './routes';
 
@@ -40,22 +40,12 @@ app.get('/', (req, res) => {
 });
 
 app.get('/debug', async (req, res) => {
-    // const _ = await Event.findOne({ include: [{ model: User, as: 'attendees' }] });
-    // const user = _!;
-    // const debugValue = user.attendees?.map((attendee) => (attendee.username));
+    const user = await User.findOne({ where: { username: 'Lorenzo' } });
 
-    // A bunch of unnecessarry bullshit conversions to satisfy the linter
-    const tmp2 = await Event.findAll();
-    const tmp = tmp2[0];
-    // eslint-disable-next-line
-    const debugValue2 = (tmp as any).numberOfAttendees as Promise<number>;
-    const debugValue = await debugValue2;
-
-    // const debugValue2 = await tmp.getTags();
-    // const debugValue = debugValue2[0].label;
+    const debugValue = await user!.getFollowers();
 
     console.log('Debug Value: ');
-    console.dir(debugValue);
+    console.dir(debugValue[0].dataValues);
     console.log('End of Debug Value!');
     res.send('Top');
 });

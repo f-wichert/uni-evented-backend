@@ -3,6 +3,7 @@ import {
     BelongsToManyAddAssociationMixin,
     CreationOptional,
     DataTypes,
+    HasManyGetAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -91,6 +92,7 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @BelongsToMany(() => User, 'FollowerTable', 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
+    declare getFollowers: HasManyGetAssociationsMixin<User>;
 
     // hooks
 
