@@ -22,13 +22,7 @@ router.get(
         const { userID } = req.params;
 
         const isMe = userID === '@me';
-
-        let user: User | null;
-        if (isMe) {
-            user = req.user!;
-        } else {
-            user = await User.findByPk(userID);
-        }
+        const user = isMe ? req.user! : await User.findByPk(userID);
 
         if (!user) {
             throw new httpError.NotFound('User not found');
@@ -37,7 +31,7 @@ router.get(
         res.json({
             ...formatUserForResponse(user),
             // include more fields if request is current user
-            ...(isMe ? { currentEventId: user.currentEventId } : {}),
+            ...(isMe ? { email: user.email, currentEventId: await user.getCurrentEventId() } : {}),
         });
     },
 );
@@ -48,7 +42,7 @@ router.patch(
     validateBody(
         z.object({
             username: z.string().optional(),
-            displayName: z.string().nullish(),
+            displayName: z.string().optional(),
             avatar: base64Schema.optional(),
         }),
     ),

@@ -1,8 +1,10 @@
 import crypto from 'crypto';
 import {
+    BelongsToManyAddAssociationMixin,
     CreationOptional,
     DataTypes,
-    ForeignKey,
+    HasManyAddAssociationMixin,
+    HasManyGetAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -12,7 +14,6 @@ import {
     AllowNull,
     BeforeCreate,
     BeforeUpdate,
-    BelongsTo,
     BelongsToMany,
     Column,
     Default,
@@ -28,10 +29,10 @@ import {
 
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
-import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import EventAttendee from './eventAttendee';
 import Message from './message';
+import Tag from './tag';
 
 @Table
 export default class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -69,19 +70,14 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @Column(DataTypes.STRING)
     declare passwordResetToken?: string | null;
 
-    @Length({ min: 1, max: 16 })
+    @Length({ max: 32 })
+    @AllowNull(false)
+    @Default('')
     @Column(DataTypes.STRING)
-    declare displayName?: string | null;
+    declare displayName?: string;
 
     @Column(DataTypes.STRING)
     declare avatarHash?: string | null;
-
-    // can be null if user is not attending an event
-    @ForeignUUIDColumn(() => Event, { optional: true })
-    declare currentEventId?: ForeignKey<string> | null;
-
-    @BelongsTo(() => Event)
-    declare currentEvent?: NonAttribute<Event> | null;
 
     // relationships
 
@@ -95,6 +91,19 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @HasMany(() => Event)
     declare hostedEvents?: NonAttribute<Event[]>;
 
+    // @BelongsToMany(() => User, () => FollowTable)
+    // declare leaders? : NonAttribute<User[]>;
+    // declare addLeader: BelongsToManyAddAssociationMixin<User, string>
+
+    @BelongsToMany(() => User, 'FollowerTable', 'followeeId', 'followerId')
+    declare followers?: NonAttribute<User[]>;
+    declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
+    declare getFollowers: HasManyGetAssociationsMixin<User>;
+
+    @BelongsToMany(() => Tag, 'TagsILikeTable', 'userId', 'tagId')
+    declare tags: NonAttribute<Tag[]>;
+    declare addTag: HasManyAddAssociationMixin<Tag, string>;
+    declare getTags: HasManyGetAssociationsMixin<Tag>;
     // hooks
 
     @BeforeCreate
@@ -110,6 +119,15 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     }
 
     // other methods
+
+    // Wrapper functions to make Tag-function names more meaningfull
+    async getFavouriteTags() {
+        return await this.getTags();
+    }
+
+    async addFavouriteTag(NewFavouredTag: Tag) {
+        await this.addTag(NewFavouredTag);
+    }
 
     static async getByEmailOrUsername(email: string, username: string): Promise<User | null> {
         return await User.findOne({ where: { [Op.or]: { email: email, username: username } } });
@@ -128,6 +146,67 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         }
 
         return valid;
+    }
+
+    async getCurrentEventAttendee() {
+        return await EventAttendee.findOne({
+            where: { userId: this.id, status: 'attending' },
+        });
+    }
+
+    async getCurrentEventId() {
+        return (await this.getCurrentEventAttendee())?.eventId ?? null;
+    }
+
+    async getCurrentEvent() {
+        const currentEventId = await this.getCurrentEventId();
+        return currentEventId
+            ? await Event.findByPk(currentEventId, {
+                  attributes: { exclude: ['createdAt', 'updatedAt'] },
+              })
+            : null;
+    }
+
+    async setCurrentEventId(eventId: string | null) {
+        const event = eventId ? await Event.findByPk(eventId) : null;
+
+        if (eventId && !event) {
+            throw new Error(`No Event with id ${eventId}`);
+        }
+
+        await this.setCurrentEvent(event);
+    }
+
+    async setCurrentEvent(event: Event | null) {
+        await EventAttendee.update(
+            { status: 'left' },
+            { where: { userId: this.id, status: 'attending' } },
+        );
+
+        if (!event) return;
+
+        await event.addAttendee(this, { through: { status: 'attending' } });
+    }
+
+    async getHostedEvents(statuses?: string[]) {
+        return await Event.findAll({
+            where: {
+                status: {
+                    [Op.or]: statuses ? statuses : [],
+                },
+                hostId: this.id,
+            },
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+        });
+    }
+
+    async getRating() {
+        const hostedEvents = await this.getHostedEvents();
+        const ratings = (await Promise.all(hostedEvents.map((event) => event.getRating()))).filter(
+            (rating) => rating !== null,
+        ) as number[];
+
+        return ratings.length ? ratings.reduce((a, c) => a + c) / ratings.length : null;
     }
 
     // FIXME: remove old avatar images (?)
