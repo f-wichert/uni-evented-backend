@@ -8,7 +8,6 @@ import fileUpload from 'express-fileupload';
 import fs from 'fs/promises';
 import httpError from 'http-errors';
 import morgan from 'morgan';
-import passport from 'passport';
 
 import config from './config';
 import { connect } from './db';
@@ -22,7 +21,8 @@ app.use(compression());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan(config.NODE_ENV === 'development' ? 'dev' : 'common'));
 
-app.use(passport.initialize());
+//
+// app.use(passport.initialize());
 app.use(
     fileUpload({
         limits: { fileSize: 50 * 1024 * 1024 },
@@ -40,12 +40,12 @@ app.get('/', (req, res) => {
 });
 
 app.get('/debug', async (req, res) => {
-    const user = await User.findOne({ where: { username: 'Lorenzo' } });
+    const user = await User.findOne({ where: { username: 'Notlorenzo' } });
 
-    const debugValue = (await user!.getTags())[0].label;
+    const debugValue = await user!.getFollowees();
 
     console.log('Debug Value: ');
-    console.dir(debugValue);
+    console.dir(debugValue.map((user) => user.username));
     console.log('End of Debug Value!');
     res.send('Top');
 });

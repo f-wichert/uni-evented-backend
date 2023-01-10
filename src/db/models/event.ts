@@ -1,6 +1,7 @@
 import {
     BelongsToManyAddAssociationMixin,
     BelongsToManyCountAssociationsMixin,
+    BelongsToManyGetAssociationsMixin,
     CreationOptional,
     DataTypes,
     ForeignKey,
@@ -104,6 +105,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare attendees?: NonAttribute<User[]>;
     declare addAttendee: BelongsToManyAddAssociationMixin<User, string>;
     declare countAttendees: BelongsToManyCountAssociationsMixin;
+    declare getAttendees: BelongsToManyGetAssociationsMixin<User>;
     // + getAttendees, removeAttendee, hasAttendee also exist, see docs
 
     @HasMany(() => Media)

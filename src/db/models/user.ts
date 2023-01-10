@@ -31,6 +31,7 @@ import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
 import Event from './event';
 import EventAttendee from './eventAttendee';
+import FollowerTable from './FollowerTable';
 import Tag from './tag';
 
 @Table
@@ -87,11 +88,7 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @HasMany(() => Event)
     declare hostedEvents?: NonAttribute<Event[]>;
 
-    // @BelongsToMany(() => User, () => FollowTable)
-    // declare leaders? : NonAttribute<User[]>;
-    // declare addLeader: BelongsToManyAddAssociationMixin<User, string>
-
-    @BelongsToMany(() => User, 'FollowerTable', 'followeeId', 'followerId')
+    @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
     declare getFollowers: HasManyGetAssociationsMixin<User>;
@@ -219,4 +216,26 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
 
         return imageHash;
     }
+
+    async getFollowees() {
+        const followeeTableRows = await FollowerTable.findAll({
+            where: {
+                followerId: this.id,
+            },
+        });
+        const followeeIDs = followeeTableRows.map((row) => row.followeeId);
+        return await User.findAll({
+            where: {
+                id: {
+                    [Op.in]: followeeIDs,
+                },
+            },
+        });
+    }
+
+    // async peopleFollowedAtEvent(event: Event): Promise<User[]> {
+    //     const followees = await this.getFollowers();
+    //     const peopleAtEvent = await event.getAttendees()
+
+    // }
 }

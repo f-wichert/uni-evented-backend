@@ -109,9 +109,13 @@ export async function generateTestdata() {
 
     // Not yet implemented
     await users[0].addFollower(users[1]);
+    await users[2].addFollower(users[1]);
+    await users[3].addFollower(users[1]);
     await users[0].addFollower(users[2]);
 
     await users[0].addFavouriteTag(SportTag);
+    await users[1].addFavouriteTag(SportTag);
+    await users[0].addFavouriteTag(DrinkingTag);
 
     // speed up script exit
     await sequelize.close();
