@@ -29,14 +29,19 @@ export default function recommendationListForUser(user: User, eventList: Event[]
 
 function eventRankingForUser(event: Event, user: User) {
     // Ranking based on tags / personal interests
+    // Wie viele meiner Tags die ich mag sind teil des Events
 
     // Ranking based on friends
+    // Wie viele meiner Freunde haben sich schon für das Event angemeldet
 
     // Ranking based on my ranking of previous events of the creator
+    // methode bei welchen Events ich von diesem Creator schon war
 
     // Ranking based on general ranking of the creator (average ranking of events of creator)
+    // Methode um den average der Bewertungen meiner Events zu erstellen
 
     // Ranking based on coolnes of the event
+    // Magischen Bewertungsalgorithmus aus dem Arsch ziehen
 
     return randomInt(10);
 }
