@@ -116,6 +116,15 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
 
     // other methods
 
+    // Wrapper functions to make Tag-function names more meaningfull
+    async getFavouriteTags() {
+        return await this.getTags();
+    }
+
+    async addFavouriteTag(NewFavouredTag: Tag) {
+        await this.addTag(NewFavouredTag);
+    }
+
     static async getByEmailOrUsername(email: string, username: string): Promise<User | null> {
         return await User.findOne({ where: { [Op.or]: { email: email, username: username } } });
     }
