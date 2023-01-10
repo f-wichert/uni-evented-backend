@@ -31,6 +31,7 @@ import MediaProcessor from '../../utils/mediaProcessing';
 import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import EventAttendee from './eventAttendee';
+import Message from './message';
 
 @Table
 export default class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -83,6 +84,9 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     declare currentEvent?: NonAttribute<Event> | null;
 
     // relationships
+
+    @HasMany(() => Message)
+    declare messages?: NonAttribute<Event[]>;
 
     // connected through `EventAttendee` table
     @BelongsToMany(() => Event, () => EventAttendee)

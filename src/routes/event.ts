@@ -502,6 +502,13 @@ router.post(
             },
         });
 
+        for (const m of messages) {
+            const user = await User.findByPk(m.messageCorrespondent);
+            m['dataValues']['displayname'] = user?.username;
+        }
+
+        // console.log(messages[0]);
+
         res.json({ messages: messages });
     },
 );
