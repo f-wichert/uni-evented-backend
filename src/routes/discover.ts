@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
 
     console.log('DEBUG OUTPUT');
     console.log(
-        recommendationListForUser(testUser!, events).map((event) => {
+        (await recommendationListForUser(testUser!, events)).map((event) => {
             return { name: event.event.name, ranking: event.ranking };
         }),
     );

@@ -3,6 +3,7 @@ import {
     BelongsToManyAddAssociationMixin,
     CreationOptional,
     DataTypes,
+    HasManyAddAssociationMixin,
     HasManyGetAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
@@ -30,6 +31,7 @@ import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
 import Event from './event';
 import EventAttendee from './eventAttendee';
+import Tag from './tag';
 
 @Table
 export default class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -94,6 +96,10 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
     declare getFollowers: HasManyGetAssociationsMixin<User>;
 
+    @BelongsToMany(() => Tag, 'TagsILikeTable', 'tagId', 'userId')
+    declare tagsILike: NonAttribute<Tag[]>;
+    declare addTagILike: HasManyAddAssociationMixin<Tag, string>;
+    declare getTagsILike: HasManyGetAssociationsMixin<Tag>;
     // hooks
 
     @BeforeCreate
