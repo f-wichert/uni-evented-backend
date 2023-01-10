@@ -96,10 +96,10 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
     declare getFollowers: HasManyGetAssociationsMixin<User>;
 
-    @BelongsToMany(() => Tag, 'TagsILikeTable', 'tagId', 'userId')
-    declare tagsILike: NonAttribute<Tag[]>;
-    declare addTagILike: HasManyAddAssociationMixin<Tag, string>;
-    declare getTagsILike: HasManyGetAssociationsMixin<Tag>;
+    @BelongsToMany(() => Tag, 'TagsILikeTable', 'userId', 'tagId')
+    declare tags: NonAttribute<Tag[]>;
+    declare addTag: HasManyAddAssociationMixin<Tag, string>;
+    declare getTags: HasManyGetAssociationsMixin<Tag>;
     // hooks
 
     @BeforeCreate

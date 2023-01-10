@@ -111,6 +111,8 @@ export async function generateTestdata() {
     await users[0].addFollower(users[1]);
     await users[0].addFollower(users[2]);
 
+    await users[0].addTag(SportTag);
+
     // speed up script exit
     await sequelize.close();
     console.log('Successfully created new Data!');
