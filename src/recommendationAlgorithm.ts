@@ -1,7 +1,9 @@
 import { assert } from 'console';
 import { randomInt } from 'crypto';
 import Event from './db/models/event';
+import Tag from './db/models/tag';
 import User from './db/models/user';
+import intersection from './utils/helpers';
 
 export default async function recommendationListForUser(user: User, eventList: Event[]) {
     assert(
@@ -29,11 +31,21 @@ export default async function recommendationListForUser(user: User, eventList: E
 }
 
 async function eventRankingForUser(event: Event, user: User): Promise<number> {
+    let score = 0;
+
     // Ranking based on tags / personal interests
     // Wie viele meiner Tags die ich mag sind teil des Events
+    const tagsUserLikes = await user.getFavouriteTags();
+    const tagsOfEvent = await event.getTags();
+    const tagsUserLikesOfEvent = intersection<Tag>(tagsUserLikes, tagsOfEvent);
+    score += tagsUserLikesOfEvent.length;
 
     // Ranking based on leaders/followees
     // Wie viele meiner Freunde haben sich schon für das Event angemeldet
+    const peopleUserFollows = await user.getFollowees();
+    const peopleAtEvent = await event.getAttendees();
+    const friendsAtEvent = intersection<User>(peopleUserFollows, peopleAtEvent);
+    score += friendsAtEvent.length;
 
     // Ranking based on my ranking of previous events of the creator
 

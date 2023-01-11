@@ -27,6 +27,7 @@ import {
     Unique,
 } from 'sequelize-typescript';
 
+import { equalizable } from '../../types';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
 import Event from './event';
@@ -35,7 +36,10 @@ import FollowerTable from './FollowerTable';
 import Tag from './tag';
 
 @Table
-export default class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+export default class User
+    extends Model<InferAttributes<User>, InferCreationAttributes<User>>
+    implements equalizable
+{
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
@@ -217,7 +221,12 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         return imageHash;
     }
 
-    async getFollowees() {
+    public equals(other: User): boolean {
+        return this.id === other.id;
+    }
+
+    // List of all the people the user follows
+    async getFollowees(): Promise<User[]> {
         const followeeTableRows = await FollowerTable.findAll({
             where: {
                 followerId: this.id,
@@ -232,10 +241,4 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
             },
         });
     }
-
-    // async peopleFollowedAtEvent(event: Event): Promise<User[]> {
-    //     const followees = await this.getFollowers();
-    //     const peopleAtEvent = await event.getAttendees()
-
-    // }
 }
