@@ -54,4 +54,23 @@ export default e.envsafe({
         default: 'File',
         desc: 'The name of the form data field containing all uploaded files',
     }),
+
+    // live
+    NMS_HTTP_PORT: e.port({
+        default: 3001,
+        desc: 'The port NodeMediaServers http server listens on',
+    }),
+    NMS_HTTPS_PORT: e.port({
+        default: 3002,
+        desc: 'The port NodeMediaServers https server listens on',
+    }),
+    NMS_RTMP_PORT: e.port({
+        default: 3003,
+        desc: 'The port NodeMediaServers rtmp server listens on',
+    }),
+
+    FFMPEG_PATH: e.str({
+        default: '/usr/local/bin/ffmpeg',
+        desc: 'Path to a ffmpeg binary',
+    }),
 });
