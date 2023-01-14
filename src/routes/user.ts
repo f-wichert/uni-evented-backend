@@ -45,7 +45,7 @@ router.patch(
             username: z.string().optional(),
             displayName: z.string().optional(),
             email: z.string().optional(),
-            avatar: base64Schema.optional(),
+            avatar: base64Schema.nullish(),
         }),
     ),
     async (req, res) => {
@@ -59,8 +59,8 @@ router.patch(
 
         let user = req.user!;
 
-        let avatarHash: string | undefined = undefined;
-        if (req.body.avatar) {
+        let avatarHash: string | null | undefined = undefined;
+        if (req.body.avatar !== undefined) {
             avatarHash = await user.handleAvatarUpdate(req.body.avatar);
         }
 

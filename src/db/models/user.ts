@@ -203,7 +203,9 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     }
 
     // FIXME: remove old avatar images (?)
-    async handleAvatarUpdate(input: Buffer): Promise<string> {
+    async handleAvatarUpdate(input: Buffer | null): Promise<string | null> {
+        if (input === null) return null;
+
         const imageHash = hash(input, 'sha1');
 
         await MediaProcessor.handleUpload(
