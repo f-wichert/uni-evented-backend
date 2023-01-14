@@ -16,7 +16,11 @@ async function getEventForResponse(id: string) {
         where: { id },
         attributes: { exclude: ['createdAt', 'updatedAt'] },
         include: [
-            { model: Media, as: 'media', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+            {
+                model: Media,
+                as: 'media',
+                attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
+            },
             {
                 model: User,
                 as: 'attendees',
@@ -107,7 +111,7 @@ router.get(
         assert(event, `no event with id ${eventId} found`);
 
         const media = await event.getMedia({
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
+            attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
             where: {
                 fileAvailable: true,
             },
@@ -363,7 +367,7 @@ router.get(
                           {
                               model: Media,
                               as: 'media',
-                              attributes: { exclude: ['createdAt', 'updatedAt'] },
+                              attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
                           },
                       ]
                     : []),
