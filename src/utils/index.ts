@@ -4,3 +4,11 @@ import _ from 'lodash';
 export function pick<T extends object, U extends keyof T>(object: T, props: U[]): Pick<T, U> {
     return _.pick<T, U>(object, props);
 }
+
+export function asyncHandler<Args extends unknown[]>(
+    handler: (...args: Args) => Promise<void>,
+): (...args: Args) => void {
+    return (...args) => {
+        handler(...args).catch(console.error);
+    };
+}

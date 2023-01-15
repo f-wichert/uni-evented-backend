@@ -20,7 +20,7 @@ import { Enum, ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
 
-const MediaTypes = ['image', 'video'] as const;
+const MediaTypes = ['image', 'video', 'livestream'] as const;
 export type MediaType = typeof MediaTypes[number];
 
 @Table
@@ -39,6 +39,15 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
     @Default(false)
     @Column(DataTypes.BOOLEAN)
     declare fileAvailable: CreationOptional<boolean>;
+
+    /**
+     * A one-time key to start a stream
+     * After the stream has started this will be null forever
+     */
+    @AllowNull(true)
+    @Default(DataTypes.UUIDV4)
+    @Column(DataTypes.UUID)
+    declare streamKey: CreationOptional<string | null>;
 
     // relationships
 

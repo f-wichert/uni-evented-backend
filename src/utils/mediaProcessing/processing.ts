@@ -50,7 +50,7 @@ export default class MediaProcessor {
                 break;
             default:
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                throw new Error(`unknown media type: ${mediaType}`);
+                throw new Error(`unknown or unsupported media type: ${mediaType}`);
         }
     }
 
