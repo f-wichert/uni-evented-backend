@@ -45,4 +45,12 @@ export default class EventAttendee extends Model<
     @AllowNull(true)
     @Column(DataType.SMALLINT)
     declare rating: CreationOptional<number | null>;
+
+    // public setRating(rating : number): void {
+    //     // Enforce Rating is integer between 0 and 5
+    //     rating = Math.round(rating);
+    //     rating = Math.max(rating, 0);
+    //     rating = Math.min(rating, 5);
+    //     this.rating = rating;
+    // }
 }

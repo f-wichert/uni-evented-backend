@@ -112,11 +112,11 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @HasMany(() => Media)
     declare media?: NonAttribute<Media[]>;
     declare getMedia: HasManyGetAssociationsMixin<Media>;
-
+    declare countMedia: BelongsToManyCountAssociationsMixin;
     // hooks
 
     @AfterCreate
-    static async afterCreateHook(event: Event) {
+    static async afterCreateHook(event: Event): Promise<void> {
         // automatically add host as attendee on creation
         await event.addAttendee(event.hostId, { through: { status: 'interested' } });
     }
