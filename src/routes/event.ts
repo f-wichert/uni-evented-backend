@@ -479,8 +479,6 @@ router.post(
             m['dataValues']['displayname'] = user?.username;
         }
 
-        // console.log(messages[0]);
-
         res.json({ messages: messages });
     },
 );
