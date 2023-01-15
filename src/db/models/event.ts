@@ -87,6 +87,11 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.STRING)
     declare description: CreationOptional<string>;
 
+    @Length({ max: 10 })
+    @AllowNull(true)
+    @Column(DataTypes.STRING)
+    declare musicStyle: CreationOptional<string>;
+
     // relationships
 
     // declare tags
