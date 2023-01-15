@@ -29,7 +29,7 @@ export default class Tag
     declare id: CreationOptional<string>;
 
     // The displayed text inside the tag
-    @Length({ max: 12 })
+    @Length({ max: 14 })
     @Column(DataTypes.STRING)
     declare label: string;
 
