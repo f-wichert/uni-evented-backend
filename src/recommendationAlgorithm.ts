@@ -1,7 +1,8 @@
 import { assert } from 'console';
-import { randomInt } from 'crypto';
 import Event from './db/models/event';
+import Tag from './db/models/tag';
 import User from './db/models/user';
+import intersection from './utils/helpers';
 
 export default async function recommendationListForUser(user: User, eventList: Event[]) {
     assert(
@@ -21,30 +22,45 @@ export default async function recommendationListForUser(user: User, eventList: E
 
     // Sort from big to low. Highest ranking event at first index
     const sortetRankedEventList = rankedEventList.sort(
-        (rankedEventA, rankedEventB) => rankedEventB.ranking - rankedEventA.ranking,
+        (rankedEventA, rankedEventB) => rankedEventB.ranking.score - rankedEventA.ranking.score,
     );
 
     // const sortetEventList = sortetRankedEventList.map((rankedEvent) => rankedEvent.event);
     return sortetRankedEventList;
 }
 
-async function eventRankingForUser(event: Event, user: User): Promise<number> {
+async function eventRankingForUser(event: Event, user: User) {
+    let score = 0;
+    const explanation = { tagScore: 0, followeesScore: 0, ratingScore: 0, mediaScore: 0 };
+
     // Ranking based on tags / personal interests
     // Wie viele meiner Tags die ich mag sind teil des Events
+    const tagsUserLikes = await user.getFavouriteTags();
+    const tagsOfEvent = await event.getTags();
+    const tagsUserLikesOfEvent = intersection<Tag>(tagsUserLikes, tagsOfEvent);
+    score += tagsUserLikesOfEvent.length;
+    explanation.tagScore = tagsUserLikesOfEvent.length;
 
     // Ranking based on leaders/followees
     // Wie viele meiner Freunde haben sich schon für das Event angemeldet
-
-    // Ranking based on my ranking of previous events of the creator
-
-    // Ranking based on average public rating of the creators previous events
-    const AverageEventRatingOfUser = await user.getRating();
+    const peopleUserFollows = await user.getFollowees();
+    const peopleAtEvent = await event.getAttendees();
+    const peopleUserFollowsAtEvent = intersection<User>(peopleUserFollows, peopleAtEvent);
+    score += peopleUserFollowsAtEvent.length;
+    explanation.followeesScore = peopleUserFollowsAtEvent.length;
 
     // Ranking based on general ranking of the creator (average ranking of events of creator)
-    // Methode um den average der Bewertungen meiner Events zu erstellen
+    const AverageEventRatingOfUser = await user.getRating();
+    score += AverageEventRatingOfUser! / 2; // Arbitrary scalar to mach how important ratings are compared to the other features
+    explanation.ratingScore = AverageEventRatingOfUser! / 2;
+
+    // Ranking based on the availability of media
+    const numberOfMedias = Math.min(await event.countMedia(), 8); // Ignore pieces of media beyoind 8
+    score += numberOfMedias / 3;
+    explanation.mediaScore = numberOfMedias / 3;
 
     // Ranking based on coolnes of the event
     // Magischen Bewertungsalgorithmus aus dem Arsch ziehen
 
-    return randomInt(10);
+    return { score: score, explanation: explanation };
 }
