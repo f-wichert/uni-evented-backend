@@ -21,6 +21,8 @@ async function getEventForResponse(id: string) {
                 model: Media,
                 as: 'media',
                 attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
+                where: { fileAvailable: true },
+                required: false,
             },
             {
                 model: User,
