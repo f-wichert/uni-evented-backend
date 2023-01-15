@@ -31,6 +31,7 @@ import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
 import Event from './event';
 import EventAttendee from './eventAttendee';
+import FollowerTable from './FollowerTable';
 import Message from './message';
 import Tag from './tag';
 
@@ -91,11 +92,7 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     @HasMany(() => Event)
     declare hostedEvents?: NonAttribute<Event[]>;
 
-    // @BelongsToMany(() => User, () => FollowTable)
-    // declare leaders? : NonAttribute<User[]>;
-    // declare addLeader: BelongsToManyAddAssociationMixin<User, string>
-
-    @BelongsToMany(() => User, 'FollowerTable', 'followeeId', 'followerId')
+    @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
     declare getFollowers: HasManyGetAssociationsMixin<User>;
@@ -210,7 +207,9 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     }
 
     // FIXME: remove old avatar images (?)
-    async handleAvatarUpdate(input: Buffer): Promise<string> {
+    async handleAvatarUpdate(input: Buffer | null): Promise<string | null> {
+        if (input === null) return null;
+
         const imageHash = hash(input, 'sha1');
 
         await MediaProcessor.handleUpload(
@@ -223,4 +222,26 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
 
         return imageHash;
     }
+
+    async getFollowees() {
+        const followeeTableRows = await FollowerTable.findAll({
+            where: {
+                followerId: this.id,
+            },
+        });
+        const followeeIDs = followeeTableRows.map((row) => row.followeeId);
+        return await User.findAll({
+            where: {
+                id: {
+                    [Op.in]: followeeIDs,
+                },
+            },
+        });
+    }
+
+    // async peopleFollowedAtEvent(event: Event): Promise<User[]> {
+    //     const followees = await this.getFollowers();
+    //     const peopleAtEvent = await event.getAttendees()
+
+    // }
 }

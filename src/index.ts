@@ -40,12 +40,12 @@ app.get('/', (req, res) => {
 });
 
 app.get('/debug', async (req, res) => {
-    const user = await User.findOne({ where: { username: 'Lorenzo' } });
+    const user = await User.findOne({ where: { username: 'Notlorenzo' } });
 
-    const debugValue = (await user!.getTags())[0].label;
+    const debugValue = await user!.getFollowees();
 
     console.log('Debug Value: ');
-    console.dir(debugValue);
+    console.dir(debugValue.map((user) => user.username));
     console.log('End of Debug Value!');
     res.send('Top');
 });
