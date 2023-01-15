@@ -49,6 +49,7 @@ export async function generateTestdata() {
     const users = await Promise.all(
         [
             {
+                id: 'b4dd7b74-e531-4b42-b683-f2a9ec92f59b',
                 username: 'Lorenzo',
                 password: 'Verysecure',
                 email: 'test1@evented.live',
@@ -96,26 +97,29 @@ export async function generateTestdata() {
     );
 
     await Promise.all([
-        users[1].setCurrentEvent(events[0]),
         users[0].setCurrentEvent(events[1]),
+        users[1].setCurrentEvent(events[0]),
         users[2].setCurrentEvent(events[1]),
         users[3].setCurrentEvent(events[1]),
         users[4].setCurrentEvent(events[1]),
         events[0].addTag(PartyTag),
         events[0].addTag(SportTag),
-        events[1].addTag(BoardgamesTag),
+        events[1].addTag(PartyTag),
         events[1].addTag(DrinkingTag),
     ]);
 
     // Not yet implemented
     await users[0].addFollower(users[1]);
+    await users[0].addFollower(users[2]);
+    await users[0].follow(users[1]);
     await users[2].addFollower(users[1]);
     await users[3].addFollower(users[1]);
-    await users[0].addFollower(users[2]);
 
     await users[0].addFavouriteTag(SportTag);
+    await users[0].addFavouriteTag(PartyTag);
     await users[1].addFavouriteTag(SportTag);
-    await users[0].addFavouriteTag(DrinkingTag);
+
+    await users[0].rateEvent(events[0], 3);
 
     // speed up script exit
     await sequelize.close();

@@ -197,6 +197,24 @@ export default class User
         });
     }
 
+    async follow(followee: User) {
+        await followee.addFollower(this);
+    }
+
+    async rateEvent(event: Event, rating: number) {
+        const eventAttendeeEntry = await EventAttendee.findOne({
+            where: {
+                userId: this.id,
+                eventId: event.id,
+            },
+        });
+        if (!eventAttendeeEntry) {
+            console.error(`Rating event '${event.name}' failed. Tryed to pull EventAttendee entry 
+            with ID of this User and the Event Parameter, but could not be found.`);
+        }
+        await eventAttendeeEntry!.update({ rating: rating });
+    }
+
     async getRating() {
         const hostedEvents = await this.getHostedEvents();
         const ratings = (await Promise.all(hostedEvents.map((event) => event.getRating()))).filter(
