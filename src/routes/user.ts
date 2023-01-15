@@ -10,8 +10,9 @@ const router = Router();
 
 const userIDSchema = z.string().uuid().or(z.literal('@me'));
 
-function formatUserForResponse(user: User) {
-    return pick(user, ['id', 'username', 'displayName', 'avatarHash']);
+function formatUserForResponse(user: User, isMe = false) {
+    const extraFields = isMe ? (['email'] as const) : [];
+    return pick(user, ['id', 'username', 'displayName', 'avatarHash', ...extraFields]);
 }
 
 router.get(
@@ -29,9 +30,9 @@ router.get(
         }
 
         res.json({
-            ...formatUserForResponse(user),
             // include more fields if request is current user
-            ...(isMe ? { email: user.email, currentEventId: await user.getCurrentEventId() } : {}),
+            ...formatUserForResponse(user, isMe),
+            ...(isMe ? { currentEventId: await user.getCurrentEventId() } : {}),
         });
     },
 );
@@ -43,7 +44,8 @@ router.patch(
         z.object({
             username: z.string().optional(),
             displayName: z.string().optional(),
-            avatar: base64Schema.optional(),
+            email: z.string().optional(),
+            avatar: base64Schema.nullish(),
         }),
     ),
     async (req, res) => {
@@ -57,18 +59,19 @@ router.patch(
 
         let user = req.user!;
 
-        let avatarHash: string | undefined = undefined;
-        if (req.body.avatar) {
+        let avatarHash: string | null | undefined = undefined;
+        if (req.body.avatar !== undefined) {
             avatarHash = await user.handleAvatarUpdate(req.body.avatar);
         }
 
         user = await req.user!.update({
             username: req.body.username,
             displayName: req.body.displayName,
+            email: req.body.email,
             avatarHash: avatarHash,
         });
 
-        res.json(formatUserForResponse(user));
+        res.json(formatUserForResponse(user, true));
     },
 );
 
