@@ -27,15 +27,20 @@ import {
     Unique,
 } from 'sequelize-typescript';
 
+import { equalizable } from '../../types';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
 import Event from './event';
 import EventAttendee from './eventAttendee';
 import FollowerTable from './FollowerTable';
+import Message from './message';
 import Tag from './tag';
 
 @Table
-export default class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+export default class User
+    extends Model<InferAttributes<User>, InferCreationAttributes<User>>
+    implements equalizable
+{
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
@@ -80,6 +85,9 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
     declare avatarHash?: string | null;
 
     // relationships
+
+    @HasMany(() => Message)
+    declare messages?: NonAttribute<Event[]>;
 
     // connected through `EventAttendee` table
     @BelongsToMany(() => Event, () => EventAttendee)
@@ -193,6 +201,24 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         });
     }
 
+    async follow(followee: User) {
+        await followee.addFollower(this);
+    }
+
+    async rateEvent(event: Event, rating: number) {
+        const eventAttendeeEntry = await EventAttendee.findOne({
+            where: {
+                userId: this.id,
+                eventId: event.id,
+            },
+        });
+        if (!eventAttendeeEntry) {
+            console.error(`Rating event '${event.name}' failed. Tryed to pull EventAttendee entry 
+            with ID of this User and the Event Parameter, but could not be found.`);
+        }
+        await eventAttendeeEntry!.update({ rating: rating });
+    }
+
     async getRating() {
         const hostedEvents = await this.getHostedEvents();
         const ratings = (await Promise.all(hostedEvents.map((event) => event.getRating()))).filter(
@@ -219,7 +245,12 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
         return imageHash;
     }
 
-    async getFollowees() {
+    public equals(other: User): boolean {
+        return this.id === other.id;
+    }
+
+    // List of all the people the user follows
+    async getFollowees(): Promise<User[]> {
         const followeeTableRows = await FollowerTable.findAll({
             where: {
                 followerId: this.id,
@@ -234,10 +265,4 @@ export default class User extends Model<InferAttributes<User>, InferCreationAttr
             },
         });
     }
-
-    // async peopleFollowedAtEvent(event: Event): Promise<User[]> {
-    //     const followees = await this.getFollowers();
-    //     const peopleAtEvent = await event.getAttendees()
-
-    // }
 }

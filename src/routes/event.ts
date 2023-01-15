@@ -6,6 +6,7 @@ import { z } from 'zod';
 import Event from '../db/models/event';
 import EventAttendee from '../db/models/eventAttendee';
 import Media from '../db/models/media';
+import Message from '../db/models/message';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
 import { haversine } from '../utils/math';
@@ -454,6 +455,57 @@ router.get(
         const followerEvents: Event[] = [];
 
         res.json({ myEvents, activeEvent, followedEvents, followerEvents });
+    },
+);
+
+router.post(
+    '/getMessages',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const { eventId } = req.body;
+
+        const messages = await Message.findAll({
+            where: {
+                eventId: eventId,
+            },
+        });
+
+        for (const m of messages) {
+            const user = await User.findByPk(m.messageCorrespondent);
+            m['dataValues']['displayname'] = user?.username;
+        }
+
+        // console.log(messages[0]);
+
+        res.json({ messages: messages });
+    },
+);
+
+router.post(
+    '/sendMessage',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+            messageContent: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId, messageContent } = req.body;
+
+        const message = await Message.create({
+            eventId: eventId,
+            message: messageContent,
+            messageCorrespondent: user.id,
+        });
+
+        res.json({
+            error: false,
+        });
     },
 );
 

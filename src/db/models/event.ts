@@ -32,6 +32,7 @@ import { Enum, ForeignUUIDColumn } from '../utils';
 import EventAttendee from './eventAttendee';
 import EventTags from './eventTags';
 import Media from './media';
+import Message from './message';
 import Tag from './tag';
 import User from './user';
 
@@ -111,11 +112,11 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @HasMany(() => Media)
     declare media?: NonAttribute<Media[]>;
     declare getMedia: HasManyGetAssociationsMixin<Media>;
-
+    declare countMedia: BelongsToManyCountAssociationsMixin;
     // hooks
 
     @AfterCreate
-    static async afterCreateHook(event: Event) {
+    static async afterCreateHook(event: Event): Promise<void> {
         // automatically add host as attendee on creation
         await event.addAttendee(event.hostId, { through: { status: 'interested' } });
     }
@@ -137,5 +138,14 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
             ? eventAttendees.map((ea) => ea.rating! as number).reduce((a, c) => a + c) /
                   eventAttendees.length
             : null;
+    }
+
+    async getMessages() {
+        const messages = await Message.findAll({
+            where: {
+                eventId: this.id,
+            },
+        });
+        return messages;
     }
 }
