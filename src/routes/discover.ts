@@ -36,14 +36,17 @@ router.get('/', async (req, res) => {
     const testUser = await User.findOne({ where: { username: 'Lorenzo' } });
 
     console.log('DEBUG OUTPUT');
+    const recommendadtionResult = await recommendationListForUser(testUser!, events);
     console.log(
-        (await recommendationListForUser(testUser!, events)).map((event) => {
+        recommendadtionResult.map((event) => {
             return { name: event.event.name, ranking: event.ranking.explanation };
         }),
     );
     console.log('DEBUG OUTPUT END');
 
-    res.json(events);
+    const result = recommendadtionResult.map((returnedEvent) => returnedEvent.event);
+
+    res.json(result);
 });
 
 export default router;
