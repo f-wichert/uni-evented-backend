@@ -103,7 +103,7 @@ export default class MediaProcessor {
                 `-ar:a:${index} ${quality.aSamplerate}`,
                 `-ac:a:${index} ${quality.aChannels}`,
             ]);
-            streamMapString += `v:${index},a:${index},name:${quality.height}p `;
+            streamMapString += `v:${index},a:${index},name:${quality.width}p `;
         });
 
         fmpg = fmpg

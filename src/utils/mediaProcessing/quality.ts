@@ -2,6 +2,15 @@ import sharp from 'sharp';
 
 const CLIP_QUALITIES: ClipQuality[] = [
     {
+        width: 360,
+        height: 640,
+        vBitrate: 600,
+        vBufsize: 1200,
+        aBitrate: 32,
+        aSamplerate: 44100,
+        aChannels: 1,
+    },
+    {
         width: 480,
         height: 854,
         vBitrate: 600,
@@ -13,6 +22,15 @@ const CLIP_QUALITIES: ClipQuality[] = [
     {
         width: 720,
         height: 1280,
+        vBitrate: 1500,
+        vBufsize: 3000,
+        aBitrate: 64,
+        aSamplerate: 44100,
+        aChannels: 2,
+    },
+    {
+        width: 1080,
+        height: 1920,
         vBitrate: 1500,
         vBufsize: 3000,
         aBitrate: 64,
