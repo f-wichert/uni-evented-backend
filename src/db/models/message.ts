@@ -15,7 +15,10 @@ const EventStatuses = ['scheduled', 'active', 'completed'] as const;
 type EventStatus = typeof EventStatuses[number];
 
 @Table
-export default class Message extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
+export default class Message extends Model<
+    InferAttributes<Message>,
+    InferCreationAttributes<Message>
+> {
     [x: string]: any;
 
     @PrimaryKey
