@@ -42,10 +42,12 @@ router.patch(
     validateParams(z.object({ userID: userIDSchema })),
     validateBody(
         z.object({
+            avatar: base64Schema.nullish(),
             username: z.string().optional(),
             displayName: z.string().optional(),
+
             email: z.string().optional(),
-            avatar: base64Schema.nullish(),
+            password: z.string().optional(),
         }),
     ),
     async (req, res) => {
@@ -65,10 +67,12 @@ router.patch(
         }
 
         user = await req.user!.update({
+            avatarHash: avatarHash,
             username: req.body.username,
             displayName: req.body.displayName,
+
             email: req.body.email,
-            avatarHash: avatarHash,
+            password: req.body.password,
         });
 
         res.json(formatUserForResponse(user, true));
