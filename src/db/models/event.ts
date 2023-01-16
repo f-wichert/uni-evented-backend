@@ -82,10 +82,15 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.STRING)
     declare address: CreationOptional<string>; // TODO: CreationOptional for now, because it is nowhere implemented yet. Should later be made manditory
 
-    @Length({ max: 300 })
+    @Length({ max: 500 })
     @Default('No Description')
     @Column(DataTypes.STRING)
     declare description: CreationOptional<string>;
+
+    @Length({ max: 12 })
+    @AllowNull(true)
+    @Column(DataTypes.STRING)
+    declare musicStyle: CreationOptional<string>;
 
     // relationships
 
@@ -122,6 +127,12 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     }
 
     // methods
+
+    async addTags(...args: Tag[]) {
+        for (const tag of args) {
+            await this.addTag(tag);
+        }
+    }
 
     /**
      * @returns the average rating of the event as a number in [1..=5]

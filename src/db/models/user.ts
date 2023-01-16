@@ -130,6 +130,12 @@ export default class User
         await this.addTag(NewFavouredTag);
     }
 
+    async addFavouriteTags(...args: Tag[]) {
+        for (const tag of args) {
+            await this.addTag(tag);
+        }
+    }
+
     static async getByEmailOrUsername(email: string, username: string): Promise<User | null> {
         return await User.findOne({ where: { [Op.or]: { email: email, username: username } } });
     }
