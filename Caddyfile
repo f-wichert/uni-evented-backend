@@ -15,6 +15,6 @@ http://evented.live {
     }
 
     handle {
-        reverse_proxy app:3001
+        reverse_proxy app:3000
     }
 }
