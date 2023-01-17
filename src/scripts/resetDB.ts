@@ -13,27 +13,53 @@ export async function generateTestdata() {
     await setupDatabase(true);
     console.log('Successfully reset Database');
 
+    const [PartyCategory, GamesCategory, ChillingCategory, MusicCategory, VibeCategory] =
+        await Promise.all(
+            [
+                {
+                    label: 'Party',
+                    value: 'party',
+                    color: 'blue',
+                },
+                {
+                    label: 'Games',
+                    value: 'games',
+                    color: 'cyan',
+                },
+                {
+                    label: 'Chilling',
+                    value: 'chilling',
+                    color: 'cadetblue',
+                },
+                {
+                    label: 'Music',
+                    value: 'music',
+                    color: 'violet',
+                },
+                {
+                    label: 'Vibe',
+                    value: 'vibe',
+                    color: 'lavender',
+                },
+            ].map((tag) => Tag.create(tag)),
+        );
+
     const [
-        PartyCategory,
         DrinkingTag,
         HeavyDrinkingTag,
         BeerTag,
         NSFWTag,
         BeerpongTag,
-        GamesCategory,
         BoardgamesTag,
         CardgamesTag,
         SportTag,
-        ChillingCategory,
         AfterWorkTag,
         FoodTag,
         TalkingTag,
-        MusicCategory,
         ReggaeTag,
         TechnoTag,
         RockTag,
         RnBTag,
-        VibeCategory,
         AlternativeTag,
         HardcoreTag,
         RelaxedTag,
@@ -41,145 +67,118 @@ export async function generateTestdata() {
     ] = await Promise.all(
         [
             {
-                label: 'Party',
-                value: 'party',
-                color: 'blue',
-            },
-            {
                 label: 'Drinking',
                 value: 'drinking',
                 color: 'orange',
-                parent: 'party',
+                parent: PartyCategory.id,
             },
             {
                 label: 'Heavy Drinking',
                 value: 'heavy drinking',
                 color: 'coral',
-                parent: 'party',
+                parent: PartyCategory.id,
             },
             {
                 label: 'Beer',
                 value: 'beer',
                 color: 'gold',
-                parent: 'party',
+                parent: PartyCategory.id,
             },
             {
                 label: 'NSFW',
                 value: 'nsfw',
                 color: 'orangered',
-                parent: 'party',
+                parent: PartyCategory.id,
             },
             {
                 label: 'Beerpong',
                 value: 'beerpong',
                 color: 'goldenrod',
-                parent: 'party',
-            },
-
-            {
-                label: 'Games',
-                value: 'games',
-                color: 'cyan',
+                parent: PartyCategory.id,
             },
             {
                 label: 'Boardgames',
                 value: 'boardgames',
                 color: 'brown',
-                parent: 'games',
+                parent: GamesCategory.id,
             },
             {
                 label: 'Cardgames',
                 value: 'cardgames',
                 color: 'crimson',
-                parent: 'games',
+                parent: GamesCategory.id,
             },
             {
                 label: 'Sport',
                 value: 'sport',
                 color: 'green',
-                parent: 'games',
-            },
-
-            {
-                label: 'Chilling',
-                value: 'chilling',
-                color: 'cadetblue',
+                parent: GamesCategory.id,
             },
             {
                 label: 'After work',
                 value: 'afterWork',
                 color: 'salmon',
-                parent: 'chilling',
+                parent: ChillingCategory.id,
             },
             {
                 label: 'Food',
                 value: 'food',
                 color: 'lightsalmon',
-                parent: 'chilling',
+                parent: ChillingCategory.id,
             },
             {
                 label: 'Talking',
                 value: 'talking',
                 color: 'dodgerblue',
-                parent: 'chilling',
-            },
-            {
-                label: 'Music',
-                value: 'music',
-                color: 'violet',
+                parent: ChillingCategory.id,
             },
             {
                 label: 'Reggae',
                 value: 'reggae',
                 color: 'crimson',
-                parent: 'chilling',
+                parent: MusicCategory.id,
             },
             {
                 label: 'Techno',
                 value: 'techno',
                 color: 'red',
-                parent: 'music',
+                parent: MusicCategory.id,
             },
             {
                 label: 'Rock',
                 value: 'rock',
                 color: 'lightcoral',
-                parent: 'music',
+                parent: MusicCategory.id,
             },
             {
                 label: 'RnB',
                 value: 'rnb',
                 color: 'lightseagreen',
-                parent: 'music',
-            },
-            {
-                label: 'Vibe',
-                value: 'vibe',
-                color: 'lavender',
+                parent: MusicCategory.id,
             },
             {
                 label: 'Alternative',
                 value: 'alternative',
                 color: 'deeppink',
-                parent: 'vibe',
+                parent: VibeCategory.id,
             },
             {
                 label: 'Hardcore',
                 value: 'hardcore',
                 color: 'red',
-                parent: 'vibe',
+                parent: VibeCategory.id,
             },
             {
                 label: 'Relaxed',
                 value: 'relaxed',
                 color: 'khaki',
-                parent: 'vibe',
+                parent: VibeCategory.id,
             },
             {
                 label: 'Tense',
                 value: 'tense',
                 color: 'lawngreen',
-                parent: 'vibe',
+                parent: VibeCategory.id,
             },
         ].map((tag) => Tag.create(tag)),
     );
