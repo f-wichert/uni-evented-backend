@@ -53,6 +53,7 @@ function reject(id: string) {
     const session = nodeMediaServer.getSession(id);
     // session has a reject() method but for some reason the type `Map`
     (session as unknown as { reject(): void }).reject();
+    throw new Error(`rejected livestream ${id}`);
 }
 
 nodeMediaServer.on(
@@ -63,8 +64,11 @@ nodeMediaServer.on(
         if (!streamKey) reject(id);
 
         const lastSlashIndex = streamPath.lastIndexOf('/');
-        const streamId = streamPath.slice(lastSlashIndex);
+        const streamId = streamPath.slice(lastSlashIndex + 1);
         const streamName = streamPath.slice(1, lastSlashIndex);
+
+        console.log(streamName);
+        console.log(streamId);
 
         if (!(streamName === 'livestream' && validate(streamId))) reject(id);
 
@@ -92,7 +96,7 @@ nodeMediaServer.on(
 nodeMediaServer.on(
     'donePublish',
     asyncHandler(async (id, streamPath, args) => {
-        const streamId = streamPath.slice('/live/'.length);
+        const streamId = streamPath.slice('/livestream/'.length);
         await Media.update(
             { fileAvailable: false },
             { where: { id: streamId, type: 'livestream' } },
