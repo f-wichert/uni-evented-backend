@@ -25,6 +25,9 @@ services:
       - 3002
       - 3003
 
+    ports:
+      - '3003:3003'
+
     <<: *logging_conf
 
   db:
