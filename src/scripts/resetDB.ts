@@ -13,22 +13,30 @@ export async function generateTestdata() {
     console.log('Successfully reset Database');
 
     const [
-        PartyTag,
+        PartyCategory,
+        DrinkingTag,
+        HeavyDrinkingTag,
+        BeerTag,
+        NSFWTag,
+        BeerpongTag,
+        GamesCategory,
         BoardgamesTag,
         CardgamesTag,
         SportTag,
-        DrinkingTag,
-        HeavyDrinkingTag,
-        ChillingTag,
-        MusicTag,
-        TechnoTag,
-        BeerTag,
+        ChillingCategory,
         AfterWorkTag,
-        NSFWTag,
-        BeerpongTag,
         FoodTag,
-        AlternativeTag,
         TalkingTag,
+        MusicCategory,
+        ReggaeTag,
+        TechnoTag,
+        RockTag,
+        RnBTag,
+        VibeCategory,
+        AlternativeTag,
+        HardcoreTag,
+        RelaxedTag,
+        TenseTag,
     ] = await Promise.all(
         [
             {
@@ -37,34 +45,82 @@ export async function generateTestdata() {
                 color: 'blue',
             },
             {
-                label: 'Boardgames',
-                value: 'boardgames',
-                color: 'brown',
-            },
-            {
-                label: 'Cardgames',
-                value: 'cardgames',
-                color: 'crimson',
-            },
-            {
-                label: 'Sport',
-                value: 'sport',
-                color: 'green',
-            },
-            {
                 label: 'Drinking',
                 value: 'drinking',
                 color: 'orange',
+                parent: 'party',
             },
             {
                 label: 'Heavy Drinking',
                 value: 'heavy drinking',
                 color: 'coral',
+                parent: 'party',
             },
+            {
+                label: 'Beer',
+                value: 'beer',
+                color: 'gold',
+                parent: 'party',
+            },
+            {
+                label: 'NSFW',
+                value: 'nsfw',
+                color: 'orangered',
+                parent: 'party',
+            },
+            {
+                label: 'Beerpong',
+                value: 'beerpong',
+                color: 'goldenrod',
+                parent: 'party',
+            },
+
+            {
+                label: 'Games',
+                value: 'games',
+                color: 'cyan',
+            },
+            {
+                label: 'Boardgames',
+                value: 'boardgames',
+                color: 'brown',
+                parent: 'games',
+            },
+            {
+                label: 'Cardgames',
+                value: 'cardgames',
+                color: 'crimson',
+                parent: 'games',
+            },
+            {
+                label: 'Sport',
+                value: 'sport',
+                color: 'green',
+                parent: 'games',
+            },
+
             {
                 label: 'Chilling',
                 value: 'chilling',
                 color: 'cadetblue',
+            },
+            {
+                label: 'After work',
+                value: 'afterWork',
+                color: 'salmon',
+                parent: 'chilling',
+            },
+            {
+                label: 'Food',
+                value: 'food',
+                color: 'lightsalmon',
+                parent: 'chilling',
+            },
+            {
+                label: 'Talking',
+                value: 'talking',
+                color: 'dodgerblue',
+                parent: 'chilling',
             },
             {
                 label: 'Music',
@@ -72,44 +128,57 @@ export async function generateTestdata() {
                 color: 'violet',
             },
             {
+                label: 'Reggae',
+                value: 'reggae',
+                color: 'crimson',
+                parent: 'chilling',
+            },
+            {
                 label: 'Techno',
                 value: 'techno',
                 color: 'red',
+                parent: 'music',
             },
             {
-                label: 'Beer',
-                value: 'beer',
-                color: 'gold',
+                label: 'Rock',
+                value: 'rock',
+                color: 'lightcoral',
+                parent: 'music',
             },
             {
-                label: 'After work',
-                value: 'afterWork',
-                color: 'salmon',
+                label: 'RnB',
+                value: 'rnb',
+                color: 'lightseagreen',
+                parent: 'music',
             },
             {
-                label: 'NSFW',
-                value: 'nsfw',
-                color: 'orangered',
-            },
-            {
-                label: 'Beerpong',
-                value: 'beerpong',
-                color: 'goldenrod',
-            },
-            {
-                label: 'Food',
-                value: 'food',
-                color: 'lightsalmon',
+                label: 'Vibe',
+                value: 'vibe',
+                color: 'lavender',
             },
             {
                 label: 'Alternative',
                 value: 'alternative',
                 color: 'deeppink',
+                parent: 'vibe',
             },
             {
-                label: 'Talking',
-                value: 'talking',
-                color: 'dodgerblue',
+                label: 'Hardcore',
+                value: 'hardcore',
+                color: 'red',
+                parent: 'vibe',
+            },
+            {
+                label: 'Relaxed',
+                value: 'relaxed',
+                color: 'khaki',
+                parent: 'vibe',
+            },
+            {
+                label: 'Tense',
+                value: 'tense',
+                color: 'lawngreen',
+                parent: 'vibe',
             },
         ].map((tag) => Tag.create(tag)),
     );
@@ -223,9 +292,9 @@ export async function generateTestdata() {
         users[3].setCurrentEvent(events[3]),
         users[4].setCurrentEvent(events[4]),
 
-        events[0].addTags(BoardgamesTag, DrinkingTag, CardgamesTag, MusicTag, SportTag),
-        events[1].addTags(ChillingTag, DrinkingTag, BeerTag, SportTag, BeerpongTag),
-        events[2].addTags(ChillingTag, MusicTag, FoodTag, AlternativeTag),
+        events[0].addTags(BoardgamesTag, DrinkingTag, CardgamesTag, RockTag, SportTag),
+        events[1].addTags(RelaxedTag, DrinkingTag, BeerTag, SportTag, BeerpongTag),
+        events[2].addTags(RelaxedTag, ReggaeTag, FoodTag, AlternativeTag),
         events[3].addTags(DrinkingTag, HeavyDrinkingTag, FoodTag, NSFWTag, BeerpongTag),
         events[4].addTags(AfterWorkTag, BeerTag, CardgamesTag, BoardgamesTag, TalkingTag, FoodTag),
     ]);
@@ -237,20 +306,20 @@ export async function generateTestdata() {
     await users[3].follow(users[4]);
     await users[4].follow(users[0]);
 
-    await users[0].addFavouriteTags(SportTag, ChillingTag, CardgamesTag, TalkingTag, BeerTag);
+    await users[0].addFavouriteTags(SportTag, RelaxedTag, CardgamesTag, TalkingTag, BeerTag);
     await users[1].addFavouriteTags(
         SportTag,
         DrinkingTag,
         BeerTag,
         BeerpongTag,
         TalkingTag,
-        MusicTag,
+        RockTag,
         AlternativeTag,
     );
     await users[2].addFavouriteTags(
-        ChillingTag,
+        RelaxedTag,
         TalkingTag,
-        MusicTag,
+        RnBTag,
         FoodTag,
         AlternativeTag,
         NSFWTag,
@@ -260,7 +329,7 @@ export async function generateTestdata() {
         BeerTag,
         BeerpongTag,
         NSFWTag,
-        MusicTag,
+        RockTag,
         TechnoTag,
     );
     await users[4].addFavouriteTags(SportTag, CardgamesTag, BeerTag, BoardgamesTag, TalkingTag);
