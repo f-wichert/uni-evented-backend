@@ -28,21 +28,21 @@ const nodeMediaServer = new NodeMediaServer({
         ping: 30,
         ping_timeout: 60,
     },
-    http: {
-        mediaroot: config.MEDIA_ROOT,
-        port: config.NMS_HTTP_PORT,
-        allow_origin: '*',
-    },
-    trans: {
-        ffmpeg: config.FFMPEG_PATH,
-        tasks: [
-            {
-                app: 'livestream',
-                hls: true,
-                hlsFlags: '[hls_time=2:hls_list_size=3:hls_flags=delete_segments]',
-            },
-        ],
-    },
+    // http: {
+    //     mediaroot: config.MEDIA_ROOT,
+    //     port: config.NMS_HTTP_PORT,
+    //     allow_origin: '*',
+    // },
+    // trans: {
+    //     ffmpeg: config.FFMPEG_PATH,
+    //     tasks: [
+    //         {
+    //             app: 'livestream',
+    //             hls: true,
+    //             hlsFlags: '[hls_time=2:hls_list_size=3:hls_flags=delete_segments]',
+    //         },
+    //     ],
+    // },
 });
 
 declare type StreamArgs = {
