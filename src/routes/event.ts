@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 import Event, { EventStatus } from '../db/models/event';
 import EventAttendee from '../db/models/eventAttendee';
+import EventTags from '../db/models/eventTags';
 import Media from '../db/models/media';
 import Message from '../db/models/message';
 import Tag from '../db/models/tag';
@@ -158,7 +159,7 @@ router.post(
     ),
     async (req, res) => {
         const user = req.user!;
-        const { name, lat, lon, startDateTime, endDateTime } = req.body;
+        const { name, lat, lon, startDateTime, endDateTime, tags } = req.body;
         const actualStartDateTime = startDateTime ?? new Date();
 
         // TODO: more validation
@@ -172,6 +173,12 @@ router.post(
             endDateTime: endDateTime,
             hostId: user.id,
         });
+
+        const eventTags = tags?.map((el) => ({
+            tagId: el,
+            eventId: event.id,
+        })) as unknown as EventTags[];
+        await EventTags.bulkCreate(eventTags);
 
         // fetch full event from db for consistency
         event = (await getEventForResponse(event.id))!;
