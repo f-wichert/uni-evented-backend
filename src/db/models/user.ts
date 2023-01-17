@@ -202,11 +202,11 @@ export default class User
             throw new Error(`No Event with id ${eventId}`);
         }
 
-        await this.addFollowedEvent(event);
+        await this.followEvent(event);
     }
 
-    async addFollowedEvent(event: Event) {
-        await event.addAttendee(this, { through: { status: 'interested' } });
+    async followEvent(event: Event) {
+        await event.addAttendee(this, { through: { status: 'attending' } });
     }
 
     async getFollowedEvents(statuses?: EventStatus[]) {
