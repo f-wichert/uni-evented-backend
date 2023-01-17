@@ -98,7 +98,11 @@ router.get(
         const { eventId } = req.params;
         const event = await getEventForResponse(eventId);
         assert(event, `no event with id ${eventId} found`);
-        res.json(event);
+        const eventWithRating = {
+            ...event.get({ plain: true }),
+            rating: (await event.getRating())!,
+        };
+        res.json(eventWithRating);
     },
 );
 
