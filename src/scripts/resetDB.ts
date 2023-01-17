@@ -4,6 +4,7 @@ dotenv.config();
 
 import { sequelize, setupDatabase } from '../db';
 import Event from '../db/models/event';
+import { EventAttendeeStatuses } from '../db/models/eventAttendee';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
 
@@ -297,60 +298,56 @@ export async function generateTestdata() {
         events[2].addTags(RelaxedTag, ReggaeTag, FoodTag, AlternativeTag),
         events[3].addTags(DrinkingTag, HeavyDrinkingTag, FoodTag, NSFWTag, BeerpongTag),
         events[4].addTags(AfterWorkTag, BeerTag, CardgamesTag, BoardgamesTag, TalkingTag, FoodTag),
+
+        // Not yet implemented
+        users[0].follow(users[1]),
+        users[1].follow(users[2]),
+        users[2].follow(users[3]),
+        users[3].follow(users[4]),
+        users[4].follow(users[0]),
+        users[0].addFavouriteTags(SportTag, RelaxedTag, CardgamesTag, TalkingTag, BeerTag),
+        users[1].addFavouriteTags(
+            SportTag,
+            DrinkingTag,
+            BeerTag,
+            BeerpongTag,
+            TalkingTag,
+            RockTag,
+            AlternativeTag,
+        ),
+        users[2].addFavouriteTags(RelaxedTag, TalkingTag, RnBTag, FoodTag, AlternativeTag, NSFWTag),
+        users[3].addFavouriteTags(
+            HeavyDrinkingTag,
+            BeerTag,
+            BeerpongTag,
+            NSFWTag,
+            RockTag,
+            TechnoTag,
+        ),
+        users[4].addFavouriteTags(SportTag, CardgamesTag, BeerTag, BoardgamesTag, TalkingTag),
     ]);
 
-    // Not yet implemented
-    await users[0].follow(users[1]);
-    await users[1].follow(users[2]);
-    await users[2].follow(users[3]);
-    await users[3].follow(users[4]);
-    await users[4].follow(users[0]);
+    const eventAttendeeStatuses = EventAttendeeStatuses.map((s) => s);
 
-    await users[0].addFavouriteTags(SportTag, RelaxedTag, CardgamesTag, TalkingTag, BeerTag);
-    await users[1].addFavouriteTags(
-        SportTag,
-        DrinkingTag,
-        BeerTag,
-        BeerpongTag,
-        TalkingTag,
-        RockTag,
-        AlternativeTag,
-    );
-    await users[2].addFavouriteTags(
-        RelaxedTag,
-        TalkingTag,
-        RnBTag,
-        FoodTag,
-        AlternativeTag,
-        NSFWTag,
-    );
-    await users[3].addFavouriteTags(
-        HeavyDrinkingTag,
-        BeerTag,
-        BeerpongTag,
-        NSFWTag,
-        RockTag,
-        TechnoTag,
-    );
-    await users[4].addFavouriteTags(SportTag, CardgamesTag, BeerTag, BoardgamesTag, TalkingTag);
-
-    // You can not yet rate an event you are not affiliated with, because there is no EventAttendee Entry.
-    // However as of now therer is no way to create this except to make it the current Event of the user.
-    await users[0].rateEvent(events[0], 5);
-    // await users[0].rateEvent(events[1], 4);
-    // await users[0].rateEvent(events[2], 2);
-    await users[1].rateEvent(events[1], 5);
-    // await users[1].rateEvent(events[2], 1);
-    // await users[1].rateEvent(events[3], 3);
-    await users[2].rateEvent(events[2], 5);
-    // await users[2].rateEvent(events[3], 1);
-    // await users[2].rateEvent(events[4], 4);
-    await users[3].rateEvent(events[3], 5);
-    // await users[3].rateEvent(events[4], 3);
-    // await users[3].rateEvent(events[0], 3);
-    await users[4].rateEvent(events[4], 5);
-    // await users[4].rateEvent(events[3], 3);
-    // await users[4].rateEvent(events[1], 3);
+    await Promise.all([
+        // You can not yet rate an event you are not affiliated with, because there is no EventAttendee Entry.
+        // However as of now therer is no way to create this except to make it the current Event of the user.
+        users[0].rateEvent(events[0], 5, eventAttendeeStatuses),
+        // users[0].rateEvent(events[1], 4, eventAttendeeStatuses),
+        // users[0].rateEvent(events[2], 2, eventAttendeeStatuses),
+        users[1].rateEvent(events[1], 5, eventAttendeeStatuses),
+        // users[1].rateEvent(events[2], 1, eventAttendeeStatuses),
+        // users[1].rateEvent(events[3], 3, eventAttendeeStatuses),
+        users[2].rateEvent(events[2], 5, eventAttendeeStatuses),
+        // users[2].rateEvent(events[3], 1, eventAttendeeStatuses),
+        // users[2].rateEvent(events[4], 4, eventAttendeeStatuses),
+        users[3].rateEvent(events[3], 5, eventAttendeeStatuses),
+        // users[3].rateEvent(events[4], 3, eventAttendeeStatuses),
+        // users[3].rateEvent(events[0], 3, eventAttendeeStatuses),
+        users[4].rateEvent(events[4], 5, eventAttendeeStatuses),
+        // users[4].rateEvent(events[3], 3, eventAttendeeStatuses),
+        // users[4].rateEvent(events[1], 3, eventAttendeeStatuses),
+    ]);
 
     // speed up script exit
     await sequelize.close();

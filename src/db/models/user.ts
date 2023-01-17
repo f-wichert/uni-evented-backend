@@ -30,8 +30,8 @@ import {
 import { equalizable } from '../../types';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
-import Event from './event';
-import EventAttendee from './eventAttendee';
+import Event, { EventStatus, EventStatuses } from './event';
+import EventAttendee, { EventAttendeeStatus } from './eventAttendee';
 import FollowerTable from './FollowerTable';
 import Message from './message';
 import Tag from './tag';
@@ -195,11 +195,43 @@ export default class User
         await event.addAttendee(this, { through: { status: 'attending' } });
     }
 
-    async getHostedEvents(statuses?: string[]) {
+    async addFollowedEventId(eventId: string) {
+        const event = await Event.findByPk(eventId);
+
+        if (!event) {
+            throw new Error(`No Event with id ${eventId}`);
+        }
+
+        await this.addFollowedEvent(event);
+    }
+
+    async addFollowedEvent(event: Event) {
+        await event.addAttendee(this, { through: { status: 'attending' } });
+    }
+
+    async getFollowedEvents(statuses?: EventStatus[]) {
+        return (await User.findByPk(this.id, {
+            include: [
+                {
+                    model: Event,
+                    as: 'events',
+                    attributes: { exclude: ['createdAt', 'updatedAt'] },
+                    where: {
+                        status: {
+                            [Op.or]: statuses ?? EventStatuses,
+                        },
+                    },
+                    through: { where: { status: 'interested' } },
+                },
+            ],
+        }))!.events!;
+    }
+
+    async getHostedEvents(statuses?: EventStatus[]) {
         return await Event.findAll({
             where: {
                 status: {
-                    [Op.or]: statuses ? statuses : [],
+                    [Op.or]: statuses ?? EventStatuses,
                 },
                 hostId: this.id,
             },
@@ -211,18 +243,25 @@ export default class User
         await followee.addFollower(this);
     }
 
-    async rateEvent(event: Event, rating: number) {
-        const eventAttendeeEntry = await EventAttendee.findOne({
-            where: {
-                userId: this.id,
-                eventId: event.id,
+    async rateEventId(eventId: string, rating: number, statuses?: EventAttendeeStatus[]) {
+        const [affectedRows] = await EventAttendee.update(
+            { rating: rating },
+            {
+                where: {
+                    eventId: eventId,
+                    userId: this.id,
+                    status: { [Op.or]: statuses ?? ['attending', 'left'] },
+                },
             },
-        });
-        if (!eventAttendeeEntry) {
-            console.error(`Rating event '${event.name}' failed. Tryed to pull EventAttendee entry 
-            with ID of this User and the Event Parameter, but could not be found.`);
+        );
+
+        if (affectedRows !== 1) {
+            throw new Error(`No Event with id ${eventId}`);
         }
-        await eventAttendeeEntry!.update({ rating: rating });
+    }
+
+    async rateEvent(event: Event, rating: number, statuses?: EventAttendeeStatus[]) {
+        await this.rateEventId(event.id, rating, statuses);
     }
 
     async getRating() {

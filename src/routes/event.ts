@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { Op } from 'sequelize';
 import { z } from 'zod';
 
-import Event from '../db/models/event';
+import Event, { EventStatus } from '../db/models/event';
 import EventAttendee from '../db/models/eventAttendee';
 import Media from '../db/models/media';
 import Message from '../db/models/message';
@@ -213,13 +213,12 @@ router.post(
 );
 
 /**
- * Join an event if it is close enough
+ * Join an event or just show interest in the event
  *
  * input
  *  {
  *      eventId: string
- *      lat: number
- *      lon: number
+ *      interested?: boolean
  *  }
  */
 router.post(
@@ -227,29 +226,22 @@ router.post(
     validateBody(
         z.object({
             eventId: z.string(),
-            // TODO: remove lat/lon, there isn't really a point in checking them
-            //       on the server side if there's also client-side validation
-            lat: z.number(),
-            lon: z.number(),
+            interested: z.boolean().optional(),
         }),
     ),
     async (req, res) => {
         const user = req.user!;
-        const { eventId /*lat, lon*/ } = req.body;
+        const { eventId, interested } = req.body;
 
-        assert(!(await user.getCurrentEventId()), 'user is already attending an event');
+        assert(interested || !(await user.getCurrentEventId()));
 
         const event = await Event.findByPk(eventId);
 
         assert(event);
 
-        // TODO: make configurable?
-        // const maxEventDistance = 10.0;
-        // assert(haversine(lat, lon, event.lat, event.lon) <= maxEventDistance);
-
         // TODO: implement more join conditions (maxAttendees, etc.)
 
-        await user.setCurrentEvent(event);
+        await (interested ? user.addFollowedEvent(event) : user.setCurrentEvent(event));
 
         res.json({});
     },
@@ -276,18 +268,7 @@ router.post(
         const user = req.user!;
         const { eventID, rating } = req.body;
 
-        const [affectedRows] = await EventAttendee.update(
-            { rating: rating },
-            {
-                where: {
-                    eventId: eventID,
-                    userId: user.id,
-                    status: { [Op.or]: ['attending', 'left'] },
-                },
-            },
-        );
-
-        assert(affectedRows === 1);
+        await user.rateEventId(eventID, rating);
 
         res.json({});
     },
@@ -452,13 +433,15 @@ router.get(
         const { statuses } = req.body;
         const user = req.user!;
 
-        const myEvents = await user.getHostedEvents(statuses);
+        const [myEvents, currentEvent, followedEvents] = await Promise.all([
+            user.getHostedEvents(statuses as EventStatus[]),
+            user.getCurrentEvent(),
+            user.getFollowedEvents(statuses as EventStatus[]),
+        ]);
 
-        const currentEvent = await user.getCurrentEvent();
-        const activeEvent = currentEvent ? [currentEvent] : [];
-
-        const followedEvents: Event[] = [];
         const followerEvents: Event[] = [];
+
+        const activeEvent = currentEvent ? [currentEvent] : [];
 
         res.json({ myEvents, activeEvent, followedEvents, followerEvents });
     },

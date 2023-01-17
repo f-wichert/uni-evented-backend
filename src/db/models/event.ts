@@ -129,9 +129,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     // methods
 
     async addTags(...args: Tag[]) {
-        for (const tag of args) {
-            await this.addTag(tag);
-        }
+        await Promise.all(args.map((tag) => this.addTag(tag)));
     }
 
     /**
