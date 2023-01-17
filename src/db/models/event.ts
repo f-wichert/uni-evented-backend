@@ -53,7 +53,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
 
     @Enum(EventStatuses)
     @AllowNull(false)
-    @Default('active')
+    @Default('scheduled')
     @Column(DataTypes.STRING)
     declare status: CreationOptional<EventStatus>;
 

@@ -149,6 +149,7 @@ router.post(
     validateBody(
         z.object({
             name: z.string(),
+            description: z.string().optional(),
             // TODO: make mandatory
             tags: z.array(z.string()).optional(),
             lat: z.number(),
@@ -159,7 +160,7 @@ router.post(
     ),
     async (req, res) => {
         const user = req.user!;
-        const { name, lat, lon, startDateTime, endDateTime, tags } = req.body;
+        const { name, lat, lon, startDateTime, endDateTime, tags, description } = req.body;
         const actualStartDateTime = startDateTime ?? new Date();
 
         // TODO: more validation
@@ -172,6 +173,7 @@ router.post(
             startDateTime: actualStartDateTime,
             endDateTime: endDateTime,
             hostId: user.id,
+            description: description,
         });
 
         const eventTags = tags?.map((el) => ({
