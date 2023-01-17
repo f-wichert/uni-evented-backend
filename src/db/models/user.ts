@@ -206,7 +206,7 @@ export default class User
     }
 
     async addFollowedEvent(event: Event) {
-        await event.addAttendee(this, { through: { status: 'attending' } });
+        await event.addAttendee(this, { through: { status: 'interested' } });
     }
 
     async getFollowedEvents(statuses?: EventStatus[]) {
