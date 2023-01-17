@@ -4,8 +4,6 @@ import config from './config';
 import Media from './db/models/media';
 import { asyncHandler } from './utils';
 
-const EXPECTED_LATENCY_MS = 3000;
-
 /**
  * A `NodeMediaServer` that accepts RTMP streams at
  * ```x
@@ -67,29 +65,14 @@ nodeMediaServer.on(
         const streamId = streamPath.slice(lastSlashIndex + 1);
         const streamName = streamPath.slice(1, lastSlashIndex);
 
-        console.log(streamName);
-        console.log(streamId);
-
         if (!(streamName === 'livestream' && validate(streamId))) reject(id);
 
         const [affectedRows] = await Media.update(
-            { streamKey: null },
+            { streamKey: null, fileAvailable: true },
             { where: { id: streamId, type: 'livestream', streamKey: streamKey } },
         );
 
         if (affectedRows !== 1) reject(id);
-
-        // wait a bit to make sure the stream is actually available
-        // it might not be due to latency
-        setTimeout(
-            asyncHandler(async () => {
-                await Media.update(
-                    { fileAvailable: true },
-                    { where: { id: streamId, type: 'livestream' } },
-                );
-            }),
-            EXPECTED_LATENCY_MS,
-        );
     }),
 );
 
