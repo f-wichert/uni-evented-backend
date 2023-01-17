@@ -216,6 +216,7 @@ export default class User
                     model: Event,
                     as: 'events',
                     attributes: { exclude: ['createdAt', 'updatedAt'] },
+                    required: false,
                     where: {
                         status: {
                             [Op.or]: statuses ?? EventStatuses,
