@@ -248,7 +248,7 @@ router.post(
 
         // TODO: implement more join conditions (maxAttendees, etc.)
 
-        await (interested ? user.addFollowedEvent(event) : user.setCurrentEvent(event));
+        await (interested ? user.followEvent(event) : user.setCurrentEvent(event));
 
         res.json({});
     },

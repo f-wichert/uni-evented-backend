@@ -202,10 +202,10 @@ export default class User
             throw new Error(`No Event with id ${eventId}`);
         }
 
-        await this.addFollowedEvent(event);
+        await this.followEvent(event);
     }
 
-    async addFollowedEvent(event: Event) {
+    async followEvent(event: Event) {
         await event.addAttendee(this, { through: { status: 'attending' } });
     }
 
@@ -216,6 +216,7 @@ export default class User
                     model: Event,
                     as: 'events',
                     attributes: { exclude: ['createdAt', 'updatedAt'] },
+                    required: false,
                     where: {
                         status: {
                             [Op.or]: statuses ?? EventStatuses,
