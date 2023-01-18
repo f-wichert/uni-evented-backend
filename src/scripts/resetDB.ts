@@ -247,7 +247,7 @@ export async function generateTestdata() {
                     'Servus, nachem mein Kumpel und ich wegen Uni schon lange nicht mehr trinken waren, haben wir uns entschlossen uns demnächst mal wieder richtig das Blechdach zu verbiegen. Bierpong steht bereit und wir willkommen jeden der Spaß daran hat sich mit uns gnadenlos Bier rein zu römern',
             },
             {
-                name: 'Drei werden high',
+                name: 'Music, Food & Chill',
                 startDateTime: addDays(baseDate, 2),
                 endDateTime: addDays(baseDate, 2.3),
                 hostId: users[2].id,
@@ -259,7 +259,7 @@ export async function generateTestdata() {
                     'Christian Lindner sagt Bubatz bald legal, also trainieren wir schonmal auf den großen Einstieg. Wir haben Brownies, Cupcakes und genug Chips um einen Airbag zu ersetzen. Wenn jemand selber was beisteuert wäre appreciated',
             },
             {
-                name: 'Vier mit Bier',
+                name: 'Tennis 2v2',
                 startDateTime: addDays(baseDate, 3),
                 endDateTime: addDays(baseDate, 3.3),
                 hostId: users[3].id,
@@ -271,7 +271,7 @@ export async function generateTestdata() {
                     'An diesem Abend wird dich auch kein Elotrans mehr retten. Nach dem Motto "Wer sich morgen noch dran erinnert war nicht dabei" wird sich hier so lange einer reingeorgelt bis ihr auf Werkseinstellungen zurückgesetzt seit. Wir wollen uns so hart die Kante geben, dass ihr eure Muttersprache vergesst und gegangen wird erst wenn ihr so zu seid wie eure Handbremse. Wir kennen auch die gemütlichsten Gräben, wenn ihr es nicht nach Hause schafft',
             },
             {
-                name: 'Fünf stoßen an',
+                name: 'Boardgames',
                 startDateTime: addDays(baseDate, 4),
                 endDateTime: addDays(baseDate, 4.3),
                 hostId: users[4].id,
@@ -295,7 +295,7 @@ export async function generateTestdata() {
         events[0].addTags(BoardgamesTag, DrinkingTag, CardgamesTag, RockTag, SportTag),
         events[1].addTags(RelaxedTag, DrinkingTag, BeerTag, SportTag, BeerpongTag),
         events[2].addTags(RelaxedTag, ReggaeTag, FoodTag, AlternativeTag),
-        events[3].addTags(DrinkingTag, HeavyDrinkingTag, FoodTag, NSFWTag, BeerpongTag),
+        events[3].addTags(DrinkingTag, SportTag, FoodTag),
         events[4].addTags(AfterWorkTag, BeerTag, CardgamesTag, BoardgamesTag, TalkingTag, FoodTag),
 
         // Not yet implemented

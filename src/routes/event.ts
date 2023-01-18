@@ -11,6 +11,7 @@ import Message from '../db/models/message';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
 import { haversine } from '../utils/math';
+import { checkProfanity } from '../utils/profanity';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
 
 async function getEventForResponse(id: string) {
@@ -497,9 +498,18 @@ router.post(
         const user = req.user!;
         const { eventId, messageContent } = req.body;
 
+        const profMsg = messageContent
+            .split(' ')
+            .map((word) => {
+                if (checkProfanity(word)) {
+                    return '*'.repeat(word.length);
+                } else return word;
+            })
+            .join(' ');
+
         const message = await Message.create({
             eventId: eventId,
-            message: messageContent,
+            message: profMsg,
             messageCorrespondent: user.id,
         });
 
