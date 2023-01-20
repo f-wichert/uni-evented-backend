@@ -475,12 +475,15 @@ router.post(
             where: {
                 eventId: eventId,
             },
+            include: [
+                {
+                    model: User,
+                    as: 'sender',
+                    // TODO: include more fields as necessary, or just entire user object
+                    attributes: ['username', 'displayName'],
+                },
+            ],
         });
-
-        for (const m of messages) {
-            const user = await User.findByPk(m.messageCorrespondent);
-            m['dataValues']['displayname'] = user?.username;
-        }
 
         res.json({ messages: messages });
     },
@@ -507,10 +510,10 @@ router.post(
             })
             .join(' ');
 
-        const message = await Message.create({
+        await Message.create({
             eventId: eventId,
             message: profMsg,
-            messageCorrespondent: user.id,
+            senderId: user.id,
         });
 
         res.json({

@@ -47,10 +47,15 @@ declare type StreamArgs = {
     key: string | undefined;
 };
 
+declare type RTMPSession = {
+    reject(): void;
+};
+
 function reject(id: string) {
-    const session = nodeMediaServer.getSession(id);
-    // session has a reject() method but for some reason the type `Map`
-    (session as unknown as { reject(): void }).reject();
+    // getSession is typed as `Map` for some reason
+    const session = nodeMediaServer.getSession(id) as unknown as RTMPSession;
+
+    session.reject();
     throw new Error(`rejected livestream ${id}`);
 }
 
@@ -78,7 +83,7 @@ nodeMediaServer.on(
 
 nodeMediaServer.on(
     'donePublish',
-    asyncHandler(async (id, streamPath, args) => {
+    asyncHandler(async (id, streamPath) => {
         const streamId = streamPath.slice('/livestream/'.length);
         await Media.update(
             { fileAvailable: false },

@@ -4,23 +4,28 @@ import {
     ForeignKey,
     InferAttributes,
     InferCreationAttributes,
+    NonAttribute,
 } from 'sequelize';
-import { AllowNull, Column, Default, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import {
+    AllowNull,
+    BelongsTo,
+    Column,
+    CreatedAt,
+    Default,
+    Model,
+    PrimaryKey,
+    Table,
+} from 'sequelize-typescript';
 
 import { ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
-
-const EventStatuses = ['scheduled', 'active', 'completed'] as const;
-type EventStatus = typeof EventStatuses[number];
 
 @Table
 export default class Message extends Model<
     InferAttributes<Message>,
     InferCreationAttributes<Message>
 > {
-    [x: string]: any;
-
     @PrimaryKey
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
@@ -30,15 +35,16 @@ export default class Message extends Model<
     @Column(DataTypes.STRING)
     declare message: string;
 
-    @AllowNull(false)
-    @Default(DataTypes.NOW())
-    @Column
-    declare sendTime: Date;
+    @CreatedAt
+    declare sendTime: CreationOptional<Date>;
 
     // relationships
 
     @ForeignUUIDColumn(() => User)
-    declare messageCorrespondent: ForeignKey<string>;
+    declare senderId: ForeignKey<string>;
+
+    @BelongsTo(() => User)
+    declare sender?: NonAttribute<User>;
 
     @ForeignUUIDColumn(() => Event)
     declare eventId: ForeignKey<string>;
