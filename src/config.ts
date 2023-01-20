@@ -56,14 +56,6 @@ export default e.envsafe({
     }),
 
     // live
-    NMS_HTTP_PORT: e.port({
-        default: 3001,
-        desc: 'The port NodeMediaServers http server listens on',
-    }),
-    NMS_HTTPS_PORT: e.port({
-        default: 3002,
-        desc: 'The port NodeMediaServers https server listens on',
-    }),
     NMS_RTMP_PORT: e.port({
         default: 3003,
         desc: 'The port NodeMediaServers rtmp server listens on',
