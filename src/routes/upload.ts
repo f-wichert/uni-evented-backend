@@ -81,13 +81,13 @@ async function processMediaFile(
 router.post('/clip', validateBody(z.object({ eventID: z.string().uuid() })), async (req, res) => {
     const file = getFile(req);
     const media = await processMediaFile(file, 'video', req.user!.id, req.body.eventID);
-    res.json(media);
+    res.json(media.formatForResponse());
 });
 
 router.post('/image', validateBody(z.object({ eventID: z.string().uuid() })), async (req, res) => {
     const file = getFile(req);
     const media = await processMediaFile(file, 'image', req.user!.id, req.body.eventID);
-    res.json(media);
+    res.json(media.formatForResponse());
 });
 
 /**
@@ -119,7 +119,7 @@ router.post(
                 eventId: eventID,
             }));
 
-        res.json(media);
+        res.json(media.formatForResponse({ livestreamCreation: true }));
     },
 );
 

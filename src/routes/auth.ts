@@ -82,7 +82,7 @@ router.post('/reset', validateBody(z.object({ email: z.string().email() })), asy
             `\n\nIf you did not request this action, feel free to ignore this message.`,
     });
 
-    res.send({ status: 'ok' });
+    res.send({});
 });
 
 export default router;

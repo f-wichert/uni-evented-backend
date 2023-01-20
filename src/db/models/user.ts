@@ -28,6 +28,7 @@ import {
 } from 'sequelize-typescript';
 
 import { equalizable } from '../../types';
+import { pick } from '../../utils';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
 import Event, { EventStatus, EventStatuses } from './event';
@@ -120,6 +121,11 @@ export default class User
     }
 
     // other methods
+
+    formatForResponse(opts?: { isMe?: boolean }) {
+        const extraFields = opts?.isMe ? (['email'] as const) : [];
+        return pick(this, ['id', 'username', 'displayName', 'avatarHash', ...extraFields]);
+    }
 
     // Wrapper functions to make Tag-function names more meaningfull
     async getFavouriteTags() {

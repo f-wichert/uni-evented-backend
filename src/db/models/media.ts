@@ -16,6 +16,7 @@ import {
     Table,
 } from 'sequelize-typescript';
 
+import { pick } from '../../utils';
 import { Enum, ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
@@ -62,4 +63,9 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
 
     @BelongsTo(() => User)
     declare user?: NonAttribute<User>;
+
+    formatForResponse(opts?: { livestreamCreation?: boolean }) {
+        const extraFields = opts?.livestreamCreation ? (['streamKey'] as const) : [];
+        return pick(this, ['id', 'type', 'fileAvailable', ...extraFields]);
+    }
 }

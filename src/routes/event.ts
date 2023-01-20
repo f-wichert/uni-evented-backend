@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { Op } from 'sequelize';
 import { z } from 'zod';
 
-import Event, { EventStatus } from '../db/models/event';
+import Event, { EventStatuses } from '../db/models/event';
 import EventAttendee from '../db/models/eventAttendee';
 import EventTags from '../db/models/eventTags';
 import Media from '../db/models/media';
@@ -19,6 +19,7 @@ async function getEventForResponse(id: string) {
         where: { id },
         attributes: { exclude: ['createdAt', 'updatedAt'] },
         include: [
+            // TODO: remove media from this event object, should be requested separately
             {
                 model: Media,
                 as: 'media',
@@ -35,7 +36,7 @@ async function getEventForResponse(id: string) {
             {
                 model: Tag,
                 as: 'tags',
-                attributes: ['label', 'color', 'value', 'parent'],
+                attributes: ['id', 'label', 'color', 'value', 'parent'],
             },
         ],
     });
@@ -65,12 +66,6 @@ const router = Router();
  *          fileAvailable: boolean
  *      }]
  *      attendees: [{
- *          id: string
- *          username: string
- *          displayName: string
- *          avatarHash: string | null
- *      }]
- *      currentAttendees: [{
  *          id: string
  *          username: string
  *          displayName: string
@@ -120,12 +115,11 @@ router.get(
         assert(event, `no event with id ${eventId} found`);
 
         const media = await event.getMedia({
-            attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
             where: {
                 fileAvailable: true,
             },
         });
-        res.json(media);
+        res.json(media.map((m) => m.formatForResponse()));
     },
 );
 
@@ -181,11 +175,13 @@ router.post(
             description: description,
         });
 
-        const eventTags = tags?.map((el) => ({
-            tagId: el,
-            eventId: event.id,
-        })) as unknown as EventTags[];
-        await EventTags.bulkCreate(eventTags);
+        if (tags?.length)
+            await EventTags.bulkCreate(
+                tags.map((el) => ({
+                    tagId: el,
+                    eventId: event.id,
+                })),
+            );
 
         // fetch full event from db for consistency
         event = (await getEventForResponse(event.id))!;
@@ -328,12 +324,6 @@ router.post(
  *          displayName: string
  *          avatarHash: string | null
  *      }]
- *      currentAttendees: [{
- *          id: string
- *          username: string
- *          displayName: string
- *          avatarHash: string | null
- *      }]
  *  ]}
  */
 // TODO: using request bodies with the GET method is discouraged
@@ -360,6 +350,7 @@ router.get(
             },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
             include: [
+                // TODO: remove media from this event object, it should be requested separately
                 ...(loadMedia
                     ? [
                           {
@@ -389,7 +380,7 @@ router.get(
             );
         }
 
-        res.json({ events: events });
+        res.json(events);
     },
 );
 
@@ -440,7 +431,7 @@ router.get(
     '/relevantEvents',
     validateBody(
         z.object({
-            statuses: z.array(z.string()).optional(),
+            statuses: z.array(z.enum(EventStatuses)).optional(),
         }),
     ),
     async (req, res) => {
@@ -448,9 +439,9 @@ router.get(
         const user = req.user!;
 
         const [myEvents, currentEvent, followedEvents] = await Promise.all([
-            user.getHostedEvents(statuses as EventStatus[]),
+            user.getHostedEvents(statuses),
             user.getCurrentEvent(),
-            user.getFollowedEvents(statuses as EventStatus[]),
+            user.getFollowedEvents(statuses),
         ]);
 
         const followerEvents: Event[] = [];
@@ -485,7 +476,7 @@ router.post(
             ],
         });
 
-        res.json({ messages: messages });
+        res.json(messages);
     },
 );
 
@@ -516,9 +507,7 @@ router.post(
             senderId: user.id,
         });
 
-        res.json({
-            error: false,
-        });
+        res.json({});
     },
 );
 

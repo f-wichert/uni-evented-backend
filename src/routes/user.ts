@@ -3,17 +3,11 @@ import httpError from 'http-errors';
 import { z } from 'zod';
 
 import User from '../db/models/user';
-import { pick } from '../utils';
 import { base64Schema, validateBody, validateParams } from '../utils/validate';
 
 const router = Router();
 
 const userIDSchema = z.string().uuid().or(z.literal('@me'));
-
-function formatUserForResponse(user: User, isMe = false) {
-    const extraFields = isMe ? (['email'] as const) : [];
-    return pick(user, ['id', 'username', 'displayName', 'avatarHash', ...extraFields]);
-}
 
 router.get(
     '/:userID',
@@ -31,7 +25,7 @@ router.get(
 
         res.json({
             // include more fields if request is current user
-            ...formatUserForResponse(user, isMe),
+            ...user.formatForResponse({ isMe }),
             ...(isMe ? { currentEventId: await user.getCurrentEventId() } : {}),
         });
     },
@@ -75,7 +69,7 @@ router.patch(
             password: req.body.password,
         });
 
-        res.json(formatUserForResponse(user, true));
+        res.json(user.formatForResponse({ isMe }));
     },
 );
 
