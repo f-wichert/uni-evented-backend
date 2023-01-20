@@ -18,6 +18,10 @@ export default e.envsafe({
         desc: 'The database connection url, i.e. <dialect>://<url>',
         example: 'sqlite://:memory:, sqlite://./some/path/, postgres://user:pass@host:5432/dbname',
     }),
+    DB_LOGGING: e.bool({
+        default: false,
+        desc: 'Whether to enable sequelize query logging',
+    }),
     ENABLE_SECRET_ROUTES: e.bool({
         default: false,
     }),
