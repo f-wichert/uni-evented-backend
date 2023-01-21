@@ -21,7 +21,7 @@ export async function sendNotification(userIDs: string[], params: Omit<ExpoPushM
 
     const tokens = await PushToken.findAll({ where: { userId: { [Op.in]: userIDs } } });
     if (!tokens.length) {
-        // to be clear: this is not really a problem
+        // n.b. this is not really an issue, users don't necessarily have push tokens
         console.log('no push tokens found for given users');
         return;
     }

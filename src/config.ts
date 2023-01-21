@@ -27,7 +27,7 @@ export default e.envsafe({
     }),
     EXPO_ACCESS_TOKEN: e.str({
         default: '<unset>',
-        desc: 'The access token for push notifications',
+        desc: 'The access token for push notifications, not required for Expo Go',
         docs: 'https://docs.expo.dev/push-notifications/sending-notifications/#additional-security',
     }),
 

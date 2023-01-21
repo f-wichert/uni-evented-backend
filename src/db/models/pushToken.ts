@@ -1,3 +1,4 @@
+import Expo from 'expo-server-sdk';
 import {
     DataTypes,
     ForeignKey,
@@ -7,7 +8,6 @@ import {
 } from 'sequelize';
 import { BelongsTo, Column, Model, PrimaryKey, Table, Validate } from 'sequelize-typescript';
 
-import Expo from 'expo-server-sdk';
 import { ForeignUUIDColumn } from '../utils';
 import User from './user';
 
