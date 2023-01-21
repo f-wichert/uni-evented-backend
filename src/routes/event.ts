@@ -190,8 +190,28 @@ router.post(
     },
 );
 
+async function startStopEvent(user: User, eventId: string, action: 'start' | 'stop') {
+    const event = await Event.findByPk(eventId);
+
+    assert(event, `no event with id: ${eventId}`);
+    assert(
+        event.hostId === user.id,
+        `${user.id} tried to ${action} event ${eventId}, but host is ${event.hostId}`,
+    );
+
+    if (action === 'stop') {
+        // remove all current attendees from the event
+        await EventAttendee.update(
+            { status: 'left' },
+            { where: { eventId: eventId, status: 'attending' } },
+        );
+    }
+
+    await event.update({ status: action === 'start' ? 'active' : 'completed' });
+}
+
 router.post(
-    '/close',
+    '/stop',
     validateBody(
         z.object({
             eventId: z.string(),
@@ -201,34 +221,61 @@ router.post(
         const user = req.user!;
         const { eventId } = req.body;
 
-        const event = await Event.findByPk(eventId);
-
-        assert(event, `no event with id: ${eventId}`);
-        assert(
-            event.hostId === user.id,
-            `${user.id} tried to close event ${eventId}, but host is ${event.hostId}`,
-        );
-        assert(event.status !== 'completed', 'event aready completed');
-
-        // remove all current attendees from the event
-        await EventAttendee.update(
-            { status: 'left' },
-            { where: { eventId: eventId, status: 'attending' } },
-        );
-
-        await event.update({ status: 'completed' });
+        await startStopEvent(user, eventId, 'stop');
 
         res.json({});
     },
 );
 
+router.post(
+    '/start',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId } = req.body;
+
+        await startStopEvent(user, eventId, 'start');
+
+        res.json({});
+    },
+);
+
+async function changeEventUserState(
+    user: User,
+    eventId: string,
+    action: 'join' | 'follow' | 'unfollow',
+) {
+    assert(action !== 'join' || !(await user.getCurrentEventId()));
+
+    const event = await Event.findByPk(eventId);
+
+    assert(event);
+
+    // TODO: implement more join conditions (maxAttendees, etc.)
+
+    switch (action) {
+        case 'join':
+            await user.setCurrentEvent(event);
+            break;
+        case 'follow':
+            await user.followEvent(event);
+            break;
+        case 'unfollow':
+            await user.unfollowEvent(event);
+            break;
+    }
+}
+
 /**
- * Join an event or just show interest in the event
+ * Join an event
  *
  * input
  *  {
  *      eventId: string
- *      interested?: boolean
  *  }
  */
 router.post(
@@ -236,22 +283,63 @@ router.post(
     validateBody(
         z.object({
             eventId: z.string(),
-            interested: z.boolean().optional(),
         }),
     ),
     async (req, res) => {
         const user = req.user!;
-        const { eventId, interested } = req.body;
+        const { eventId } = req.body;
 
-        assert(interested || !(await user.getCurrentEventId()));
+        await changeEventUserState(user, eventId, 'join');
 
-        const event = await Event.findByPk(eventId);
+        res.json({});
+    },
+);
 
-        assert(event);
+/**
+ * Follow an event
+ *
+ * input
+ *  {
+ *      eventId: string
+ *  }
+ */
+router.post(
+    '/follow',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId } = req.body;
 
-        // TODO: implement more join conditions (maxAttendees, etc.)
+        await changeEventUserState(user, eventId, 'follow');
 
-        await (interested ? user.followEvent(event) : user.setCurrentEvent(event));
+        res.json({});
+    },
+);
+
+/**
+ * Unfollow an event
+ *
+ * input
+ *  {
+ *      eventId: string
+ *  }
+ */
+router.post(
+    '/unfollow',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId } = req.body;
+
+        await changeEventUserState(user, eventId, 'unfollow');
 
         res.json({});
     },

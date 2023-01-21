@@ -2,6 +2,7 @@ import {
     BelongsToManyAddAssociationMixin,
     BelongsToManyCountAssociationsMixin,
     BelongsToManyGetAssociationsMixin,
+    BelongsToManyRemoveAssociationMixin,
     CreationOptional,
     DataTypes,
     ForeignKey,
@@ -109,6 +110,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @BelongsToMany(() => User, () => EventAttendee)
     declare attendees?: NonAttribute<User[]>;
     declare addAttendee: BelongsToManyAddAssociationMixin<User, string>;
+    declare removeAttendee: BelongsToManyRemoveAssociationMixin<User, string>;
     declare countAttendees: BelongsToManyCountAssociationsMixin;
     declare getAttendees: BelongsToManyGetAssociationsMixin<User>;
     // + getAttendees, removeAttendee, hasAttendee also exist, see docs

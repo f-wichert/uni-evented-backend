@@ -215,6 +215,10 @@ export default class User
         await event.addAttendee(this, { through: { status: 'attending' } });
     }
 
+    async unfollowEvent(event: Event) {
+        await event.removeAttendee(this);
+    }
+
     async getFollowedEvents(statuses?: EventStatus[]) {
         return (await User.findByPk(this.id, {
             include: [
