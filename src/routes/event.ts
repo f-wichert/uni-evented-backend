@@ -420,7 +420,6 @@ router.get(
     validateBody(
         z.object({
             statuses: z.array(z.string()).optional(),
-            loadUsers: z.boolean().optional(),
             loadMedia: z.boolean().optional(),
             lat: z.number().optional(),
             lon: z.number().optional(),
@@ -428,7 +427,7 @@ router.get(
         }),
     ),
     async (req, res) => {
-        const { statuses, loadMedia, loadUsers, lat, lon, maxRadius } = req.body;
+        const { statuses, loadMedia, lat, lon, maxRadius } = req.body;
 
         let events = await Event.findAll({
             where: {
@@ -448,16 +447,12 @@ router.get(
                           },
                       ]
                     : []),
-                ...(loadUsers
-                    ? [
-                          {
-                              model: User,
-                              as: 'attendees',
-                              attributes: ['id', 'username', 'displayName', 'avatarHash'],
-                              through: { as: 'eventAttendee', attributes: ['status'] },
-                          },
-                      ]
-                    : []),
+                {
+                    model: User,
+                    as: 'attendees',
+                    attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                    through: { as: 'eventAttendee', attributes: ['status'] },
+                },
             ],
         });
 

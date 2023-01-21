@@ -280,7 +280,7 @@ export async function generateTestdata() {
                 address: 'An der SKV Rot-Weiß im Restaurant',
                 musicStyle: 'Schlager',
                 description:
-                    'Wir sind ein Tennisteam aus Arbeitskolegen und haben letztens recht erfolgreich an unserem ersten Turnier teilgenommen. Um diesen Umstand zu gebührend zu feiern, laden wir alle Sportsfreunde ein mit uns einen entspannten Feierabend zu verbringen',
+                    'Wir sind ein Tennisteam aus Arbeitskollegen und haben letztens recht erfolgreich an unserem ersten Turnier teilgenommen. Um diesen Umstand zu gebührend zu feiern, laden wir alle Sportsfreunde ein mit uns einen entspannten Feierabend zu verbringen',
             },
         ].map((event) => Event.create(event)),
     );
