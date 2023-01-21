@@ -30,9 +30,10 @@ export async function sendNotification(userIDs: string[], params: Omit<ExpoPushM
         `sending push notification to ${tokens.length} token(s) (${userIDs.length} user(s))`,
     );
 
-    const message = {
-        ...params,
+    const message: ExpoPushMessage = {
+        channelId: 'default',
         to: tokens.map((t) => t.token),
+        ...params,
     };
 
     // intentionally not awaiting this, since it can take some time (at least `TICKET_CHECK_DELAY` seconds),
