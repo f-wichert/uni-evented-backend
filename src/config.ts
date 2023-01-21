@@ -25,6 +25,11 @@ export default e.envsafe({
     ENABLE_SECRET_ROUTES: e.bool({
         default: false,
     }),
+    EXPO_ACCESS_TOKEN: e.str({
+        default: '<unset>',
+        desc: 'The access token for push notifications',
+        docs: 'https://docs.expo.dev/push-notifications/sending-notifications/#additional-security',
+    }),
 
     // secrets + keys
     JWT_SECRET: e.str({

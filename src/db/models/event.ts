@@ -117,6 +117,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare media?: NonAttribute<Media[]>;
     declare getMedia: HasManyGetAssociationsMixin<Media>;
     declare countMedia: BelongsToManyCountAssociationsMixin;
+
     // hooks
 
     @AfterCreate
