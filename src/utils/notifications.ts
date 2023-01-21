@@ -1,7 +1,6 @@
 import { Expo, ExpoPushErrorTicket, ExpoPushMessage } from 'expo-server-sdk';
 import { Op } from 'sequelize';
 
-import config from '../config';
 import PushToken from '../db/models/pushToken';
 
 /**
@@ -12,9 +11,7 @@ import PushToken from '../db/models/pushToken';
 // NOTE: the documentation recommends 15 minutes, but at our scale a low value *should* be fine
 const TICKET_CHECK_DELAY = 10; // seconds
 
-const expo = new Expo({
-    accessToken: config.EXPO_ACCESS_TOKEN === '<unset>' ? undefined : config.EXPO_ACCESS_TOKEN,
-});
+const expo = new Expo();
 
 export async function sendNotification(userIDs: string[], params: Omit<ExpoPushMessage, 'to'>) {
     if (!userIDs.length) return;
