@@ -37,9 +37,6 @@ export default class Tag
     declare color: string;
 
     @Column(DataTypes.STRING)
-    declare value: string;
-
-    @Column(DataTypes.STRING)
     declare parent: CreationOptional<string>;
 
     @BelongsToMany(() => Event, () => EventTags)

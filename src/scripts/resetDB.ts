@@ -18,27 +18,22 @@ export async function generateTestdata() {
             [
                 {
                     label: 'Party',
-                    value: 'party',
                     color: 'blue',
                 },
                 {
                     label: 'Games',
-                    value: 'games',
                     color: 'cyan',
                 },
                 {
                     label: 'Chilling',
-                    value: 'chilling',
                     color: 'cadetblue',
                 },
                 {
                     label: 'Music',
-                    value: 'music',
                     color: 'violet',
                 },
                 {
                     label: 'Vibe',
-                    value: 'vibe',
                     color: 'lavender',
                 },
             ].map((tag) => Tag.create(tag)),
@@ -68,115 +63,96 @@ export async function generateTestdata() {
         [
             {
                 label: 'Drinking',
-                value: 'drinking',
                 color: 'orange',
                 parent: PartyCategory.id,
             },
             {
                 label: 'Heavy Drinking',
-                value: 'heavy drinking',
                 color: 'coral',
                 parent: PartyCategory.id,
             },
             {
                 label: 'Beer',
-                value: 'beer',
                 color: 'gold',
                 parent: PartyCategory.id,
             },
             {
                 label: 'NSFW',
-                value: 'nsfw',
                 color: 'orangered',
                 parent: PartyCategory.id,
             },
             {
                 label: 'Beerpong',
-                value: 'beerpong',
                 color: 'goldenrod',
                 parent: PartyCategory.id,
             },
             {
                 label: 'Boardgames',
-                value: 'boardgames',
                 color: 'brown',
                 parent: GamesCategory.id,
             },
             {
                 label: 'Cardgames',
-                value: 'cardgames',
                 color: 'crimson',
                 parent: GamesCategory.id,
             },
             {
                 label: 'Sport',
-                value: 'sport',
                 color: 'green',
                 parent: GamesCategory.id,
             },
             {
                 label: 'After work',
-                value: 'afterWork',
                 color: 'salmon',
                 parent: ChillingCategory.id,
             },
             {
                 label: 'Food',
-                value: 'food',
                 color: 'lightsalmon',
                 parent: ChillingCategory.id,
             },
             {
                 label: 'Talking',
-                value: 'talking',
                 color: 'dodgerblue',
                 parent: ChillingCategory.id,
             },
             {
                 label: 'Reggae',
-                value: 'reggae',
                 color: 'crimson',
                 parent: MusicCategory.id,
             },
             {
                 label: 'Techno',
-                value: 'techno',
                 color: 'red',
                 parent: MusicCategory.id,
             },
             {
                 label: 'Rock',
-                value: 'rock',
                 color: 'lightcoral',
                 parent: MusicCategory.id,
             },
             {
                 label: 'RnB',
-                value: 'rnb',
                 color: 'lightseagreen',
                 parent: MusicCategory.id,
             },
             {
                 label: 'Alternative',
-                value: 'alternative',
                 color: 'deeppink',
                 parent: VibeCategory.id,
             },
             {
                 label: 'Hardcore',
-                value: 'hardcore',
                 color: 'red',
                 parent: VibeCategory.id,
             },
             {
                 label: 'Relaxed',
-                value: 'relaxed',
                 color: 'khaki',
                 parent: VibeCategory.id,
             },
             {
                 label: 'Tense',
-                value: 'tense',
                 color: 'lawngreen',
                 parent: VibeCategory.id,
             },
