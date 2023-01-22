@@ -214,6 +214,13 @@ export async function generateTestdata() {
         ].map((user) => User.create(user)),
     );
 
+    const admin = await User.create({
+        username: 'admin',
+        password: 'Verysecure',
+        email: 'admin@evented.live',
+        isAdmin: true,
+    });
+
     const baseDate = new Date();
 
     function addDays(date: Date, days: number) {

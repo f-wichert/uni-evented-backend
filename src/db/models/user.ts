@@ -85,6 +85,11 @@ export default class User
     @Column(DataTypes.STRING)
     declare avatarHash?: string | null;
 
+    @Default(false)
+    @AllowNull(false)
+    @Column(DataTypes.BOOLEAN)
+    declare isAdmin?: boolean;
+
     // relationships
 
     @HasMany(() => Message)
