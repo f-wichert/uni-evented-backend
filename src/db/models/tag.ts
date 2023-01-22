@@ -6,6 +6,7 @@ import {
     NonAttribute,
 } from 'sequelize';
 import {
+    AllowNull,
     BelongsToMany,
     Column,
     Default,
@@ -30,17 +31,20 @@ export default class Tag
 
     // The displayed text inside the tag
     @Length({ max: 14 })
+    @AllowNull(false)
     @Column(DataTypes.STRING)
     declare label: string;
 
+    // https://reactnative.dev/docs/colors
+    @AllowNull(false)
     @Column(DataTypes.STRING)
     declare color: string;
 
     @Column(DataTypes.STRING)
-    declare parent: CreationOptional<string>;
+    declare parent?: string | null;
 
     @BelongsToMany(() => Event, () => EventTags)
-    declare listOfEventsWithThisTag: NonAttribute<Event[]>;
+    declare eventsWithThisTag: NonAttribute<Event[]>;
 
     equals(other: Tag): boolean {
         return this.id === other.id;
