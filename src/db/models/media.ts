@@ -71,7 +71,7 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
 
     @AfterDestroy
     static async afterDestroyHook(media: Media) {
-        if (media.type !== 'livestream') return;
+        if (media.type === 'livestream') return;
         await fs.rm(`${config.MEDIA_ROOT}/${media.type}/${media.id}`, {
             recursive: true,
             force: true,
