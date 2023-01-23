@@ -2,8 +2,9 @@ import { Router } from 'express';
 import httpError from 'http-errors';
 import { z } from 'zod';
 
+import PushToken from '../db/models/pushToken';
 import User from '../db/models/user';
-import { createTokenForUser } from '../passport';
+import { createTokenForUser, requireAuth } from '../passport';
 import { randomAscii } from '../utils/crypto';
 import { sendMail } from '../utils/email';
 import { validateBody } from '../utils/validate';
@@ -82,6 +83,23 @@ router.post('/reset', validateBody(z.object({ email: z.string().email() })), asy
             `\n\nIf you did not request this action, feel free to ignore this message.`,
     });
 
+    res.send({});
+});
+
+router.post(
+    '/registerPush',
+    requireAuth,
+    validateBody(z.object({ token: z.string() })),
+    async (req, res) => {
+        // create if token doesn't exist yet, otherwise update userId of existing row
+        await PushToken.upsert({ token: req.body.token, userId: req.user!.id });
+        res.send({});
+    },
+);
+
+// n.b. this does not require auth by design
+router.post('/unregisterPush', validateBody(z.object({ token: z.string() })), async (req, res) => {
+    await PushToken.destroy({ where: { token: req.body.token } });
     res.send({});
 });
 
