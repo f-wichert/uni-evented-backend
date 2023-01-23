@@ -15,6 +15,7 @@ import {
 } from 'sequelize';
 import {
     AfterCreate,
+    AfterDestroy,
     AllowNull,
     BelongsTo,
     BelongsToMany,
@@ -127,7 +128,32 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
         await event.addAttendee(event.hostId, { through: { status: 'interested' } });
     }
 
+    @AfterDestroy
+    static async afterDestroyHook(event: Event) {
+        await Promise.all([
+            EventAttendee.destroy({ where: { eventId: event.id } }),
+            Media.destroy({ where: { eventId: event.id }, hooks: true }),
+            EventTags.destroy({ where: { eventId: event.id } }),
+            Message.destroy({ where: { eventId: event.id } }),
+        ]);
+    }
+
     // methods
+
+    async start() {
+        await this.update({ status: 'active' });
+    }
+
+    async stop() {
+        await Promise.all([
+            EventAttendee.update(
+                { status: 'left' },
+                { where: { eventId: this.id, status: 'attending' } },
+            ),
+            EventAttendee.destroy({ where: { eventId: this.id, status: 'interested' } }),
+            this.update({ status: 'completed' }),
+        ]);
+    }
 
     async addTags(...args: Tag[]) {
         await Promise.all(args.map((tag) => this.addTag(tag)));
