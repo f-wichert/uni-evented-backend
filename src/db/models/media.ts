@@ -1,3 +1,4 @@
+import fs from 'fs/promises';
 import {
     CreationOptional,
     DataTypes,
@@ -7,6 +8,7 @@ import {
     NonAttribute,
 } from 'sequelize';
 import {
+    AfterDestroy,
     AllowNull,
     BelongsTo,
     Column,
@@ -16,6 +18,7 @@ import {
     Table,
 } from 'sequelize-typescript';
 
+import config from '../../config';
 import { pick } from '../../utils';
 import { Enum, ForeignUUIDColumn } from '../utils';
 import Event from './event';
@@ -63,6 +66,17 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
 
     @BelongsTo(() => User)
     declare user?: NonAttribute<User>;
+
+    // hooks
+
+    @AfterDestroy
+    static async afterDestroyHook(media: Media) {
+        if (media.type !== 'livestream') return;
+        await fs.rm(`${config.MEDIA_ROOT}/${media.type}/${media.id}`, {
+            recursive: true,
+            force: true,
+        });
+    }
 
     formatForResponse(opts?: { livestreamCreation?: boolean }) {
         const extraFields = opts?.livestreamCreation ? (['streamKey'] as const) : [];
