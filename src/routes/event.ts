@@ -4,7 +4,6 @@ import { Op } from 'sequelize';
 import { z } from 'zod';
 
 import Event, { EventStatuses } from '../db/models/event';
-import EventAttendee from '../db/models/eventAttendee';
 import EventTags from '../db/models/eventTags';
 import Media from '../db/models/media';
 import Message from '../db/models/message';
@@ -199,15 +198,7 @@ async function startStopEvent(user: User, eventId: string, action: 'start' | 'st
         `${user.id} tried to ${action} event ${eventId}, but host is ${event.hostId}`,
     );
 
-    if (action === 'stop') {
-        // remove all current attendees from the event
-        await EventAttendee.update(
-            { status: 'left' },
-            { where: { eventId: eventId, status: 'attending' } },
-        );
-    }
-
-    await event.update({ status: action === 'start' ? 'active' : 'completed' });
+    await (action === 'start' ? event.start() : event.stop());
 }
 
 router.post(
