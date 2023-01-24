@@ -39,6 +39,7 @@ import EventAttendee, { EventAttendeeStatus } from './eventAttendee';
 import FollowerTable from './FollowerTable';
 import Media from './media';
 import Message from './message';
+import PushToken from './pushToken';
 import Tag from './tag';
 
 @Table
@@ -112,9 +113,13 @@ export default class User
     declare getFollowers: HasManyGetAssociationsMixin<User>;
 
     @BelongsToMany(() => Tag, 'TagsILikeTable', 'userId', 'tagId')
-    declare tags: NonAttribute<Tag[]>;
+    declare tags?: NonAttribute<Tag[]>;
     declare addTag: HasManyAddAssociationMixin<Tag, string>;
     declare getTags: HasManyGetAssociationsMixin<Tag>;
+
+    @HasMany(() => PushToken)
+    declare pushTokens?: NonAttribute<PushToken[]>;
+
     // hooks
 
     @BeforeCreate
