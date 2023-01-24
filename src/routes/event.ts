@@ -36,7 +36,7 @@ async function getEventForResponse(id: string) {
             {
                 model: Tag,
                 as: 'tags',
-                attributes: ['id', 'label', 'color', 'value', 'parent'],
+                attributes: ['id', 'label', 'color', 'parent'],
             },
         ],
     });
