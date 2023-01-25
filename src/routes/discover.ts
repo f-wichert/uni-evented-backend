@@ -4,7 +4,6 @@ import { Op } from 'sequelize';
 import { z } from 'zod';
 import Event from '../db/models/event';
 import Media from '../db/models/media';
-import recommendationListForUser from '../recommendationAlgorithm';
 import { Coordinates } from '../types';
 import { validateBody } from '../utils/validate';
 
@@ -44,13 +43,13 @@ router.get(
             lon: req.body.lon,
         } as Coordinates;
 
-        console.log('DEBUG OUTPUT');
-        console.log(
-            (await recommendationListForUser(user, events, userPosition)).map((event) => {
-                return { name: event.event.name, ranking: event.ranking.explanation };
-            }),
-        );
-        console.log('DEBUG OUTPUT END');
+        // console.log('DEBUG OUTPUT');
+        // console.log(
+        //     (await recommendationListForUser(user, events, userPosition)).map((event) => {
+        //         return { name: event.event.name, ranking: event.ranking.explanation };
+        //     }),
+        // );
+        // console.log('DEBUG OUTPUT END');
 
         res.json(events);
     },
