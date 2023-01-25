@@ -29,7 +29,7 @@ router.use('/user', userRouter);
 
 // require admin
 router.use((req, res, next) => {
-    assert(!req.user!.isAdmin);
+    assert(req.user!.isAdmin);
     next();
 });
 router.use('/admin', adminRouter);
