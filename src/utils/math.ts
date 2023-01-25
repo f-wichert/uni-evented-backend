@@ -1,3 +1,5 @@
+import { Coordinates } from '../types';
+
 const EARTH_RADIUS = 6371000; // m
 
 function degToRad(deg: number): number {
@@ -6,17 +8,17 @@ function degToRad(deg: number): number {
 
 /**
  * Calculates the distance between two locations on earth,
- * `(lat1, lon1)` and `(lat2, lon2)` in meters.
+ * coordinates_A and coordinates_B in meters.
  *
  * heavily inspired by:
  * https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/
  */
-export function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const dLat = degToRad(lat2 - lat1);
-    const dLon = degToRad(lon2 - lon1);
+export function distanceInMeters(coordinates_A: Coordinates, coordinates_B: Coordinates): number {
+    const dLat = degToRad(coordinates_B.lat - coordinates_A.lat);
+    const dLon = degToRad(coordinates_B.lon - coordinates_A.lon);
 
-    const rLat1 = degToRad(lat1);
-    const rLat2 = degToRad(lat2);
+    const rLat1 = degToRad(coordinates_A.lat);
+    const rLat2 = degToRad(coordinates_B.lat);
 
     const a =
         Math.pow(Math.sin(dLat / 2.0), 2.0) +

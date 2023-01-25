@@ -8,7 +8,7 @@ import EventAttendee from '../db/models/eventAttendee';
 import Media from '../db/models/media';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
-import { haversine } from '../utils/math';
+import { distanceInMeters } from '../utils/math';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
 
 async function getEventForResponse(id: string) {
@@ -238,7 +238,7 @@ router.post(
 
         // TODO: make configurable?
         // const maxEventDistance = 10.0;
-        // assert(haversine(lat, lon, event.lat, event.lon) <= maxEventDistance);
+        // assert(distanceInMeters(lat, lon, event.lat, event.lon) <= maxEventDistance);
 
         // TODO: implement more join conditions (maxAttendees, etc.)
 
@@ -383,7 +383,9 @@ router.get(
         if (lat !== undefined && lon !== undefined && maxRadius !== undefined) {
             // filter out events that are too far away
             events = events.filter(
-                (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius,
+                (event) =>
+                    distanceInMeters({ lat: lat, lon: lon }, { lat: event.lat, lon: event.lon }) <=
+                    maxRadius,
             );
         }
 
