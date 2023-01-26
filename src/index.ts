@@ -16,6 +16,8 @@ import User from './db/models/user';
 import errorHandler from './errorHandler';
 import routes from './routes';
 
+import nodeMediaServer from './live';
+
 const app = express();
 
 app.use(compression());
@@ -64,6 +66,8 @@ async function init() {
 
     // create media directories if they don't exist
     await fs.mkdir(config.MEDIA_UPLOAD_ROOT, { recursive: true });
+
+    nodeMediaServer.run();
 
     app.listen(config.PORT, () => {
         console.log(`Server is running at http://localhost:${config.PORT}`);

@@ -50,7 +50,7 @@ export default class MediaProcessor {
                 break;
             default:
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                throw new Error(`unknown media type: ${mediaType}`);
+                throw new Error(`unknown or unsupported media type: ${mediaType}`);
         }
     }
 
@@ -103,7 +103,7 @@ export default class MediaProcessor {
                 `-ar:a:${index} ${quality.aSamplerate}`,
                 `-ac:a:${index} ${quality.aChannels}`,
             ]);
-            streamMapString += `v:${index},a:${index},name:${quality.height}p `;
+            streamMapString += `v:${index},a:${index},name:${quality.width}p `;
         });
 
         fmpg = fmpg

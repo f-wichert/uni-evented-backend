@@ -16,11 +16,12 @@ import {
     Table,
 } from 'sequelize-typescript';
 
+import { pick } from '../../utils';
 import { Enum, ForeignUUIDColumn } from '../utils';
 import Event from './event';
 import User from './user';
 
-const MediaTypes = ['image', 'video'] as const;
+const MediaTypes = ['image', 'video', 'livestream'] as const;
 export type MediaType = typeof MediaTypes[number];
 
 @Table
@@ -40,6 +41,15 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
     @Column(DataTypes.BOOLEAN)
     declare fileAvailable: CreationOptional<boolean>;
 
+    /**
+     * A one-time key to start a stream
+     * After the stream has started this will be null forever
+     */
+    @AllowNull(true)
+    @Default(DataTypes.UUIDV4)
+    @Column(DataTypes.UUID)
+    declare streamKey: CreationOptional<string | null>;
+
     // relationships
 
     @ForeignUUIDColumn(() => Event)
@@ -53,4 +63,9 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
 
     @BelongsTo(() => User)
     declare user?: NonAttribute<User>;
+
+    formatForResponse(opts?: { livestreamCreation?: boolean }) {
+        const extraFields = opts?.livestreamCreation ? (['streamKey'] as const) : [];
+        return pick(this, ['id', 'type', 'fileAvailable', ...extraFields]);
+    }
 }

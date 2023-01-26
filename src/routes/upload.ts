@@ -1,8 +1,10 @@
+import assert from 'assert';
 import { Request, Router } from 'express';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs/promises';
 import httpError from 'http-errors';
 import path from 'path';
+import { Op } from 'sequelize';
 import { z } from 'zod';
 
 import config from '../config';
@@ -79,13 +81,46 @@ async function processMediaFile(
 router.post('/clip', validateBody(z.object({ eventID: z.string().uuid() })), async (req, res) => {
     const file = getFile(req);
     const media = await processMediaFile(file, 'video', req.user!.id, req.body.eventID);
-    res.json(media);
+    res.json(media.formatForResponse());
 });
 
 router.post('/image', validateBody(z.object({ eventID: z.string().uuid() })), async (req, res) => {
     const file = getFile(req);
     const media = await processMediaFile(file, 'image', req.user!.id, req.body.eventID);
-    res.json(media);
+    res.json(media.formatForResponse());
 });
+
+/**
+ * Indicate that a livestream will start
+ * The rtmp address for the livestream will be
+ * `rtmp://{ip}:{NMS_RTMP_PORT}/live/{media.id}?key={media.streamKey}`
+ */
+router.post(
+    '/livestream',
+    validateBody(z.object({ eventID: z.string().uuid() })),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventID } = req.body;
+
+        assert((await user.getCurrentEventId()) === eventID);
+
+        const media =
+            (await Media.findOne({
+                where: {
+                    type: 'livestream',
+                    userId: user.id,
+                    eventId: eventID,
+                    streamKey: { [Op.not]: null },
+                },
+            })) ??
+            (await Media.create({
+                type: 'livestream',
+                userId: user.id,
+                eventId: eventID,
+            }));
+
+        res.json(media.formatForResponse({ livestreamCreation: true }));
+    },
+);
 
 export default router;

@@ -18,6 +18,10 @@ export default e.envsafe({
         desc: 'The database connection url, i.e. <dialect>://<url>',
         example: 'sqlite://:memory:, sqlite://./some/path/, postgres://user:pass@host:5432/dbname',
     }),
+    DB_LOGGING: e.bool({
+        default: false,
+        desc: 'Whether to enable sequelize query logging',
+    }),
     ENABLE_SECRET_ROUTES: e.bool({
         default: false,
     }),
@@ -53,5 +57,16 @@ export default e.envsafe({
     UPLOAD_INPUT_NAME_FIELD: e.str({
         default: 'File',
         desc: 'The name of the form data field containing all uploaded files',
+    }),
+
+    // live
+    NMS_RTMP_PORT: e.port({
+        default: 3003,
+        desc: 'The port NodeMediaServers rtmp server listens on',
+    }),
+
+    FFMPEG_PATH: e.str({
+        default: '/usr/local/bin/ffmpeg',
+        desc: 'Path to a ffmpeg binary',
     }),
 });

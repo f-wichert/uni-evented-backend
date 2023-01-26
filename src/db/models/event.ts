@@ -2,6 +2,7 @@ import {
     BelongsToManyAddAssociationMixin,
     BelongsToManyCountAssociationsMixin,
     BelongsToManyGetAssociationsMixin,
+    BelongsToManyRemoveAssociationMixin,
     CreationOptional,
     DataTypes,
     ForeignKey,
@@ -32,6 +33,7 @@ import { Enum, ForeignUUIDColumn } from '../utils';
 import EventAttendee from './eventAttendee';
 import EventTags from './eventTags';
 import Media from './media';
+import Message from './message';
 import Tag from './tag';
 import User from './user';
 
@@ -52,7 +54,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
 
     @Enum(EventStatuses)
     @AllowNull(false)
-    @Default('active')
+    @Default('scheduled')
     @Column(DataTypes.STRING)
     declare status: CreationOptional<EventStatus>;
 
@@ -81,10 +83,14 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.STRING)
     declare address: CreationOptional<string>; // TODO: CreationOptional for now, because it is nowhere implemented yet. Should later be made manditory
 
-    @Length({ max: 300 })
+    @Length({ max: 1000 })
     @Default('No Description')
-    @Column(DataTypes.STRING)
+    @Column(DataTypes.STRING(1000))
     declare description: CreationOptional<string>;
+
+    @Length({ max: 12 })
+    @Column(DataTypes.STRING)
+    declare musicStyle: CreationOptional<string>;
 
     // relationships
 
@@ -104,6 +110,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @BelongsToMany(() => User, () => EventAttendee)
     declare attendees?: NonAttribute<User[]>;
     declare addAttendee: BelongsToManyAddAssociationMixin<User, string>;
+    declare removeAttendee: BelongsToManyRemoveAssociationMixin<User, string>;
     declare countAttendees: BelongsToManyCountAssociationsMixin;
     declare getAttendees: BelongsToManyGetAssociationsMixin<User>;
     // + getAttendees, removeAttendee, hasAttendee also exist, see docs
@@ -112,6 +119,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare media?: NonAttribute<Media[]>;
     declare getMedia: HasManyGetAssociationsMixin<Media>;
     declare countMedia: BelongsToManyCountAssociationsMixin;
+
     // hooks
 
     @AfterCreate
@@ -121,6 +129,10 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     }
 
     // methods
+
+    async addTags(...args: Tag[]) {
+        await Promise.all(args.map((tag) => this.addTag(tag)));
+    }
 
     /**
      * @returns the average rating of the event as a number in [1..=5]
@@ -137,5 +149,14 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
             ? eventAttendees.map((ea) => ea.rating! as number).reduce((a, c) => a + c) /
                   eventAttendees.length
             : null;
+    }
+
+    async getMessages() {
+        const messages = await Message.findAll({
+            where: {
+                eventId: this.id,
+            },
+        });
+        return messages;
     }
 }

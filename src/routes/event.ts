@@ -3,12 +3,15 @@ import { Router } from 'express';
 import { Op } from 'sequelize';
 import { z } from 'zod';
 
-import Event from '../db/models/event';
+import Event, { EventStatuses } from '../db/models/event';
 import EventAttendee from '../db/models/eventAttendee';
+import EventTags from '../db/models/eventTags';
 import Media from '../db/models/media';
+import Message from '../db/models/message';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
 import { distanceInMeters } from '../utils/math';
+import { checkProfanity } from '../utils/profanity';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
 
 async function getEventForResponse(id: string) {
@@ -16,7 +19,14 @@ async function getEventForResponse(id: string) {
         where: { id },
         attributes: { exclude: ['createdAt', 'updatedAt'] },
         include: [
-            { model: Media, as: 'media', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+            // TODO: remove media from this event object, should be requested separately
+            {
+                model: Media,
+                as: 'media',
+                attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
+                where: { fileAvailable: true },
+                required: false,
+            },
             {
                 model: User,
                 as: 'attendees',
@@ -26,7 +36,7 @@ async function getEventForResponse(id: string) {
             {
                 model: Tag,
                 as: 'tags',
-                attributes: ['label', 'color', 'value', 'parent'],
+                attributes: ['id', 'label', 'color', 'parent'],
             },
         ],
     });
@@ -61,12 +71,6 @@ const router = Router();
  *          displayName: string
  *          avatarHash: string | null
  *      }]
- *      currentAttendees: [{
- *          id: string
- *          username: string
- *          displayName: string
- *          avatarHash: string | null
- *      }]
  *      tags: [{
  *          label: string
  *          color: string
@@ -90,7 +94,11 @@ router.get(
         const { eventId } = req.params;
         const event = await getEventForResponse(eventId);
         assert(event, `no event with id ${eventId} found`);
-        res.json(event);
+        const eventWithRating = {
+            ...event.get({ plain: true }),
+            rating: (await event.getRating())!,
+        };
+        res.json(eventWithRating);
     },
 );
 
@@ -107,12 +115,11 @@ router.get(
         assert(event, `no event with id ${eventId} found`);
 
         const media = await event.getMedia({
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
             where: {
                 fileAvailable: true,
             },
         });
-        res.json(media);
+        res.json(media.map((m) => m.formatForResponse()));
     },
 );
 
@@ -141,6 +148,7 @@ router.post(
     validateBody(
         z.object({
             name: z.string(),
+            description: z.string().optional(),
             // TODO: make mandatory
             tags: z.array(z.string()).optional(),
             lat: z.number(),
@@ -151,7 +159,7 @@ router.post(
     ),
     async (req, res) => {
         const user = req.user!;
-        const { name, lat, lon, startDateTime, endDateTime } = req.body;
+        const { name, lat, lon, startDateTime, endDateTime, tags, description } = req.body;
         const actualStartDateTime = startDateTime ?? new Date();
 
         // TODO: more validation
@@ -164,7 +172,16 @@ router.post(
             startDateTime: actualStartDateTime,
             endDateTime: endDateTime,
             hostId: user.id,
+            description: description,
         });
+
+        if (tags?.length)
+            await EventTags.bulkCreate(
+                tags.map((el) => ({
+                    tagId: el,
+                    eventId: event.id,
+                })),
+            );
 
         // fetch full event from db for consistency
         event = (await getEventForResponse(event.id))!;
@@ -173,8 +190,28 @@ router.post(
     },
 );
 
+async function startStopEvent(user: User, eventId: string, action: 'start' | 'stop') {
+    const event = await Event.findByPk(eventId);
+
+    assert(event, `no event with id: ${eventId}`);
+    assert(
+        event.hostId === user.id,
+        `${user.id} tried to ${action} event ${eventId}, but host is ${event.hostId}`,
+    );
+
+    if (action === 'stop') {
+        // remove all current attendees from the event
+        await EventAttendee.update(
+            { status: 'left' },
+            { where: { eventId: eventId, status: 'attending' } },
+        );
+    }
+
+    await event.update({ status: action === 'start' ? 'active' : 'completed' });
+}
+
 router.post(
-    '/close',
+    '/stop',
     validateBody(
         z.object({
             eventId: z.string(),
@@ -184,35 +221,61 @@ router.post(
         const user = req.user!;
         const { eventId } = req.body;
 
-        const event = await Event.findByPk(eventId);
-
-        assert(event, `no event with id: ${eventId}`);
-        assert(
-            event.hostId === user.id,
-            `${user.id} tried to close event ${eventId}, but host is ${event.hostId}`,
-        );
-        assert(event.status !== 'completed', 'event aready completed');
-
-        // remove all current attendees from the event
-        await EventAttendee.update(
-            { status: 'left' },
-            { where: { eventId: eventId, status: 'attending' } },
-        );
-
-        await event.update({ status: 'completed' });
+        await startStopEvent(user, eventId, 'stop');
 
         res.json({});
     },
 );
 
+router.post(
+    '/start',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId } = req.body;
+
+        await startStopEvent(user, eventId, 'start');
+
+        res.json({});
+    },
+);
+
+async function changeEventUserState(
+    user: User,
+    eventId: string,
+    action: 'join' | 'follow' | 'unfollow',
+) {
+    assert(action !== 'join' || !(await user.getCurrentEventId()));
+
+    const event = await Event.findByPk(eventId);
+
+    assert(event);
+
+    // TODO: implement more join conditions (maxAttendees, etc.)
+
+    switch (action) {
+        case 'join':
+            await user.setCurrentEvent(event);
+            break;
+        case 'follow':
+            await user.followEvent(event);
+            break;
+        case 'unfollow':
+            await user.unfollowEvent(event);
+            break;
+    }
+}
+
 /**
- * Join an event if it is close enough
+ * Join an event
  *
  * input
  *  {
  *      eventId: string
- *      lat: number
- *      lon: number
  *  }
  */
 router.post(
@@ -220,29 +283,66 @@ router.post(
     validateBody(
         z.object({
             eventId: z.string(),
-            // TODO: remove lat/lon, there isn't really a point in checking them
-            //       on the server side if there's also client-side validation
-            lat: z.number(),
-            lon: z.number(),
         }),
     ),
     async (req, res) => {
         const user = req.user!;
-        const { eventId /*lat, lon*/ } = req.body;
+        const { eventId } = req.body;
 
-        assert(!(await user.getCurrentEventId()), 'user is already attending an event');
+        await changeEventUserState(user, eventId, 'join');
 
-        const event = await Event.findByPk(eventId);
+        res.json({});
+    },
+);
 
-        assert(event);
+/**
+ * Follow an event
+ *
+ * input
+ *  {
+ *      eventId: string
+ *  }
+ */
+router.post(
+    '/follow',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId } = req.body;
 
         // TODO: make configurable?
         // const maxEventDistance = 10.0;
         // assert(distanceInMeters(lat, lon, event.lat, event.lon) <= maxEventDistance);
+        await changeEventUserState(user, eventId, 'follow');
 
-        // TODO: implement more join conditions (maxAttendees, etc.)
+        res.json({});
+    },
+);
 
-        await user.setCurrentEvent(event);
+/**
+ * Unfollow an event
+ *
+ * input
+ *  {
+ *      eventId: string
+ *  }
+ */
+router.post(
+    '/unfollow',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId } = req.body;
+
+        await changeEventUserState(user, eventId, 'unfollow');
 
         res.json({});
     },
@@ -269,18 +369,7 @@ router.post(
         const user = req.user!;
         const { eventID, rating } = req.body;
 
-        const [affectedRows] = await EventAttendee.update(
-            { rating: rating },
-            {
-                where: {
-                    eventId: eventID,
-                    userId: user.id,
-                    status: { [Op.or]: ['attending', 'left'] },
-                },
-            },
-        );
-
-        assert(affectedRows === 1);
+        await user.rateEventId(eventID, rating);
 
         res.json({});
     },
@@ -326,12 +415,6 @@ router.post(
  *          displayName: string
  *          avatarHash: string | null
  *      }]
- *      currentAttendees: [{
- *          id: string
- *          username: string
- *          displayName: string
- *          avatarHash: string | null
- *      }]
  *  ]}
  */
 // TODO: using request bodies with the GET method is discouraged
@@ -340,7 +423,6 @@ router.get(
     validateBody(
         z.object({
             statuses: z.array(z.string()).optional(),
-            loadUsers: z.boolean().optional(),
             loadMedia: z.boolean().optional(),
             lat: z.number().optional(),
             lon: z.number().optional(),
@@ -348,7 +430,7 @@ router.get(
         }),
     ),
     async (req, res) => {
-        const { statuses, loadMedia, loadUsers, lat, lon, maxRadius } = req.body;
+        const { statuses, loadMedia, lat, lon, maxRadius } = req.body;
 
         let events = await Event.findAll({
             where: {
@@ -358,25 +440,22 @@ router.get(
             },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
             include: [
+                // TODO: remove media from this event object, it should be requested separately
                 ...(loadMedia
                     ? [
                           {
                               model: Media,
                               as: 'media',
-                              attributes: { exclude: ['createdAt', 'updatedAt'] },
+                              attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
                           },
                       ]
                     : []),
-                ...(loadUsers
-                    ? [
-                          {
-                              model: User,
-                              as: 'attendees',
-                              attributes: ['id', 'username', 'displayName', 'avatarHash'],
-                              through: { as: 'eventAttendee', attributes: ['status'] },
-                          },
-                      ]
-                    : []),
+                {
+                    model: User,
+                    as: 'attendees',
+                    attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                    through: { as: 'eventAttendee', attributes: ['status'] },
+                },
             ],
         });
 
@@ -389,7 +468,7 @@ router.get(
             );
         }
 
-        res.json({ events: events });
+        res.json(events);
     },
 );
 
@@ -440,22 +519,83 @@ router.get(
     '/relevantEvents',
     validateBody(
         z.object({
-            statuses: z.array(z.string()).optional(),
+            statuses: z.array(z.enum(EventStatuses)).optional(),
         }),
     ),
     async (req, res) => {
         const { statuses } = req.body;
         const user = req.user!;
 
-        const myEvents = await user.getHostedEvents(statuses);
+        const [myEvents, currentEvent, followedEvents] = await Promise.all([
+            user.getHostedEvents(statuses),
+            user.getCurrentEvent(),
+            user.getFollowedEvents(statuses),
+        ]);
 
-        const currentEvent = await user.getCurrentEvent();
-        const activeEvent = currentEvent ? [currentEvent] : [];
-
-        const followedEvents: Event[] = [];
         const followerEvents: Event[] = [];
 
+        const activeEvent = currentEvent ? [currentEvent] : [];
+
         res.json({ myEvents, activeEvent, followedEvents, followerEvents });
+    },
+);
+
+router.post(
+    '/getMessages',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const { eventId } = req.body;
+
+        const messages = await Message.findAll({
+            where: {
+                eventId: eventId,
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'sender',
+                    // TODO: include more fields as necessary, or just entire user object
+                    attributes: ['username', 'displayName'],
+                },
+            ],
+        });
+
+        res.json(messages);
+    },
+);
+
+router.post(
+    '/sendMessage',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+            messageContent: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId, messageContent } = req.body;
+
+        const profMsg = messageContent
+            .split(' ')
+            .map((word) => {
+                if (checkProfanity(word)) {
+                    return '*'.repeat(word.length);
+                } else return word;
+            })
+            .join(' ');
+
+        await Message.create({
+            eventId: eventId,
+            message: profMsg,
+            senderId: user.id,
+        });
+
+        res.json({});
     },
 );
 
