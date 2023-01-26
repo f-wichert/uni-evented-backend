@@ -1,15 +1,17 @@
 import { assert } from 'console';
+import { getDistance } from 'geolib';
 import Event from './db/models/event';
 import Tag from './db/models/tag';
 import User from './db/models/user';
 import { Coordinates } from './types';
 import intersection from './utils/helpers';
-import { distanceInMeters } from './utils/math';
+
+// TODO: Remove - Deprecated
 
 export default async function recommendationListForUser(
     user: User,
     eventList: Event[],
-    userCoordinates: Coordinates,
+    userLocation: Coordinates,
 ) {
     assert(
         user,
@@ -24,7 +26,7 @@ export default async function recommendationListForUser(
         eventList.map(async (event: Event) => {
             return {
                 event: event,
-                ranking: await eventRankingForUser(event, user, userCoordinates),
+                ranking: await eventRankingForUser(event, user, userLocation),
             };
         }),
     );
@@ -38,7 +40,7 @@ export default async function recommendationListForUser(
     return sortetRankedEventList;
 }
 
-async function eventRankingForUser(event: Event, user: User, userCoordinates: Coordinates) {
+async function eventRankingForUser(event: Event, user: User, userLocation: Coordinates) {
     let score = 0;
     const explanation = {
         tagScore: 0,
@@ -48,10 +50,13 @@ async function eventRankingForUser(event: Event, user: User, userCoordinates: Co
         distance: 0,
     };
 
-    const posEvenet = { lat: event.lat, lon: event.lon };
-    const distToEventInMeters = distanceInMeters(posEvenet, userCoordinates);
-    score -= distToEventInMeters / 1000;
-    explanation.distance = distToEventInMeters;
+    // Only consider distance if location is valid
+    if (!(userLocation.lat === 0 && userLocation.lon === 0)) {
+        const posEvenet = { lat: event.lat, lon: event.lon };
+        const distToEventInMeters = getDistance(posEvenet, userLocation);
+        score -= distToEventInMeters / 1000;
+        explanation.distance = distToEventInMeters;
+    }
 
     // Ranking based on tags / personal interests
     // Wie viele meiner Tags die ich mag sind teil des Events
