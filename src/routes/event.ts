@@ -30,7 +30,7 @@ async function getEventForResponse(id: string) {
             {
                 model: User,
                 as: 'attendees',
-                attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                attributes: ['id', 'username', 'displayName', 'avatarHash', 'bio'],
                 through: { as: 'eventAttendee', attributes: ['status'] },
             },
             {
@@ -453,7 +453,7 @@ router.get(
                 {
                     model: User,
                     as: 'attendees',
-                    attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                    attributes: ['id', 'username', 'displayName', 'avatarHash', 'bio'],
                     through: { as: 'eventAttendee', attributes: ['status'] },
                 },
             ],

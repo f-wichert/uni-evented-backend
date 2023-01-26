@@ -86,6 +86,12 @@ export default class User
     @Column(DataTypes.STRING)
     declare avatarHash?: string | null;
 
+    @Length({ max: 200 })
+    @AllowNull(false)
+    @Default('')
+    @Column(DataTypes.STRING)
+    declare bio?: string;
+
     // relationships
 
     @HasMany(() => Message)
@@ -129,7 +135,7 @@ export default class User
 
     formatForResponse(opts?: { isMe?: boolean }) {
         const extraFields = opts?.isMe ? (['email'] as const) : [];
-        return pick(this, ['id', 'username', 'displayName', 'avatarHash', ...extraFields]);
+        return pick(this, ['id', 'username', 'displayName', 'avatarHash', 'bio', ...extraFields]);
     }
 
     // Wrapper functions to make Tag-function names more meaningfull
