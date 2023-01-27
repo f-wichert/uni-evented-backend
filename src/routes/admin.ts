@@ -2,10 +2,10 @@ import assert from 'assert';
 import { Router } from 'express';
 import { Op } from 'sequelize';
 import { z } from 'zod';
-import Event from '../db/models/event';
+import Event, { EventStatuses } from '../db/models/event';
 import Media from '../db/models/media';
 import User from '../db/models/user';
-import { validateBody, validateParams } from '../utils/validate';
+import { validateBody, validateParams, validateQuery } from '../utils/validate';
 
 const router = Router();
 
@@ -88,12 +88,12 @@ router.post(
  * }]
  */
 router.get(
-    '/event/all/:statuses',
-    validateParams(z.object({ statuses: z.array(z.string()).optional() })),
+    '/event/all',
+    validateQuery(z.object({ statuses: z.array(z.string()).optional() })),
     async (req, res) => {
         const { statuses } = req.params;
         const events = await Event.findAll({
-            where: { status: { [Op.or]: statuses ?? ['active'] } },
+            where: { status: { [Op.or]: statuses ?? EventStatuses } },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
         });
         res.json(events);
