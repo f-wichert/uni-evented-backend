@@ -263,11 +263,11 @@ export async function generateTestdata() {
     );
 
     await Promise.all([
-        users[0].setCurrentEvent(events[4]),
-        users[1].setCurrentEvent(events[4]),
-        users[2].setCurrentEvent(events[2]),
-        users[3].setCurrentEvent(events[3]),
-        users[4].setCurrentEvent(events[4]),
+        // users[0].setCurrentEvent(events[4]),
+        // users[1].setCurrentEvent(events[4]),
+        // users[2].setCurrentEvent(events[2]),
+        // users[3].setCurrentEvent(events[3]),
+        // users[4].setCurrentEvent(events[4]),
 
         events[0].addTags(BoardgamesTag, DrinkingTag, CardgamesTag, RockTag, SportTag),
         events[1].addTags(RelaxedTag, DrinkingTag, BeerTag, SportTag, BeerpongTag),
