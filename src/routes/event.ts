@@ -94,9 +94,21 @@ router.get(
         const { eventId } = req.params;
         const event = await getEventForResponse(eventId);
         assert(event, `no event with id ${eventId} found`);
+
+        const ratable = Boolean(
+            await EventAttendee.findOne({
+                where: {
+                    eventId: event.id,
+                    userId: req.user!.id,
+                    status: { [Op.or]: ['attending', 'left'] },
+                },
+            }),
+        );
+
         const eventWithRating = {
             ...event.get({ plain: true }),
             rating: (await event.getRating())!,
+            ratable: ratable,
         };
         res.json(eventWithRating);
     },
@@ -369,7 +381,7 @@ router.post(
         const user = req.user!;
         const { eventID, rating } = req.body;
 
-        await user.rateEventId(eventID, rating);
+        const response = await user.rateEventId(eventID, rating);
 
         res.json({});
     },

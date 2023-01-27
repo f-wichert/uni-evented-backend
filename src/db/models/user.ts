@@ -276,9 +276,8 @@ export default class User
                 },
             },
         );
-
         if (affectedRows !== 1) {
-            throw new Error(`No Event with id ${eventId}`);
+            throw new Error(`User is not an attending or no Event with id ${eventId}`);
         }
     }
 
