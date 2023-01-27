@@ -2,12 +2,12 @@ import { Router } from 'express';
 
 import { Op } from 'sequelize';
 import Event from '../db/models/event';
-import User from '../db/models/user';
 import recommendationListForUser from '../recommendationAlgorithm';
+import { Coordinates } from '../types';
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get('/:lat-:lon', async (req, res) => {
     // Commented out for now, because no events fullfil the requieremnts yet. Returns empty list
 
     // const events = await Event.findAll({
@@ -38,20 +38,27 @@ router.get('/', async (req, res) => {
         },
     });
 
-    const testUser = await User.findOne({ where: { username: 'Lorenzo' } });
+    // Use if no events have media
+    // const events = await Event.findAll();
 
-    console.log('DEBUG OUTPUT');
-    const recommendadtionResult = await recommendationListForUser(testUser!, events);
-    console.log(
-        recommendadtionResult.map((event) => {
-            return { name: event.event.name, ranking: event.ranking.explanation };
-        }),
-    );
-    console.log('DEBUG OUTPUT END');
+    const user = req.user!;
+    const userPosition = {
+        lat: Number(req.params.lat),
+        lon: Number(req.params.lon),
+    } as Coordinates;
 
-    const result = recommendadtionResult.map((returnedEvent) => returnedEvent.event);
+    const recommendationList = await recommendationListForUser(user, events, userPosition);
 
-    res.json(result);
+    // console.log('DEBUG OUTPUT');
+    // console.log(userPosition)
+    // console.log(
+    //     recommendationList.map((item) => {
+    //         return { name: item.event.name, ranking: item.ranking.explanation };
+    //     }),
+    // );
+    // console.log('DEBUG OUTPUT END');
+
+    res.json(recommendationList.map((item) => item.event));
 });
 
 export default router;

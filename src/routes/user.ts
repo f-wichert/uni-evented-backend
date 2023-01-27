@@ -39,6 +39,7 @@ router.patch(
             avatar: base64Schema.nullish(),
             username: z.string().optional(),
             displayName: z.string().optional(),
+            bio: z.string().optional(),
 
             email: z.string().optional(),
             password: z.string().optional(),
@@ -64,6 +65,7 @@ router.patch(
             avatarHash: avatarHash,
             username: req.body.username,
             displayName: req.body.displayName,
+            bio: req.body.bio,
 
             email: req.body.email,
             password: req.body.password,

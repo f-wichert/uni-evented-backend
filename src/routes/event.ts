@@ -9,7 +9,7 @@ import Media from '../db/models/media';
 import Message from '../db/models/message';
 import Tag from '../db/models/tag';
 import User from '../db/models/user';
-import { haversine } from '../utils/math';
+import { distanceInMeters } from '../utils/math';
 import { checkProfanity } from '../utils/profanity';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
 
@@ -29,7 +29,7 @@ async function getEventForResponse(id: string) {
             {
                 model: User,
                 as: 'attendees',
-                attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                attributes: ['id', 'username', 'displayName', 'avatarHash', 'bio'],
                 through: { as: 'eventAttendee', attributes: ['status'] },
             },
             {
@@ -305,6 +305,9 @@ router.post(
         const user = req.user!;
         const { eventId } = req.body;
 
+        // TODO: make configurable?
+        // const maxEventDistance = 10.0;
+        // assert(distanceInMeters(lat, lon, event.lat, event.lon) <= maxEventDistance);
         await changeEventUserState(user, eventId, 'follow');
 
         res.json({});
@@ -441,7 +444,7 @@ router.get(
                 {
                     model: User,
                     as: 'attendees',
-                    attributes: ['id', 'username', 'displayName', 'avatarHash'],
+                    attributes: ['id', 'username', 'displayName', 'avatarHash', 'bio'],
                     through: { as: 'eventAttendee', attributes: ['status'] },
                 },
             ],
@@ -450,7 +453,9 @@ router.get(
         if (lat !== undefined && lon !== undefined && maxRadius !== undefined) {
             // filter out events that are too far away
             events = events.filter(
-                (event) => haversine(lat, lon, event.lat, event.lon) <= maxRadius,
+                (event) =>
+                    distanceInMeters({ lat: lat, lon: lon }, { lat: event.lat, lon: event.lon }) <=
+                    maxRadius,
             );
         }
 

@@ -166,6 +166,7 @@ export async function generateTestdata() {
                 username: 'Lorenzo',
                 password: 'Verysecure',
                 email: 'test1@evented.live',
+                bio: 'hi i like events i think',
             },
             {
                 username: 'Notlorenzo',

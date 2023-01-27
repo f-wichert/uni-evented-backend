@@ -90,6 +90,12 @@ export default class User
     @Column(DataTypes.STRING)
     declare avatarHash?: string | null;
 
+    @Length({ max: 200 })
+    @AllowNull(false)
+    @Default('')
+    @Column(DataTypes.STRING)
+    declare bio?: string;
+
     @Default(false)
     @AllowNull(false)
     @Column(DataTypes.BOOLEAN)
@@ -157,6 +163,7 @@ export default class User
             'username',
             'displayName',
             'avatarHash',
+            'bio',
             'isAdmin',
             ...extraFields,
         ]);
