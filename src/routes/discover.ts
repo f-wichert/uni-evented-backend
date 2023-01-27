@@ -2,8 +2,6 @@ import { Router } from 'express';
 
 import { Op } from 'sequelize';
 import Event from '../db/models/event';
-import Media from '../db/models/media';
-import User from '../db/models/user';
 import recommendationListForUser from '../recommendationAlgorithm';
 import { Coordinates } from '../types';
 
