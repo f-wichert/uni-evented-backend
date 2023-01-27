@@ -152,7 +152,14 @@ export default class User
 
     formatForResponse(opts?: { isMe?: boolean }) {
         const extraFields = opts?.isMe ? (['email'] as const) : [];
-        return pick(this, ['id', 'username', 'displayName', 'avatarHash', ...extraFields]);
+        return pick(this, [
+            'id',
+            'username',
+            'displayName',
+            'avatarHash',
+            'isAdmin',
+            ...extraFields,
+        ]);
     }
 
     // Wrapper functions to make Tag-function names more meaningfull
