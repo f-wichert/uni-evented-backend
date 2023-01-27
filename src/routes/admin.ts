@@ -43,7 +43,7 @@ router.post(
         const user = await User.findByPk(userId);
         assert(user);
         await user.handleAvatarUpdate(null);
-        res.json();
+        res.json({});
     },
 );
 
@@ -63,7 +63,7 @@ router.post(
         const user = await User.findByPk(userId);
         assert(user);
         await user.destroy();
-        res.json();
+        res.json({});
     },
 );
 
@@ -136,7 +136,7 @@ router.post(
         const event = await Event.findByPk(eventId);
         assert(event);
         await event.stop();
-        res.json();
+        res.json({});
     },
 );
 
@@ -156,7 +156,7 @@ router.post(
         const event = await Event.findByPk(eventId);
         assert(event);
         await event.destroy();
-        res.json();
+        res.json({});
     },
 );
 
@@ -176,7 +176,7 @@ router.post(
         const media = await Media.findByPk(mediaId);
         assert(media);
         await media.destroy();
-        res.json();
+        res.json({});
     },
 );
 
