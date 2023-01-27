@@ -223,7 +223,7 @@ export default class User
     }
 
     async followEvent(event: Event) {
-        await event.addAttendee(this, { through: { status: 'attending' } });
+        await event.addAttendee(this, { through: { status: 'interested' } });
     }
 
     async unfollowEvent(event: Event) {
