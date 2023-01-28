@@ -393,7 +393,7 @@ router.post(
         const user = req.user!;
         const { eventID, rating } = req.body;
 
-        const response = await user.rateEventId(eventID, rating);
+        await user.rateEventId(eventID, rating);
 
         res.json({});
     },
@@ -502,39 +502,16 @@ router.get(
  *  }
  *
  * returns
- *  { myEvents: [
- *      id: string
- *      name: string
- *      lat: number
- *      lon: number
- *      startDateTime: Date
- *      endDateTime: Date | null
- *  ],
- *  activeEvent: [
- *      id: string
- *      name: string
- *      lat: number
- *      lon: number
- *      startDateTime: Date
- *      endDateTime: Date | null
- *  ],
- *  followedEvents: [
- *      id: string
- *      name: string
- *      lat: number
- *      lon: number
- *      startDateTime: Date
- *      endDateTime: Date | null
- *  ],
- *  followerEvents: [
- *      id: string
- *      name: string
- *      lat: number
- *      lon: number
- *      startDateTime: Date
- *      endDateTime: Date | null
- *  ],
- * }
+ *  {
+ *    // events hosted by current user
+ *    hostedEvents: Event[],
+ *    // event that the user is currently attending (status: 'attending')
+ *    currentEvent: Event | null,
+ *    // events the user is interested in (status: 'interested')
+ *    interestedEvents: Event[],
+ *    // past events (status: 'left')
+ *    pastEvents: Event[],
+ *  }
  */
 router.get(
     '/relevantEvents',
@@ -547,17 +524,14 @@ router.get(
         const { statuses } = req.body;
         const user = req.user!;
 
-        const [myEvents, currentEvent, followedEvents] = await Promise.all([
+        const [hostedEvents, currentEvent, interestedEvents, pastEvents] = await Promise.all([
             user.getHostedEvents(statuses),
             user.getCurrentEvent(),
-            user.getFollowedEvents(statuses),
+            user.getEventsWithAttendeeStatus('interested', statuses),
+            user.getEventsWithAttendeeStatus('left', statuses),
         ]);
 
-        const followerEvents: Event[] = [];
-
-        const activeEvent = currentEvent ? [currentEvent] : [];
-
-        res.json({ myEvents, activeEvent, followedEvents, followerEvents });
+        res.json({ hostedEvents, currentEvent, interestedEvents, pastEvents });
     },
 );
 

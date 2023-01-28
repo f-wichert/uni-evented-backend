@@ -272,14 +272,14 @@ export default class User
         await event.removeAttendee(this);
     }
 
-    async getFollowedEvents(statuses?: EventStatus[]) {
+    async getEventsWithAttendeeStatus(status: EventAttendeeStatus, eventStatuses?: EventStatus[]) {
         return await this.getEvents({
             where: {
                 status: {
-                    [Op.or]: statuses ?? EventStatuses,
+                    [Op.or]: eventStatuses ?? EventStatuses,
                 },
             },
-            through: { where: { status: 'interested' } },
+            through: { where: { status: status } },
         });
     }
 
