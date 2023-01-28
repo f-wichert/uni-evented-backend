@@ -15,7 +15,7 @@ import { checkProfanity } from '../utils/profanity';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
 
 async function getEventForResponse(id: string) {
-    return await Event.findOne({
+    const eventData = await Event.findOne({
         where: { id },
         attributes: { exclude: ['createdAt', 'updatedAt'] },
         include: [
@@ -40,6 +40,11 @@ async function getEventForResponse(id: string) {
             },
         ],
     });
+
+    // sort media so livestreams are first,...
+    eventData!.media?.sort(sortMedia);
+
+    return eventData;
 }
 
 const router = Router();
@@ -102,6 +107,21 @@ router.get(
     },
 );
 
+// just doing the sorting with js - also works
+const sortMedia = (a: Media, b: Media) => {
+    const map = {
+        image: 0,
+        video: 1,
+        livestream: 2,
+    };
+    if (map[a.type] > map[b.type]) {
+        return -1;
+    } else if (map[a.type] < map[b.type]) {
+        return 1;
+    }
+    return 0;
+};
+
 router.get(
     '/info/:eventId/media',
     validateParams(
@@ -119,6 +139,9 @@ router.get(
                 fileAvailable: true,
             },
         });
+
+        media.sort(sortMedia);
+
         res.json(media.map((m) => m.formatForResponse()));
     },
 );
