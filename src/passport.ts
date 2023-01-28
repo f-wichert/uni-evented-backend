@@ -53,9 +53,7 @@ passport.use(
             algorithms: ['HS256'],
         },
         callbackify(async (payload: JwtData) => {
-            // NOTE: this assumes we always sign proper objects,
-            // it doesn't check whether `userId` exists at all (which is fine)
-            const user = await User.findByPk(payload.userId);
+            const user = await User.scope('full').findByPk(payload.userId);
             if (!user) {
                 throw httpError.Unauthorized('Unknown user ID');
             }

@@ -11,8 +11,10 @@ import {
     BelongsTo,
     Column,
     Default,
+    DefaultScope,
     Model,
     PrimaryKey,
+    Scopes,
     Table,
 } from 'sequelize-typescript';
 
@@ -24,6 +26,14 @@ import User from './user';
 const MediaTypes = ['image', 'video', 'livestream'] as const;
 export type MediaType = typeof MediaTypes[number];
 
+export const publicMediaFields = ['id', 'type', 'fileAvailable', 'userId'] as const;
+
+@DefaultScope(() => ({
+    attributes: [...publicMediaFields],
+}))
+@Scopes(() => ({
+    full: {},
+}))
 @Table
 export default class Media extends Model<InferAttributes<Media>, InferCreationAttributes<Media>> {
     @PrimaryKey
@@ -48,7 +58,7 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
     @AllowNull(true)
     @Default(DataTypes.UUIDV4)
     @Column(DataTypes.UUID)
-    declare streamKey: CreationOptional<string | null>;
+    declare streamKey?: CreationOptional<string | null>;
 
     // relationships
 
@@ -66,6 +76,6 @@ export default class Media extends Model<InferAttributes<Media>, InferCreationAt
 
     formatForResponse(opts?: { livestreamCreation?: boolean }) {
         const extraFields = opts?.livestreamCreation ? (['streamKey'] as const) : [];
-        return pick(this, ['id', 'type', 'fileAvailable', ...extraFields]);
+        return pick(this, [...publicMediaFields, ...extraFields]);
     }
 }
