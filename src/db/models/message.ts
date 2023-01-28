@@ -42,10 +42,11 @@ export default class Message extends Model<
 
     @ForeignUUIDColumn(() => User)
     declare senderId: ForeignKey<string>;
-
     @BelongsTo(() => User)
     declare sender?: NonAttribute<User>;
 
     @ForeignUUIDColumn(() => Event)
     declare eventId: ForeignKey<string>;
+    @BelongsTo(() => Event)
+    declare event?: NonAttribute<Event>;
 }

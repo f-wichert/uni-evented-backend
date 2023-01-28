@@ -4,8 +4,6 @@ import {
     BelongsToManyAddAssociationMixin,
     CreationOptional,
     DataTypes,
-    HasManyAddAssociationMixin,
-    HasManyGetAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -30,7 +28,7 @@ import {
     Unique,
 } from 'sequelize-typescript';
 
-import { equalizable } from '../../types';
+import { BelongsToManyGetAssociationsMixinFixed, equalizable } from '../../types';
 import { pick } from '../../utils';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
@@ -111,6 +109,7 @@ export default class User
     // connected through `EventAttendee` table
     @BelongsToMany(() => Event, () => EventAttendee)
     declare events?: NonAttribute<Event[]>;
+    declare getEvents: BelongsToManyGetAssociationsMixinFixed<Event>;
 
     @HasMany(() => Event)
     declare hostedEvents?: NonAttribute<Event[]>;
@@ -118,12 +117,15 @@ export default class User
     @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
-    declare getFollowers: HasManyGetAssociationsMixin<User>;
+    declare getFollowers: BelongsToManyGetAssociationsMixinFixed<User>;
+    @BelongsToMany(() => User, () => FollowerTable, 'followerId', 'followeeId')
+    declare followees?: NonAttribute<User[]>;
+    declare getFollowees: BelongsToManyGetAssociationsMixinFixed<User>;
 
     @BelongsToMany(() => Tag, 'TagsILikeTable', 'userId', 'tagId')
     declare tags?: NonAttribute<Tag[]>;
-    declare addTag: HasManyAddAssociationMixin<Tag, string>;
-    declare getTags: HasManyGetAssociationsMixin<Tag>;
+    declare addTag: BelongsToManyAddAssociationMixin<Tag, string>;
+    declare getTags: BelongsToManyGetAssociationsMixinFixed<Tag>;
 
     @HasMany(() => PushToken)
     declare pushTokens?: NonAttribute<PushToken[]>;
@@ -241,21 +243,14 @@ export default class User
     }
 
     async getFollowedEvents(statuses?: EventStatus[]) {
-        return (await User.findByPk(this.id, {
-            include: [
-                {
-                    model: Event,
-                    as: 'events',
-                    required: false,
-                    where: {
-                        status: {
-                            [Op.or]: statuses ?? EventStatuses,
-                        },
-                    },
-                    through: { where: { status: 'interested' } },
+        return await this.getEvents({
+            where: {
+                status: {
+                    [Op.or]: statuses ?? EventStatuses,
                 },
-            ],
-        }))!.events!;
+            },
+            through: { where: { status: 'interested' } },
+        });
     }
 
     async getHostedEvents(statuses?: EventStatus[]) {
@@ -321,22 +316,5 @@ export default class User
 
     public equals(other: User): boolean {
         return this.id === other.id;
-    }
-
-    // List of all the people the user follows
-    async getFollowees(): Promise<User[]> {
-        const followeeTableRows = await FollowerTable.findAll({
-            where: {
-                followerId: this.id,
-            },
-        });
-        const followeeIDs = followeeTableRows.map((row) => row.followeeId);
-        return await User.findAll({
-            where: {
-                id: {
-                    [Op.in]: followeeIDs,
-                },
-            },
-        });
     }
 }

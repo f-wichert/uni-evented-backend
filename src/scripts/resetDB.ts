@@ -269,11 +269,18 @@ export async function generateTestdata() {
         // users[3].setCurrentEvent(events[3]),
         // users[4].setCurrentEvent(events[4]),
 
-        events[0].addTags(BoardgamesTag, DrinkingTag, CardgamesTag, RockTag, SportTag),
-        events[1].addTags(RelaxedTag, DrinkingTag, BeerTag, SportTag, BeerpongTag),
-        events[2].addTags(RelaxedTag, ReggaeTag, FoodTag, AlternativeTag),
-        events[3].addTags(DrinkingTag, SportTag, FoodTag),
-        events[4].addTags(AfterWorkTag, BeerTag, CardgamesTag, BoardgamesTag, TalkingTag, FoodTag),
+        events[0].addTags([BoardgamesTag, DrinkingTag, CardgamesTag, RockTag, SportTag]),
+        events[1].addTags([RelaxedTag, DrinkingTag, BeerTag, SportTag, BeerpongTag]),
+        events[2].addTags([RelaxedTag, ReggaeTag, FoodTag, AlternativeTag]),
+        events[3].addTags([DrinkingTag, SportTag, FoodTag]),
+        events[4].addTags([
+            AfterWorkTag,
+            BeerTag,
+            CardgamesTag,
+            BoardgamesTag,
+            TalkingTag,
+            FoodTag,
+        ]),
 
         // Not yet implemented
         users[0].follow(users[1]),

@@ -7,6 +7,7 @@ import {
     DataTypes,
     ForeignKey,
     HasManyAddAssociationMixin,
+    HasManyAddAssociationsMixin,
     HasManyGetAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
@@ -102,6 +103,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @BelongsToMany(() => Tag, () => EventTags)
     declare tags: NonAttribute<Tag[]>;
     declare addTag: HasManyAddAssociationMixin<Tag, string>;
+    declare addTags: HasManyAddAssociationsMixin<Tag, string>;
     declare getTags: HasManyGetAssociationsMixin<Tag>;
 
     @ForeignUUIDColumn(() => User)
@@ -124,6 +126,10 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare getMedia: HasManyGetAssociationsMixin<Media>;
     declare countMedia: BelongsToManyCountAssociationsMixin;
 
+    @HasMany(() => Message)
+    declare messages?: NonAttribute<Message[]>;
+    declare getMessages: HasManyGetAssociationsMixin<Message>;
+
     // hooks
 
     @AfterCreate
@@ -133,10 +139,6 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     }
 
     // methods
-
-    async addTags(...args: Tag[]) {
-        await Promise.all(args.map((tag) => this.addTag(tag)));
-    }
 
     /**
      * @returns the average rating of the event as a number in [1..=5]
@@ -153,14 +155,5 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
             ? eventAttendees.map((ea) => ea.rating! as number).reduce((a, c) => a + c) /
                   eventAttendees.length
             : null;
-    }
-
-    async getMessages() {
-        const messages = await Message.findAll({
-            where: {
-                eventId: this.id,
-            },
-        });
-        return messages;
     }
 }

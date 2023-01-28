@@ -48,7 +48,7 @@ export default class Tag
     declare parent?: string | null;
 
     @BelongsToMany(() => Event, () => EventTags)
-    declare eventsWithThisTag: NonAttribute<Event[]>;
+    declare events: NonAttribute<Event[]>;
 
     equals(other: Tag): boolean {
         return this.id === other.id;
