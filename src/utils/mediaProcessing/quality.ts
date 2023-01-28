@@ -28,15 +28,6 @@ const CLIP_QUALITIES: ClipQuality[] = [
         aSamplerate: 44100,
         aChannels: 2,
     },
-    {
-        width: 1080,
-        height: 1920,
-        vBitrate: 1500,
-        vBufsize: 3000,
-        aBitrate: 64,
-        aSamplerate: 44100,
-        aChannels: 2,
-    },
 ];
 
 const IMAGE_QUALITIES: ImageQuality[] = [

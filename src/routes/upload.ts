@@ -105,7 +105,7 @@ router.post(
         assert((await user.getCurrentEventId()) === eventID);
 
         const media =
-            (await Media.findOne({
+            (await Media.scope('full').findOne({
                 where: {
                     type: 'livestream',
                     userId: user.id,

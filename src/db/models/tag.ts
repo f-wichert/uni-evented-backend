@@ -10,6 +10,7 @@ import {
     BelongsToMany,
     Column,
     Default,
+    DefaultScope,
     Length,
     Model,
     PrimaryKey,
@@ -19,6 +20,9 @@ import { equalizable } from '../../types';
 import Event from './event';
 import EventTags from './eventTags';
 
+@DefaultScope(() => ({
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+}))
 @Table
 export default class Tag
     extends Model<InferAttributes<Tag>, InferCreationAttributes<Tag>>
@@ -44,7 +48,7 @@ export default class Tag
     declare parent?: string | null;
 
     @BelongsToMany(() => Event, () => EventTags)
-    declare eventsWithThisTag: NonAttribute<Event[]>;
+    declare events: NonAttribute<Event[]>;
 
     equals(other: Tag): boolean {
         return this.id === other.id;

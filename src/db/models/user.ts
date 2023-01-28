@@ -1,11 +1,10 @@
+import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import {
     BelongsToManyAddAssociationMixin,
     CreationOptional,
     DataTypes,
-    HasManyAddAssociationMixin,
-    HasManyGetAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -19,18 +18,20 @@ import {
     BelongsToMany,
     Column,
     Default,
+    DefaultScope,
     HasMany,
     IsAlphanumeric,
     IsEmail,
     Length,
     Model,
     PrimaryKey,
+    Scopes,
     Table,
     Unique,
 } from 'sequelize-typescript';
 
 import config from '../../config';
-import { equalizable } from '../../types';
+import { BelongsToManyGetAssociationsMixinFixed, equalizable } from '../../types';
 import { pick } from '../../utils';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
@@ -42,6 +43,21 @@ import Message from './message';
 import PushToken from './pushToken';
 import Tag from './tag';
 
+export const publicUserFields = [
+    'id',
+    'username',
+    'displayName',
+    'avatarHash',
+    'bio',
+    'isAdmin',
+] as const;
+
+@DefaultScope(() => ({
+    attributes: [...publicUserFields],
+}))
+@Scopes(() => ({
+    full: {},
+}))
 @Table
 export default class User
     extends Model<InferAttributes<User>, InferCreationAttributes<User>>
@@ -66,7 +82,7 @@ export default class User
     @Unique
     @AllowNull(false)
     @Column(DataTypes.CITEXT)
-    declare email: string;
+    declare email?: string;
 
     // Validators run before create/update hooks, which is what we want;
     // bcrypt is capped at 72 bytes
@@ -74,7 +90,7 @@ export default class User
     @Length({ min: 8, max: 64 })
     @AllowNull(false)
     @Column(DataTypes.STRING)
-    declare password: string;
+    declare password?: string;
 
     // note: this is essentially a plaintext password,
     // but it'll be fine for our purposes as it's randomly generated
@@ -109,6 +125,7 @@ export default class User
     // connected through `EventAttendee` table
     @BelongsToMany(() => Event, () => EventAttendee)
     declare events?: NonAttribute<Event[]>;
+    declare getEvents: BelongsToManyGetAssociationsMixinFixed<Event>;
 
     @HasMany(() => Event)
     declare hostedEvents?: NonAttribute<Event[]>;
@@ -116,12 +133,15 @@ export default class User
     @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
-    declare getFollowers: HasManyGetAssociationsMixin<User>;
+    declare getFollowers: BelongsToManyGetAssociationsMixinFixed<User>;
+    @BelongsToMany(() => User, () => FollowerTable, 'followerId', 'followeeId')
+    declare followees?: NonAttribute<User[]>;
+    declare getFollowees: BelongsToManyGetAssociationsMixinFixed<User>;
 
     @BelongsToMany(() => Tag, 'TagsILikeTable', 'userId', 'tagId')
     declare tags?: NonAttribute<Tag[]>;
-    declare addTag: HasManyAddAssociationMixin<Tag, string>;
-    declare getTags: HasManyGetAssociationsMixin<Tag>;
+    declare addTag: BelongsToManyAddAssociationMixin<Tag, string>;
+    declare getTags: BelongsToManyGetAssociationsMixinFixed<Tag>;
 
     @HasMany(() => PushToken)
     declare pushTokens?: NonAttribute<PushToken[]>;
@@ -130,13 +150,13 @@ export default class User
 
     @BeforeCreate
     static async beforeCreateHook(user: User) {
-        user.password = await hashPassword(user.password);
+        user.password = await hashPassword(user.password!);
     }
 
     @BeforeUpdate
     static async beforeUpdateHook(user: User) {
         if (user.changed('password')) {
-            user.password = await hashPassword(user.password);
+            user.password = await hashPassword(user.password!);
         }
     }
 
@@ -158,15 +178,7 @@ export default class User
 
     formatForResponse(opts?: { isMe?: boolean }) {
         const extraFields = opts?.isMe ? (['email'] as const) : [];
-        return pick(this, [
-            'id',
-            'username',
-            'displayName',
-            'avatarHash',
-            'bio',
-            'isAdmin',
-            ...extraFields,
-        ]);
+        return pick(this, [...publicUserFields, ...extraFields]);
     }
 
     // Wrapper functions to make Tag-function names more meaningfull
@@ -185,10 +197,13 @@ export default class User
     }
 
     static async getByEmailOrUsername(email: string, username: string): Promise<User | null> {
-        return await User.findOne({ where: { [Op.or]: { email: email, username: username } } });
+        return await User.scope('full').findOne({
+            where: { [Op.or]: { email: email, username: username } },
+        });
     }
 
     async verifyPassword(input: string): Promise<boolean> {
+        assert(input), assert(this.password);
         let valid = await verifyPassword(input, this.password);
 
         // if the user has a reset token, try matching that as well
@@ -215,11 +230,7 @@ export default class User
 
     async getCurrentEvent() {
         const currentEventId = await this.getCurrentEventId();
-        return currentEventId
-            ? await Event.findByPk(currentEventId, {
-                  attributes: { exclude: ['createdAt', 'updatedAt'] },
-              })
-            : null;
+        return currentEventId ? await Event.findByPk(currentEventId) : null;
     }
 
     async setCurrentEventId(eventId: string | null) {
@@ -254,7 +265,7 @@ export default class User
     }
 
     async followEvent(event: Event) {
-        await event.addAttendee(this, { through: { status: 'attending' } });
+        await event.addAttendee(this, { through: { status: 'interested' } });
     }
 
     async unfollowEvent(event: Event) {
@@ -262,22 +273,14 @@ export default class User
     }
 
     async getFollowedEvents(statuses?: EventStatus[]) {
-        return (await User.findByPk(this.id, {
-            include: [
-                {
-                    model: Event,
-                    as: 'events',
-                    attributes: { exclude: ['createdAt', 'updatedAt'] },
-                    required: false,
-                    where: {
-                        status: {
-                            [Op.or]: statuses ?? EventStatuses,
-                        },
-                    },
-                    through: { where: { status: 'interested' } },
+        return await this.getEvents({
+            where: {
+                status: {
+                    [Op.or]: statuses ?? EventStatuses,
                 },
-            ],
-        }))!.events!;
+            },
+            through: { where: { status: 'interested' } },
+        });
     }
 
     async getHostedEvents(statuses?: EventStatus[]) {
@@ -288,7 +291,6 @@ export default class User
                 },
                 hostId: this.id,
             },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
         });
     }
 
@@ -307,9 +309,8 @@ export default class User
                 },
             },
         );
-
         if (affectedRows !== 1) {
-            throw new Error(`No Event with id ${eventId}`);
+            throw new Error(`User is not an attending or no Event with id ${eventId}`);
         }
     }
 
@@ -349,22 +350,5 @@ export default class User
 
     public equals(other: User): boolean {
         return this.id === other.id;
-    }
-
-    // List of all the people the user follows
-    async getFollowees(): Promise<User[]> {
-        const followeeTableRows = await FollowerTable.findAll({
-            where: {
-                followerId: this.id,
-            },
-        });
-        const followeeIDs = followeeTableRows.map((row) => row.followeeId);
-        return await User.findAll({
-            where: {
-                id: {
-                    [Op.in]: followeeIDs,
-                },
-            },
-        });
     }
 }

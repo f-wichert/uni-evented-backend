@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 import { z } from 'zod';
 
 import Event, { EventStatuses } from '../db/models/event';
+import EventAttendee from '../db/models/eventAttendee';
 import EventTags from '../db/models/eventTags';
 import Media from '../db/models/media';
 import Message from '../db/models/message';
@@ -14,31 +15,33 @@ import { checkProfanity } from '../utils/profanity';
 import { dateSchema, validateBody, validateParams } from '../utils/validate';
 
 async function getEventForResponse(id: string) {
-    return await Event.findOne({
+    const eventData = await Event.findOne({
         where: { id },
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
         include: [
             // TODO: remove media from this event object, should be requested separately
             {
                 model: Media,
                 as: 'media',
-                attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
                 where: { fileAvailable: true },
                 required: false,
             },
             {
                 model: User,
                 as: 'attendees',
-                attributes: ['id', 'username', 'displayName', 'avatarHash', 'bio'],
                 through: { as: 'eventAttendee', attributes: ['status'] },
             },
             {
                 model: Tag,
                 as: 'tags',
-                attributes: ['id', 'label', 'color', 'parent'],
+                through: { attributes: [] },
             },
         ],
     });
+
+    // sort media so livestreams are first,...
+    eventData!.media?.sort(sortMedia);
+
+    return eventData;
 }
 
 const router = Router();
@@ -93,13 +96,40 @@ router.get(
         const { eventId } = req.params;
         const event = await getEventForResponse(eventId);
         assert(event, `no event with id ${eventId} found`);
+
+        const ratable = Boolean(
+            await EventAttendee.findOne({
+                where: {
+                    eventId: event.id,
+                    userId: req.user!.id,
+                    status: { [Op.or]: ['attending', 'left'] },
+                },
+            }),
+        );
+
         const eventWithRating = {
             ...event.get({ plain: true }),
             rating: (await event.getRating())!,
+            ratable: ratable,
         };
         res.json(eventWithRating);
     },
 );
+
+// just doing the sorting with js - also works
+const sortMedia = (a: Media, b: Media) => {
+    const map = {
+        image: 0,
+        video: 1,
+        livestream: 2,
+    };
+    if (map[a.type] > map[b.type]) {
+        return -1;
+    } else if (map[a.type] < map[b.type]) {
+        return 1;
+    }
+    return 0;
+};
 
 router.get(
     '/info/:eventId/media',
@@ -118,6 +148,9 @@ router.get(
                 fileAvailable: true,
             },
         });
+
+        media.sort(sortMedia);
+
         res.json(media.map((m) => m.formatForResponse()));
     },
 );
@@ -360,7 +393,7 @@ router.post(
         const user = req.user!;
         const { eventID, rating } = req.body;
 
-        await user.rateEventId(eventID, rating);
+        const response = await user.rateEventId(eventID, rating);
 
         res.json({});
     },
@@ -429,7 +462,6 @@ router.get(
                     [Op.or]: statuses ?? [],
                 },
             },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
             include: [
                 // TODO: remove media from this event object, it should be requested separately
                 ...(loadMedia
@@ -437,14 +469,12 @@ router.get(
                           {
                               model: Media,
                               as: 'media',
-                              attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
                           },
                       ]
                     : []),
                 {
                     model: User,
                     as: 'attendees',
-                    attributes: ['id', 'username', 'displayName', 'avatarHash', 'bio'],
                     through: { as: 'eventAttendee', attributes: ['status'] },
                 },
             ],
@@ -549,8 +579,6 @@ router.post(
                 {
                     model: User,
                     as: 'sender',
-                    // TODO: include more fields as necessary, or just entire user object
-                    attributes: ['username', 'displayName'],
                 },
             ],
         });

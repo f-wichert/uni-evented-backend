@@ -16,11 +16,9 @@ router.get('/:lat-:lon', async (req, res) => {
     //         [Op.or]: ['scheduled', 'active'],
     //     },
     // },
-    //     attributes: { exclude: ['createdAt', 'updatedAt'] },
     //     include: {
     //         model: Media,
     //         as: 'media',
-    //         attributes: { exclude: ['createdAt', 'updatedAt'] },
     //         where: {
     //             fileAvailable: true,
     //         },
