@@ -10,6 +10,7 @@ import {
     BelongsToMany,
     Column,
     Default,
+    DefaultScope,
     Length,
     Model,
     PrimaryKey,
@@ -19,6 +20,9 @@ import { equalizable } from '../../types';
 import Event from './event';
 import EventTags from './eventTags';
 
+@DefaultScope(() => ({
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+}))
 @Table
 export default class Tag
     extends Model<InferAttributes<Tag>, InferCreationAttributes<Tag>>

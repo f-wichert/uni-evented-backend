@@ -17,26 +17,23 @@ import { dateSchema, validateBody, validateParams } from '../utils/validate';
 async function getEventForResponse(id: string) {
     return await Event.findOne({
         where: { id },
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
         include: [
             // TODO: remove media from this event object, should be requested separately
             {
                 model: Media,
                 as: 'media',
-                attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
                 where: { fileAvailable: true },
                 required: false,
             },
             {
                 model: User,
                 as: 'attendees',
-                attributes: ['id', 'username', 'displayName', 'avatarHash', 'bio'],
                 through: { as: 'eventAttendee', attributes: ['status'] },
             },
             {
                 model: Tag,
                 as: 'tags',
-                attributes: ['id', 'label', 'color', 'parent'],
+                through: { attributes: [] },
             },
         ],
     });
@@ -450,7 +447,6 @@ router.get(
                     [Op.or]: statuses ?? [],
                 },
             },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
             include: [
                 // TODO: remove media from this event object, it should be requested separately
                 ...(loadMedia
@@ -458,14 +454,12 @@ router.get(
                           {
                               model: Media,
                               as: 'media',
-                              attributes: ['id', 'type', 'fileAvailable', 'userId', 'eventId'],
                           },
                       ]
                     : []),
                 {
                     model: User,
                     as: 'attendees',
-                    attributes: ['id', 'username', 'displayName', 'avatarHash', 'bio'],
                     through: { as: 'eventAttendee', attributes: ['status'] },
                 },
             ],
@@ -570,8 +564,6 @@ router.post(
                 {
                     model: User,
                     as: 'sender',
-                    // TODO: include more fields as necessary, or just entire user object
-                    attributes: ['username', 'displayName'],
                 },
             ],
         });

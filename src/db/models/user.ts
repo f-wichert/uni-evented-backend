@@ -1,3 +1,4 @@
+import assert from 'assert';
 import crypto from 'crypto';
 import {
     BelongsToManyAddAssociationMixin,
@@ -17,12 +18,14 @@ import {
     BelongsToMany,
     Column,
     Default,
+    DefaultScope,
     HasMany,
     IsAlphanumeric,
     IsEmail,
     Length,
     Model,
     PrimaryKey,
+    Scopes,
     Table,
     Unique,
 } from 'sequelize-typescript';
@@ -38,6 +41,14 @@ import Message from './message';
 import PushToken from './pushToken';
 import Tag from './tag';
 
+export const publicUserFields = ['id', 'username', 'displayName', 'avatarHash', 'bio'] as const;
+
+@DefaultScope(() => ({
+    attributes: [...publicUserFields],
+}))
+@Scopes(() => ({
+    full: {},
+}))
 @Table
 export default class User
     extends Model<InferAttributes<User>, InferCreationAttributes<User>>
@@ -62,7 +73,7 @@ export default class User
     @Unique
     @AllowNull(false)
     @Column(DataTypes.CITEXT)
-    declare email: string;
+    declare email?: string;
 
     // Validators run before create/update hooks, which is what we want;
     // bcrypt is capped at 72 bytes
@@ -70,7 +81,7 @@ export default class User
     @Length({ min: 8, max: 64 })
     @AllowNull(false)
     @Column(DataTypes.STRING)
-    declare password: string;
+    declare password?: string;
 
     // note: this is essentially a plaintext password,
     // but it'll be fine for our purposes as it's randomly generated
@@ -121,13 +132,13 @@ export default class User
 
     @BeforeCreate
     static async beforeCreateHook(user: User) {
-        user.password = await hashPassword(user.password);
+        user.password = await hashPassword(user.password!);
     }
 
     @BeforeUpdate
     static async beforeUpdateHook(user: User) {
         if (user.changed('password')) {
-            user.password = await hashPassword(user.password);
+            user.password = await hashPassword(user.password!);
         }
     }
 
@@ -135,7 +146,7 @@ export default class User
 
     formatForResponse(opts?: { isMe?: boolean }) {
         const extraFields = opts?.isMe ? (['email'] as const) : [];
-        return pick(this, ['id', 'username', 'displayName', 'avatarHash', 'bio', ...extraFields]);
+        return pick(this, [...publicUserFields, ...extraFields]);
     }
 
     // Wrapper functions to make Tag-function names more meaningfull
@@ -154,10 +165,13 @@ export default class User
     }
 
     static async getByEmailOrUsername(email: string, username: string): Promise<User | null> {
-        return await User.findOne({ where: { [Op.or]: { email: email, username: username } } });
+        return await User.scope('full').findOne({
+            where: { [Op.or]: { email: email, username: username } },
+        });
     }
 
     async verifyPassword(input: string): Promise<boolean> {
+        assert(input), assert(this.password);
         let valid = await verifyPassword(input, this.password);
 
         // if the user has a reset token, try matching that as well
@@ -184,11 +198,7 @@ export default class User
 
     async getCurrentEvent() {
         const currentEventId = await this.getCurrentEventId();
-        return currentEventId
-            ? await Event.findByPk(currentEventId, {
-                  attributes: { exclude: ['createdAt', 'updatedAt'] },
-              })
-            : null;
+        return currentEventId ? await Event.findByPk(currentEventId) : null;
     }
 
     async setCurrentEventId(eventId: string | null) {
@@ -236,7 +246,6 @@ export default class User
                 {
                     model: Event,
                     as: 'events',
-                    attributes: { exclude: ['createdAt', 'updatedAt'] },
                     required: false,
                     where: {
                         status: {
@@ -257,7 +266,6 @@ export default class User
                 },
                 hostId: this.id,
             },
-            attributes: { exclude: ['createdAt', 'updatedAt'] },
         });
     }
 

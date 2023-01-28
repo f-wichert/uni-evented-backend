@@ -64,7 +64,7 @@ router.post(
 router.post('/reset', validateBody(z.object({ email: z.string().email() })), async (req, res) => {
     const { email } = req.body;
 
-    const user = await User.findOne({ where: { email: email } });
+    const user = await User.scope('full').findOne({ where: { email: email } });
     if (!user) {
         throw httpError.NotFound(`User not found`);
     }
@@ -74,7 +74,7 @@ router.post('/reset', validateBody(z.object({ email: z.string().email() })), asy
     await user.update({ passwordResetToken: resetToken });
 
     // send reset token to user through email
-    await sendMail(user.email, 'Password reset', {
+    await sendMail(user.email!, 'Password reset', {
         text:
             `A password reset was requested on your account. ` +
             `Please use the following one-time token as the password to log in, ` +

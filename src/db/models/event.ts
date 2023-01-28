@@ -20,6 +20,7 @@ import {
     BelongsToMany,
     Column,
     Default,
+    DefaultScope,
     HasMany,
     Length,
     Max,
@@ -40,6 +41,9 @@ import User from './user';
 export const EventStatuses = ['scheduled', 'active', 'completed'] as const;
 export type EventStatus = typeof EventStatuses[number];
 
+@DefaultScope(() => ({
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+}))
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
     @PrimaryKey
