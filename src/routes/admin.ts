@@ -43,6 +43,7 @@ router.post(
         const user = await User.findByPk(userId);
         assert(user);
         await user.handleAvatarUpdate(null);
+        await user.update({ avatarHash: null });
         res.json({});
     },
 );
