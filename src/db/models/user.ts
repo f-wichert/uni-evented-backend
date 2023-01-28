@@ -119,7 +119,7 @@ export default class User
 
     // relationships
 
-    @HasMany(() => Message)
+    @HasMany(() => Message, { onDelete: 'CASCADE' })
     declare messages?: NonAttribute<Event[]>;
 
     // connected through `EventAttendee` table
@@ -127,7 +127,7 @@ export default class User
     declare events?: NonAttribute<Event[]>;
     declare getEvents: BelongsToManyGetAssociationsMixinFixed<Event>;
 
-    @HasMany(() => Event)
+    @HasMany(() => Event, { onDelete: 'CASCADE' })
     declare hostedEvents?: NonAttribute<Event[]>;
 
     @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
@@ -143,7 +143,7 @@ export default class User
     declare addTag: BelongsToManyAddAssociationMixin<Tag, string>;
     declare getTags: BelongsToManyGetAssociationsMixinFixed<Tag>;
 
-    @HasMany(() => PushToken)
+    @HasMany(() => PushToken, { onDelete: 'CASCADE' })
     declare pushTokens?: NonAttribute<PushToken[]>;
 
     // hooks

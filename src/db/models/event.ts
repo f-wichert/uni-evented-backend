@@ -122,12 +122,12 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare getAttendees: BelongsToManyGetAssociationsMixin<User>;
     // + getAttendees, removeAttendee, hasAttendee also exist, see docs
 
-    @HasMany(() => Media)
+    @HasMany(() => Media, { onDelete: 'CASCADE' })
     declare media?: NonAttribute<Media[]>;
     declare getMedia: HasManyGetAssociationsMixin<Media>;
     declare countMedia: BelongsToManyCountAssociationsMixin;
 
-    @HasMany(() => Message)
+    @HasMany(() => Message, { onDelete: 'CASCADE' })
     declare messages?: NonAttribute<Message[]>;
     declare getMessages: HasManyGetAssociationsMixin<Message>;
 
