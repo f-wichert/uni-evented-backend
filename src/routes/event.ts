@@ -242,15 +242,17 @@ async function startStopEvent(user: User, eventId: string, action: 'start' | 'st
     if (action === 'start') {
         // change host status to attending when starting event
         await EventAttendee.update(
-            {status : 'attending'},
-            {where: {
-                eventId: eventId,
-                userId: event.hostId,
-            }}
-        )
+            { status: 'attending' },
+            {
+                where: {
+                    eventId: eventId,
+                    userId: event.hostId,
+                },
+            },
+        );
     }
 
-    await event.update({ status: action === 'start' ? 'active' : 'completed' });
+    await (action === 'start' ? event.start() : event.stop());
 }
 
 router.post(
@@ -334,9 +336,10 @@ router.post(
 
         try {
             await changeEventUserState(user, eventId, 'join');
-        }
-        catch(err) {
-            res.status(404).json({message: "You can't join two events at the same time. Leave the other event first."});
+        } catch (err) {
+            res.status(404).json({
+                message: "You can't join two events at the same time. Leave the other event first.",
+            });
             return;
         }
 
@@ -418,7 +421,7 @@ router.post(
         const user = req.user!;
         const { eventID, rating } = req.body;
 
-        const response = await user.rateEventId(eventID, rating);
+        await user.rateEventId(eventID, rating);
 
         res.json({});
     },
@@ -527,39 +530,16 @@ router.get(
  *  }
  *
  * returns
- *  { myEvents: [
- *      id: string
- *      name: string
- *      lat: number
- *      lon: number
- *      startDateTime: Date
- *      endDateTime: Date | null
- *  ],
- *  activeEvent: [
- *      id: string
- *      name: string
- *      lat: number
- *      lon: number
- *      startDateTime: Date
- *      endDateTime: Date | null
- *  ],
- *  followedEvents: [
- *      id: string
- *      name: string
- *      lat: number
- *      lon: number
- *      startDateTime: Date
- *      endDateTime: Date | null
- *  ],
- *  followerEvents: [
- *      id: string
- *      name: string
- *      lat: number
- *      lon: number
- *      startDateTime: Date
- *      endDateTime: Date | null
- *  ],
- * }
+ *  {
+ *    // events hosted by current user
+ *    hostedEvents: Event[],
+ *    // event that the user is currently attending (status: 'attending')
+ *    currentEvent: Event | null,
+ *    // events the user is interested in (status: 'interested')
+ *    interestedEvents: Event[],
+ *    // past events (status: 'left')
+ *    pastEvents: Event[],
+ *  }
  */
 router.get(
     '/relevantEvents',
@@ -572,21 +552,26 @@ router.get(
         const { statuses } = req.body;
         const user = req.user!;
 
-        let [myEvents, currentEvent, followedEvents] = await Promise.all([
+        const result = await Promise.all([
             user.getHostedEvents(statuses),
             user.getCurrentEvent(),
-            user.getFollowedEvents(statuses),
+            user.getEventsWithAttendeeStatus('interested', statuses),
+            user.getEventsWithAttendeeStatus('left', statuses),
         ]);
+
+        // nice - fix linter
+        const [hostedEvents, currentEvent, , pastEvents] = result;
+        let [, , interestedEvents] = result;
 
         const followerEvents: Event[] = [];
 
         const activeEvent = currentEvent ? [currentEvent] : [];
 
         // filter events from followedEvents that are already in HostedEvents
-        const myEventIds = myEvents.map((el) => el.id);
-        followedEvents = followedEvents.filter((el) => !myEventIds.includes(el.id));
-        
-        res.json({ myEvents, activeEvent, followedEvents, followerEvents });
+        const myEventIds = hostedEvents.map((el) => el.id);
+        interestedEvents = interestedEvents.filter((el) => !myEventIds.includes(el.id));
+
+        res.json({ hostedEvents, currentEvent, interestedEvents, pastEvents });
     },
 );
 

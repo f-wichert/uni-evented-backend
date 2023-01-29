@@ -16,6 +16,7 @@ import {
 } from 'sequelize';
 import {
     AfterCreate,
+    AfterDestroy,
     AllowNull,
     BelongsTo,
     BelongsToMany,
@@ -44,6 +45,8 @@ export type EventStatus = typeof EventStatuses[number];
 
 @DefaultScope(() => ({
     attributes: { exclude: ['createdAt', 'updatedAt'] },
+    // always include host object
+    include: [{ model: User, as: 'host' }],
 }))
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
@@ -110,7 +113,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare hostId: ForeignKey<string>;
 
     @BelongsTo(() => User)
-    declare host?: NonAttribute<User>;
+    declare host: NonAttribute<User>;
 
     // connected through `EventAttendee` table
     @BelongsToMany(() => User, () => EventAttendee)
@@ -121,12 +124,12 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare getAttendees: BelongsToManyGetAssociationsMixin<User>;
     // + getAttendees, removeAttendee, hasAttendee also exist, see docs
 
-    @HasMany(() => Media)
+    @HasMany(() => Media, { onDelete: 'CASCADE' })
     declare media?: NonAttribute<Media[]>;
     declare getMedia: HasManyGetAssociationsMixin<Media>;
     declare countMedia: BelongsToManyCountAssociationsMixin;
 
-    @HasMany(() => Message)
+    @HasMany(() => Message, { onDelete: 'CASCADE' })
     declare messages?: NonAttribute<Message[]>;
     declare getMessages: HasManyGetAssociationsMixin<Message>;
 
@@ -138,7 +141,32 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
         await event.addAttendee(event.hostId, { through: { status: 'interested' } });
     }
 
+    @AfterDestroy
+    static async afterDestroyHook(event: Event) {
+        await Promise.all([
+            EventAttendee.destroy({ where: { eventId: event.id } }),
+            Media.destroy({ where: { eventId: event.id }, hooks: true }),
+            EventTags.destroy({ where: { eventId: event.id } }),
+            Message.destroy({ where: { eventId: event.id } }),
+        ]);
+    }
+
     // methods
+
+    async start() {
+        await this.update({ status: 'active' });
+    }
+
+    async stop() {
+        await Promise.all([
+            EventAttendee.update(
+                { status: 'left' },
+                { where: { eventId: this.id, status: 'attending' } },
+            ),
+            EventAttendee.destroy({ where: { eventId: this.id, status: 'interested' } }),
+            this.update({ status: 'completed' }),
+        ]);
+    }
 
     /**
      * @returns the average rating of the event as a number in [1..=5]

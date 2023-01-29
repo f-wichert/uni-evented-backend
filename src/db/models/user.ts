@@ -1,5 +1,6 @@
 import assert from 'assert';
 import crypto from 'crypto';
+import fs from 'fs/promises';
 import {
     BelongsToManyAddAssociationMixin,
     CreationOptional,
@@ -10,6 +11,7 @@ import {
     Op,
 } from 'sequelize';
 import {
+    AfterDestroy,
     AllowNull,
     BeforeCreate,
     BeforeUpdate,
@@ -28,6 +30,7 @@ import {
     Unique,
 } from 'sequelize-typescript';
 
+import config from '../../config';
 import { BelongsToManyGetAssociationsMixinFixed, equalizable } from '../../types';
 import { pick } from '../../utils';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
@@ -35,11 +38,19 @@ import MediaProcessor from '../../utils/mediaProcessing';
 import Event, { EventStatus, EventStatuses } from './event';
 import EventAttendee, { EventAttendeeStatus } from './eventAttendee';
 import FollowerTable from './FollowerTable';
+import Media from './media';
 import Message from './message';
 import PushToken from './pushToken';
 import Tag from './tag';
 
-export const publicUserFields = ['id', 'username', 'displayName', 'avatarHash', 'bio'] as const;
+export const publicUserFields = [
+    'id',
+    'username',
+    'displayName',
+    'avatarHash',
+    'bio',
+    'isAdmin',
+] as const;
 
 @DefaultScope(() => ({
     attributes: [...publicUserFields],
@@ -101,9 +112,14 @@ export default class User
     @Column(DataTypes.STRING)
     declare bio?: string;
 
+    @Default(false)
+    @AllowNull(false)
+    @Column(DataTypes.BOOLEAN)
+    declare isAdmin?: boolean;
+
     // relationships
 
-    @HasMany(() => Message)
+    @HasMany(() => Message, { onDelete: 'CASCADE' })
     declare messages?: NonAttribute<Event[]>;
 
     // connected through `EventAttendee` table
@@ -111,7 +127,7 @@ export default class User
     declare events?: NonAttribute<Event[]>;
     declare getEvents: BelongsToManyGetAssociationsMixinFixed<Event>;
 
-    @HasMany(() => Event)
+    @HasMany(() => Event, { onDelete: 'CASCADE' })
     declare hostedEvents?: NonAttribute<Event[]>;
 
     @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
@@ -127,7 +143,7 @@ export default class User
     declare addTag: BelongsToManyAddAssociationMixin<Tag, string>;
     declare getTags: BelongsToManyGetAssociationsMixinFixed<Tag>;
 
-    @HasMany(() => PushToken)
+    @HasMany(() => PushToken, { onDelete: 'CASCADE' })
     declare pushTokens?: NonAttribute<PushToken[]>;
 
     // hooks
@@ -142,6 +158,20 @@ export default class User
         if (user.changed('password')) {
             user.password = await hashPassword(user.password!);
         }
+    }
+
+    @AfterDestroy
+    static async afterDestroyHook(user: User) {
+        await Promise.all([
+            Event.destroy({ where: { hostId: user.id }, hooks: true }),
+            Media.destroy({ where: { userId: user.id }, hooks: true }),
+            Message.destroy({ where: { senderId: user.id }, hooks: true }),
+            EventAttendee.destroy({ where: { userId: user.id }, hooks: true }),
+            FollowerTable.destroy({
+                where: { [Op.or]: [{ followeeId: user.id }, { followerId: user.id }] },
+                hooks: true,
+            }),
+        ]);
     }
 
     // other methods
@@ -242,14 +272,14 @@ export default class User
         await event.removeAttendee(this);
     }
 
-    async getFollowedEvents(statuses?: EventStatus[]) {
+    async getEventsWithAttendeeStatus(status: EventAttendeeStatus, eventStatuses?: EventStatus[]) {
         return await this.getEvents({
             where: {
                 status: {
-                    [Op.or]: statuses ?? EventStatuses,
+                    [Op.or]: eventStatuses ?? EventStatuses,
                 },
             },
-            through: { where: { status: 'interested' } },
+            through: { where: { status: status } },
         });
     }
 
@@ -297,8 +327,12 @@ export default class User
         return ratings.length ? ratings.reduce((a, c) => a + c) / ratings.length : null;
     }
 
-    // FIXME: remove old avatar images (?)
     async handleAvatarUpdate(input: Buffer | null): Promise<string | null> {
+        await fs.rm(`${config.MEDIA_ROOT}/avatar/${this.id}/${this.avatarHash}`, {
+            recursive: true,
+            force: true,
+        });
+
         if (input === null) return null;
 
         const imageHash = hash(input, 'sha1');
