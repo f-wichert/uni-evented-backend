@@ -45,6 +45,8 @@ export type EventStatus = typeof EventStatuses[number];
 
 @DefaultScope(() => ({
     attributes: { exclude: ['createdAt', 'updatedAt'] },
+    // always include host object
+    include: [{ model: User, as: 'host' }],
 }))
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {
@@ -111,7 +113,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     declare hostId: ForeignKey<string>;
 
     @BelongsTo(() => User)
-    declare host?: NonAttribute<User>;
+    declare host: NonAttribute<User>;
 
     // connected through `EventAttendee` table
     @BelongsToMany(() => User, () => EventAttendee)
