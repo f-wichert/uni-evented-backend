@@ -109,7 +109,7 @@ router.get(
 
         const eventWithRating = {
             ...event.get({ plain: true }),
-            rating: (await event.getRating())!,
+            rating: await event.getRating(),
             ratable: ratable,
         };
         res.json(eventWithRating);
@@ -416,12 +416,12 @@ router.post('/leave', async (req, res) => {
  */
 router.post(
     '/rate',
-    validateBody(z.object({ eventID: z.string().uuid(), rating: z.number().min(1).max(5) })),
+    validateBody(z.object({ eventId: z.string().uuid(), rating: z.number().min(1).max(5) })),
     async (req, res) => {
         const user = req.user!;
-        const { eventID, rating } = req.body;
+        const { eventId, rating } = req.body;
 
-        await user.rateEventId(eventID, rating);
+        await user.rateEventId(eventId, rating);
 
         res.json({});
     },
