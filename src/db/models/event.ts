@@ -46,7 +46,14 @@ export type EventStatus = typeof EventStatuses[number];
 @DefaultScope(() => ({
     attributes: { exclude: ['createdAt', 'updatedAt'] },
     // always include host object
-    include: [{ model: User, as: 'host' }],
+    include: [
+        { model: User, as: 'host' },
+        {
+            model: Tag,
+            as: 'tags',
+            through: { attributes: [] },
+        },
+    ],
 }))
 @Table
 export default class Event extends Model<InferAttributes<Event>, InferCreationAttributes<Event>> {

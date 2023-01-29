@@ -8,7 +8,6 @@ import EventAttendee from '../db/models/eventAttendee';
 import EventTags from '../db/models/eventTags';
 import Media from '../db/models/media';
 import Message from '../db/models/message';
-import Tag from '../db/models/tag';
 import User from '../db/models/user';
 import { distanceInMeters } from '../utils/math';
 import { checkProfanity } from '../utils/profanity';
@@ -29,11 +28,6 @@ async function getEventForResponse(id: string) {
                 model: User,
                 as: 'attendees',
                 through: { as: 'eventAttendee', attributes: ['status'] },
-            },
-            {
-                model: Tag,
-                as: 'tags',
-                through: { attributes: [] },
             },
         ],
     });
