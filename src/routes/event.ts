@@ -239,6 +239,17 @@ async function startStopEvent(user: User, eventId: string, action: 'start' | 'st
         );
     }
 
+    if (action === 'start') {
+        // change host status to attending when starting event
+        await EventAttendee.update(
+            {status : 'attending'},
+            {where: {
+                eventId: eventId,
+                userId: event.hostId,
+            }}
+        )
+    }
+
     await event.update({ status: action === 'start' ? 'active' : 'completed' });
 }
 
@@ -321,7 +332,13 @@ router.post(
         const user = req.user!;
         const { eventId } = req.body;
 
-        await changeEventUserState(user, eventId, 'join');
+        try {
+            await changeEventUserState(user, eventId, 'join');
+        }
+        catch(err) {
+            res.status(404).json({message: "You can't join two events at the same time. Leave the other event first."});
+            return;
+        }
 
         res.json({});
     },
@@ -555,7 +572,7 @@ router.get(
         const { statuses } = req.body;
         const user = req.user!;
 
-        const [myEvents, currentEvent, followedEvents] = await Promise.all([
+        let [myEvents, currentEvent, followedEvents] = await Promise.all([
             user.getHostedEvents(statuses),
             user.getCurrentEvent(),
             user.getFollowedEvents(statuses),
@@ -565,6 +582,10 @@ router.get(
 
         const activeEvent = currentEvent ? [currentEvent] : [];
 
+        // filter events from followedEvents that are already in HostedEvents
+        const myEventIds = myEvents.map((el) => el.id);
+        followedEvents = followedEvents.filter((el) => !myEventIds.includes(el.id));
+        
         res.json({ myEvents, activeEvent, followedEvents, followerEvents });
     },
 );
