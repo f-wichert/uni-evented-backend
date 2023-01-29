@@ -632,4 +632,34 @@ router.post(
     },
 );
 
+router.post(
+    '/banFromEvent',
+    validateBody(
+        z.object({
+            eventId: z.string(),
+            userId: z.string(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        const { eventId, userId } = req.body;
+
+        const event = await Event.findByPk(eventId);
+
+        // only host should be able users from his event / or is user is admin
+        assert(event?.hostId === user.id || user.isAdmin, 'Not authorized to ban user');
+
+        await EventAttendee.update(
+            { status: 'banned' },
+            {
+                where: {
+                    eventId: eventId,
+                    userId: userId,
+                },
+            },
+        );
+
+        res.json({});
+    },
+);
 export default router;
