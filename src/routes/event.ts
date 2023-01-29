@@ -662,4 +662,22 @@ router.post(
         res.json({});
     },
 );
+
+router.post(
+    '/editEvent/:eventId',
+    validateBody(
+        z.object({
+            name: z.string(),
+            lat: z.number(),
+            lon: z.number(),
+            startDateTime: dateSchema.nullish(),
+            endDateTime: dateSchema.nullish(),
+            description: z.string(),
+            tags: z.array(z.string()),
+        }),
+    ),
+    async (req, res) => {
+
+    }
+);
 export default router;

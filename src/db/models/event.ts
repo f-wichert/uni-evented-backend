@@ -87,10 +87,6 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @Column(DataTypes.DATE)
     declare endDateTime?: Date | null;
 
-    @Default('No Address given')
-    @Column(DataTypes.STRING)
-    declare address: CreationOptional<string>; // TODO: CreationOptional for now, because it is nowhere implemented yet. Should later be made manditory
-
     @Length({ max: 1000 })
     @Default('No Description')
     @Column(DataTypes.STRING(1000))
