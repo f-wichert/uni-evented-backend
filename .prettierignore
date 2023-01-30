@@ -3,3 +3,4 @@ dist/
 *.yml
 media/
 uploads/
+coverage/
