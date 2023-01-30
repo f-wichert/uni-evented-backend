@@ -12,6 +12,6 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
     },
-    "include": ["src/**/*.ts", ".eslintrc.js"],
+    "include": ["src"],
     "typeRoots": ["src/global.d.ts"]
 }
