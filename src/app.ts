@@ -17,7 +17,8 @@ export const app = express();
 
 app.use(compression());
 app.use(express.json({ limit: '1mb' }));
-app.use(morgan(config.NODE_ENV === 'development' ? 'dev' : 'common'));
+if (config.NODE_ENV !== 'test')
+    app.use(morgan(config.NODE_ENV === 'development' ? 'dev' : 'common'));
 
 app.use(passport.initialize());
 app.use(
