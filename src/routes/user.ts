@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import httpError from 'http-errors';
 import { z } from 'zod';
+import Tag from '../db/models/tag';
 
 import User from '../db/models/user';
 import { base64Schema, validateBody, validateParams } from '../utils/validate';
@@ -26,7 +27,12 @@ router.get(
         res.json({
             // include more fields if request is current user
             ...user.formatForResponse({ isMe }),
-            ...(isMe ? { currentEventId: await user.getCurrentEventId() } : {}),
+            ...(isMe
+                ? {
+                      currentEventId: await user.getCurrentEventId(),
+                      favouriteTags: await user.getFavouriteTags(),
+                  }
+                : {}),
         });
     },
 );
@@ -72,6 +78,24 @@ router.patch(
         });
 
         res.json(user.formatForResponse({ isMe }));
+    },
+);
+
+router.post(
+    '/setFavouriteTags',
+    validateBody(z.object({ favouriteTags: z.array(z.string()) })),
+    async (req, res) => {
+        const user = req.user!;
+        const favouriteTagsList: Tag[] = (
+            await Promise.all(
+                req.body.favouriteTags.map(async (tagId: string) => {
+                    return Tag.findByPk(tagId).catch((err) => null);
+                }),
+            )
+        ).filter((tag): tag is Tag => Boolean(tag));
+        console.log(favouriteTagsList.map((tag) => tag.label));
+        await user.setFavouriteTags(favouriteTagsList);
+        res.json({});
     },
 );
 
