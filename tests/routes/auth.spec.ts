@@ -1,8 +1,8 @@
 import request from 'supertest';
 
-import { app } from '../src/app';
-import { setupDatabase } from '../src/db';
-import User from '../src/db/models/user';
+import { app } from '../../src/app';
+import { setupDatabase } from '../../src/db';
+import User from '../../src/db/models/user';
 
 const createUser = async (name: string) =>
     User.create({ email: `${name}@abc.com`, username: name, password: 'test1234' });
