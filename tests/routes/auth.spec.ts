@@ -7,7 +7,7 @@ import User from '../../src/db/models/user';
 const createUser = async (name: string) =>
     User.create({ email: `${name}@abc.com`, username: name, password: 'test1234' });
 
-beforeAll(async () => {
+beforeEach(async () => {
     await setupDatabase(true);
 });
 
@@ -21,10 +21,10 @@ describe('POST /register', () => {
         expect(res.body).toEqual({ token: expect.stringMatching(/^ey/) });
     });
 
-    it('should not allow duplicate usernames', async () => {
+    it.each(['duplicate1', 'DUPLICATE1'])('rejects duplicate usernames ("%s")', async (name) => {
         await createUser('duplicate1');
         const res = await register()
-            .send({ username: 'duplicate1', email: 'otherduplicate@abc.com', password: 'test1234' })
+            .send({ username: name, email: 'otherduplicate@abc.com', password: 'test1234' })
             .expect(409);
         expect(res.body).toEqual({ error: 'Username already taken' });
     });
