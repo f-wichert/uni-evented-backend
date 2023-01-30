@@ -93,7 +93,6 @@ router.post(
                 }),
             )
         ).filter((tag): tag is Tag => Boolean(tag));
-        console.log(favouriteTagsList.map((tag) => tag.label));
         await user.setFavouriteTags(favouriteTagsList);
         res.json({});
     },
