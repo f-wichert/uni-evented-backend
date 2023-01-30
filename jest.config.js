@@ -5,4 +5,6 @@ module.exports = {
     testPathIgnorePatterns: ['/node_modules/', '/dist/'],
     globalSetup: './tests/setupGlobal.ts',
     setupFilesAfterEnv: ['./tests/setup.ts'],
+    showSeed: true,
+    slowTestThreshold: 10,
 };

@@ -13,8 +13,8 @@
         "lint": "eslint . --ignore-path .gitignore",
         "format": "prettier . --write",
         "format:check": "prettier . --check",
-        "test": "jest",
-        "test-cov": "jest --coverage"
+        "test": "jest --verbose --runInBand",
+        "test-cov": "npm run test -- --coverage"
     },
     "repository": {
         "type": "git",
