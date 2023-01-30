@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { Router } from 'express';
-import { Op } from 'sequelize';
+import { json, Op } from 'sequelize';
 import { z } from 'zod';
 
 import Event, { EventStatuses } from '../db/models/event';
@@ -664,7 +664,7 @@ router.post(
 );
 
 router.post(
-    '/editEvent/:eventId',
+    '/update/:eventId',
     validateBody(
         z.object({
             name: z.string(),
@@ -677,7 +677,48 @@ router.post(
         }),
     ),
     async (req, res) => {
+        const eventId = req.params.eventId;
+        console.log('Received Event Body: ');
+        console.log(req.body);
+        console.log('End of Request Body');
 
-    }
+        const user = req.user!;
+        const { name, lat, lon, startDateTime, endDateTime, tags, description } = req.body;
+        const actualStartDateTime = startDateTime ?? new Date();
+
+        // TODO: more validation
+        assert(!endDateTime || actualStartDateTime < endDateTime, 'start time is after end time');
+
+        const eventToBeUpdated = (await Event.findByPk(eventId))!;
+
+        const event = await eventToBeUpdated.update({
+            name: name,
+            lat: lat,
+            lon: lon,
+            startDateTime: actualStartDateTime,
+            endDateTime: endDateTime,
+            hostId: user.id,
+            description: description,
+        });
+
+        await EventTags.destroy({
+            where: {
+                eventId: eventId,
+            },
+        });
+
+        if (tags?.length) {
+            await EventTags.bulkCreate(
+                tags.map((el) => ({
+                    tagId: el,
+                    eventId: event.id,
+                })),
+            );
+        }
+
+        const fetchedEvent = (await getEventForResponse(eventId))!;
+        // return full event
+        res.send(json(fetchedEvent));
+    },
 );
 export default router;
