@@ -6,5 +6,4 @@ module.exports = {
     globalSetup: './tests/setupGlobal.ts',
     setupFilesAfterEnv: ['./tests/setup.ts'],
     showSeed: true,
-    slowTestThreshold: 10,
 };
