@@ -499,6 +499,14 @@ router.get(
                     as: 'attendees',
                     through: { as: 'eventAttendee', attributes: ['status'] },
                 },
+                {
+                    model: Media,
+                    as: 'media',
+                    where: {
+                        type: 'livestream',
+                    },
+                    required: false,
+                },
             ],
         });
 
