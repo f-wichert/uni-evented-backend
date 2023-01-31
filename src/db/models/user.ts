@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs/promises';
 import {
     BelongsToManyAddAssociationMixin,
+    BelongsToManySetAssociationsMixin,
     CreationOptional,
     DataTypes,
     InferAttributes,
@@ -142,6 +143,7 @@ export default class User
     declare tags?: NonAttribute<Tag[]>;
     declare addTag: BelongsToManyAddAssociationMixin<Tag, string>;
     declare getTags: BelongsToManyGetAssociationsMixinFixed<Tag>;
+    declare setTags: BelongsToManySetAssociationsMixin<Tag, string>;
 
     @HasMany(() => PushToken, { onDelete: 'CASCADE' })
     declare pushTokens?: NonAttribute<PushToken[]>;
@@ -184,6 +186,10 @@ export default class User
     // Wrapper functions to make Tag-function names more meaningfull
     async getFavouriteTags() {
         return await this.getTags();
+    }
+
+    async setFavouriteTags(newFavouriteTags: Tag[]) {
+        await this.setTags(newFavouriteTags);
     }
 
     async addFavouriteTag(NewFavouredTag: Tag) {
