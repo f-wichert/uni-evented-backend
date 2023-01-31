@@ -118,6 +118,31 @@ export default class User
     @Column(DataTypes.BOOLEAN)
     declare isAdmin?: boolean;
 
+    @Default(1)
+    @AllowNull(false)
+    @Column(DataTypes.NUMBER)
+    declare DistanceWeight: CreationOptional<number>;
+
+    @Default(1)
+    @AllowNull(false)
+    @Column(DataTypes.NUMBER)
+    declare TagIntersectionWeight: CreationOptional<number>;
+
+    @Default(1)
+    @AllowNull(false)
+    @Column(DataTypes.NUMBER)
+    declare FolloweeIntersectionWeight: CreationOptional<number>;
+
+    @Default(0.5)
+    @AllowNull(false)
+    @Column(DataTypes.NUMBER)
+    declare AverageEventRatingWeight: CreationOptional<number>;
+
+    @Default(0.3)
+    @AllowNull(false)
+    @Column(DataTypes.NUMBER)
+    declare NumberOfMediasWeight: CreationOptional<number>;
+
     // relationships
 
     @HasMany(() => Message, { onDelete: 'CASCADE' })
@@ -200,6 +225,16 @@ export default class User
         for (const tag of args) {
             await this.addTag(tag);
         }
+    }
+
+    getRecommendationSettings() {
+        return {
+            DistanceWeigt: this.DistanceWeight,
+            TagIntersectionWeight: this.TagIntersectionWeight,
+            FolloweeIntersectionWeight: this.FolloweeIntersectionWeight,
+            AverageEventRatingWeight: this.AverageEventRatingWeight,
+            NumberOfMediasWeigth: this.NumberOfMediasWeight,
+        };
     }
 
     static async getByEmailOrUsername(email: string, username: string): Promise<User | null> {

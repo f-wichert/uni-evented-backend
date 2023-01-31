@@ -54,7 +54,7 @@ async function eventRankingForUser(event: Event, user: User, userLocation: Coord
     if (!(userLocation.lat === 0 && userLocation.lon === 0)) {
         const posEvenet = { lat: event.lat, lon: event.lon };
         const distToEventInMeters = getDistance(posEvenet, userLocation);
-        score -= distToEventInMeters / 1000;
+        score -= (distToEventInMeters * user.DistanceWeight) / 1000;
         explanation.distance = distToEventInMeters;
     }
 
@@ -63,26 +63,26 @@ async function eventRankingForUser(event: Event, user: User, userLocation: Coord
     const tagsUserLikes = await user.getFavouriteTags();
     const tagsOfEvent = await event.getTags();
     const tagsUserLikesOfEvent = intersection<Tag>(tagsUserLikes, tagsOfEvent);
-    score += tagsUserLikesOfEvent.length;
-    explanation.tagScore = tagsUserLikesOfEvent.length;
+    score += tagsUserLikesOfEvent.length * user.TagIntersectionWeight;
+    explanation.tagScore = tagsUserLikesOfEvent.length * user.TagIntersectionWeight;
 
     // Ranking based on leaders/followees
     // Wie viele meiner Freunde haben sich schon für das Event angemeldet
     const peopleUserFollows = await user.getFollowees();
     const peopleAtEvent = await event.getAttendees();
     const peopleUserFollowsAtEvent = intersection<User>(peopleUserFollows, peopleAtEvent);
-    score += peopleUserFollowsAtEvent.length;
-    explanation.followeesScore = peopleUserFollowsAtEvent.length;
+    score += peopleUserFollowsAtEvent.length * user.FolloweeIntersectionWeight;
+    explanation.followeesScore = peopleUserFollowsAtEvent.length * user.FolloweeIntersectionWeight;
 
     // Ranking based on general ranking of the creator (average ranking of events of creator)
-    const AverageEventRatingOfUser = await user.getRating();
-    score += AverageEventRatingOfUser! / 2; // Arbitrary scalar to mach how important ratings are compared to the other features
-    explanation.ratingScore = AverageEventRatingOfUser! / 2;
+    const AverageEventRatingOfUser = await event.host.getRating();
+    score += AverageEventRatingOfUser! * user.AverageEventRatingWeight; // Arbitrary scalar to mach how important ratings are compared to the other features
+    explanation.ratingScore = AverageEventRatingOfUser! * user.AverageEventRatingWeight;
 
     // Ranking based on the availability of media
-    const numberOfMedias = Math.min(await event.countMedia(), 8); // Ignore pieces of media beyoind 8
-    score += numberOfMedias / 3;
-    explanation.mediaScore = numberOfMedias / 3;
+    const numberOfMedias = Math.min(await event.countMedia(), 10); // Ignore pieces of media beyond 10
+    score += numberOfMedias * user.NumberOfMediasWeight;
+    explanation.mediaScore = numberOfMedias * user.NumberOfMediasWeight;
 
     // Ranking based on coolnes of the event
     // Magischen Bewertungsalgorithmus aus dem Arsch ziehen

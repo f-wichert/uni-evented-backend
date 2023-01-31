@@ -31,6 +31,7 @@ router.get(
                 ? {
                       currentEventId: await user.getCurrentEventId(),
                       favouriteTags: await user.getFavouriteTags(),
+                      recommendationSettings: user.getRecommendationSettings(),
                   }
                 : {}),
         });
