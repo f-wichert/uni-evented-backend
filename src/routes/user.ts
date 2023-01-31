@@ -99,4 +99,27 @@ router.post(
     },
 );
 
+router.post(
+    '/setRecommendationSettings',
+    validateBody(
+        z.object({
+            DistanceWeight: z.number(),
+            TagIntersectionWeight: z.number(),
+            FolloweeIntersectionWeight: z.number(),
+            AverageEventRatingWeight: z.number(),
+            NumberOfMediasWeigth: z.number(),
+        }),
+    ),
+    async (req, res) => {
+        const user = req.user!;
+        user.DistanceWeight = req.body.DistanceWeight;
+        user.TagIntersectionWeight = req.body.TagIntersectionWeight;
+        user.FolloweeIntersectionWeight = req.body.FolloweeIntersectionWeight;
+        user.AverageEventRatingWeight = req.body.AverageEventRatingWeight;
+        user.NumberOfMediasWeight = req.body.NumberOfMediasWeigth;
+        await user.save();
+        res.json({});
+    },
+);
+
 export default router;

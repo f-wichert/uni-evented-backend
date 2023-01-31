@@ -21,6 +21,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@miblanchard/react-native-slider": "^2.2.0",
         "bcrypt": "^5.1.0",
         "bs58": "^5.0.0",
         "callable-instance": "^2.0.0",

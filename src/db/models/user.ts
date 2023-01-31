@@ -32,7 +32,11 @@ import {
 } from 'sequelize-typescript';
 
 import config from '../../config';
-import { BelongsToManyGetAssociationsMixinFixed, equalizable } from '../../types';
+import {
+    BelongsToManyGetAssociationsMixinFixed,
+    equalizable,
+    RecommendationSettings,
+} from '../../types';
 import { pick } from '../../utils';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
@@ -229,12 +233,21 @@ export default class User
 
     getRecommendationSettings() {
         return {
-            DistanceWeigt: this.DistanceWeight,
+            DistanceWeight: this.DistanceWeight,
             TagIntersectionWeight: this.TagIntersectionWeight,
             FolloweeIntersectionWeight: this.FolloweeIntersectionWeight,
             AverageEventRatingWeight: this.AverageEventRatingWeight,
             NumberOfMediasWeigth: this.NumberOfMediasWeight,
         };
+    }
+
+    async setRecommendationSettings(newRecommendationSettings: RecommendationSettings) {
+        this.DistanceWeight = newRecommendationSettings.DistanceWeight;
+        this.TagIntersectionWeight = newRecommendationSettings.TagIntersectionWeight;
+        this.FolloweeIntersectionWeight = newRecommendationSettings.FolloweeIntersectionWeight;
+        this.AverageEventRatingWeight = newRecommendationSettings.AverageEventRatingWeight;
+        this.NumberOfMediasWeight = newRecommendationSettings.NumberOfMediasWeigth;
+        await this.save();
     }
 
     static async getByEmailOrUsername(email: string, username: string): Promise<User | null> {
