@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import * as fsSync from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -11,6 +12,7 @@ const router = Router();
 router.post('/reset-all', async (req, res) => {
     // remove media files
     for (const dir of [config.MEDIA_UPLOAD_ROOT, config.MEDIA_ROOT]) {
+        if (!fsSync.existsSync(dir)) continue;
         for (const f of await fs.readdir(dir)) {
             await fs.rm(path.join(dir, f), { force: true, recursive: true });
         }
