@@ -3,6 +3,7 @@ import request from 'supertest';
 import { app } from '../../src/app';
 import { setupDatabase } from '../../src/db';
 import User from '../../src/db/models/user';
+import * as email from '../../src/utils/email';
 
 const tokenMatcher = expect.stringMatching(/^ey/);
 
@@ -12,7 +13,7 @@ beforeEach(async () => {
     await setupDatabase(true);
     user = await User.scope('full').create({
         username: 'user',
-        email: `user@abc.com`,
+        email: `user@abc.test`,
         password: 'test1234',
     });
 });
@@ -22,21 +23,21 @@ describe('POST /auth/register', () => {
 
     it('successfully creates users', async () => {
         const res = await register()
-            .send({ email: 'a@abc.com', username: 'a', password: 'test1234' })
+            .send({ email: 'a@abc.test', username: 'a', password: 'test1234' })
             .expect(200);
         expect(res.body).toEqual({ token: tokenMatcher });
     });
 
     it.each(['user', 'USER'])('rejects duplicate usernames ("%s")', async (name) => {
         const res = await register()
-            .send({ username: name, email: 'otherduplicate@abc.com', password: 'test1234' })
+            .send({ username: name, email: 'otherduplicate@abc.test', password: 'test1234' })
             .expect(409);
         expect(res.body).toEqual({ error: 'Username already taken' });
     });
 
     it('rejects duplicate emails', async () => {
         const res = await register()
-            .send({ username: 'duplicate', email: 'user@abc.com', password: 'test1234' })
+            .send({ username: 'duplicate', email: 'user@abc.test', password: 'test1234' })
             .expect(409);
         expect(res.body).toEqual({ error: 'User with given email already exists' });
     });
@@ -52,7 +53,7 @@ describe('POST /auth/login', () => {
 
     it('allows login by email', async () => {
         const res = await login()
-            .send({ username: 'user@abc.com', password: 'test1234' })
+            .send({ username: 'user@abc.test', password: 'test1234' })
             .expect(200);
         expect(res.body).toEqual({ token: tokenMatcher });
     });
@@ -82,9 +83,25 @@ describe('POST /auth/login', () => {
 describe('POST /auth/reset', () => {
     const reset = () => request(app).post('/api/auth/reset');
 
-    it.todo('rejects unknown users');
+    it('rejects unknown users', async () => {
+        const res = await reset().send({ email: 'unknown@abc.test' }).expect(404);
+        expect(res.body).toEqual({ error: 'User not found' });
+    });
 
-    it.todo('creates a token and sends an email');
+    it('creates a token and sends an email', async () => {
+        const mock = jest.spyOn(email, 'sendMail').mockResolvedValue();
+
+        await reset().send({ email: user.email }).expect(200);
+        await user.reload();
+        expect(user.passwordResetToken).toBeTruthy();
+
+        expect(mock).toBeCalledTimes(1);
+        expect(mock).toBeCalledWith(
+            user.email,
+            expect.anything(),
+            expect.objectContaining({ text: expect.stringContaining(user.passwordResetToken!) }),
+        );
+    });
 });
 
 describe('POST /auth/registerPush', () => {
