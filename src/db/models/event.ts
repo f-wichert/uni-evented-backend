@@ -208,7 +208,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
         let attendeeIds = attendees.map((a) => a.userId);
         if (options?.includeHost !== undefined) {
             if (options.includeHost) attendeeIds.push(this.hostId);
-            else attendeeIds.filter((id) => id !== this.hostId);
+            else attendeeIds = attendeeIds.filter((id) => id !== this.hostId);
         }
         if (options?.excludeIDs?.length)
             attendeeIds = attendeeIds.filter((id) => !options.excludeIDs?.includes(id));
