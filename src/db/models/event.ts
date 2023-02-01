@@ -159,6 +159,11 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
 
     async start() {
         await this.update({ status: 'active' });
+        await this.notifyAttendees(
+            ['interested', 'attending'],
+            { title: 'Event is starting', body: `'${this.name}' is starting now!` },
+            { includeHost: false },
+        );
     }
 
     async stop() {
