@@ -2,20 +2,30 @@ import request from 'supertest';
 
 import { app } from '../../src/app';
 import { setupDatabase } from '../../src/db';
+import PushToken from '../../src/db/models/pushToken';
 import User from '../../src/db/models/user';
+import { createTokenForUser } from '../../src/passport';
+import { pick } from '../../src/utils';
 import * as email from '../../src/utils/email';
 
 const tokenMatcher = expect.stringMatching(/^ey/);
 
+const createUser = async (name: string) =>
+    await User.scope('full').create({
+        username: name,
+        email: `${name}@abc.test`,
+        password: 'test1234',
+    });
+const getAllTokens = async () =>
+    (await PushToken.findAll()).map((t) => pick(t, ['token', 'userId']));
+
 let user: User;
+let authHeader: Record<string, string>;
 
 beforeEach(async () => {
     await setupDatabase(true);
-    user = await User.scope('full').create({
-        username: 'user',
-        email: `user@abc.test`,
-        password: 'test1234',
-    });
+    user = await createUser('user');
+    authHeader = { Authorization: `Bearer ${createTokenForUser(user)}` };
 });
 
 describe('POST /auth/register', () => {
@@ -105,15 +115,32 @@ describe('POST /auth/reset', () => {
 });
 
 describe('POST /auth/registerPush', () => {
-    const registerPush = () => request(app).post('/api/auth/registerPush');
+    const registerPush = () => request(app).post('/api/auth/registerPush').set(authHeader);
 
-    it.todo('inserts new tokens');
+    it('inserts new tokens', async () => {
+        await registerPush().send({ token: 'ExponentPushToken[a]' }).expect(200);
+        await registerPush().send({ token: 'ExponentPushToken[b]' }).expect(200);
+        expect(await getAllTokens()).toEqual([
+            { userId: user.id, token: 'ExponentPushToken[a]' },
+            { userId: user.id, token: 'ExponentPushToken[b]' },
+        ]);
+    });
 
-    it.todo('updates the userId of existing tokens');
+    it('updates the userId of existing tokens', async () => {
+        const otherUser = await createUser('other');
+        await PushToken.create({ userId: otherUser.id, token: 'ExponentPushToken[a]' });
+
+        await registerPush().send({ token: 'ExponentPushToken[a]' }).expect(200);
+        expect(await getAllTokens()).toEqual([{ userId: user.id, token: 'ExponentPushToken[a]' }]);
+    });
 });
 
 describe('POST /auth/unregisterPush', () => {
     const unregisterPush = () => request(app).post('/api/auth/unregisterPush');
 
-    it.todo('removes tokens');
+    it('removes tokens', async () => {
+        await PushToken.create({ userId: user.id, token: 'ExponentPushToken[a]' });
+        await unregisterPush().send({ token: 'ExponentPushToken[a]' }).expect(200);
+        expect(await getAllTokens()).toEqual([]);
+    });
 });
