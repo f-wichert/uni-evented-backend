@@ -33,6 +33,7 @@ async function processFile(file: UploadedFile, mediaType: MediaType, id: string)
     try {
         await MediaProcessor.handleUpload(mediaType, id, async (outputDir) => {
             // move (ephemeral) uploaded file to temporary location
+            await fs.mkdir(path.dirname(uploadFilePath), { recursive: true });
             await file.mv(uploadFilePath);
             // process uploaded file
             await MediaProcessor.process(mediaType, id, uploadFilePath, outputDir);

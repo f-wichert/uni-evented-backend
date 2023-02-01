@@ -16,6 +16,7 @@ default:
 stages:
   - install
   - build
+  - test
 
 install:
   stage: install
@@ -24,11 +25,19 @@ install:
 
 build:
   stage: build
+  needs: ['install']
   script: |
     npm run tsc
 
 check:
-  stage: build
+  stage: test
+  needs: ['install']
   script: |
     npm run format:check
     npm run lint
+
+test:
+  stage: test
+  needs: ['install']
+  script: |
+    npm run test

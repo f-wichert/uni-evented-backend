@@ -25,7 +25,7 @@ router.post(
         if (existing) {
             if (existing.username.toLowerCase() === username.toLowerCase())
                 throw httpError.Conflict('Username already taken');
-            throw httpError.Conflict('Username with given email already exists');
+            throw httpError.Conflict('User with given email already exists');
         }
 
         const user = await User.create({ email, username, password });

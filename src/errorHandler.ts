@@ -1,6 +1,7 @@
 import { ErrorRequestHandler } from 'express';
 import httpError from 'http-errors';
 import { ValidationError as SequelizeValidationError } from 'sequelize';
+import statuses from 'statuses';
 
 import config from './config';
 import { RequestValidationError } from './utils/validate';
@@ -16,7 +17,7 @@ import { RequestValidationError } from './utils/validate';
  * ˢᵉⁿᵈ ʰᵉˡᵖ
  */
 
-const isDev = config.NODE_ENV !== 'production';
+const isDev = config.NODE_ENV === 'development';
 
 function getMessage(err: unknown): string | null {
     if (err instanceof SequelizeValidationError) {
@@ -87,8 +88,10 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req, res, next) => {
         return next(err);
     }
 
+    const code = getResponseCode(err);
     const body: { error: string | object; stack?: string[] } = {
-        error: getResponseErrorData(err, message) || 'Internal Server Error',
+        error:
+            getResponseErrorData(err, message) || statuses.message[code] || 'Internal Server Error',
     };
 
     // if not running in production mode, and we don't yet have detailed error info, add stack to response
@@ -96,7 +99,7 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req, res, next) => {
         body.stack = stack;
     }
 
-    res.status(getResponseCode(err)).json(body);
+    res.status(code).json(body);
 };
 
 export default errorHandler;
