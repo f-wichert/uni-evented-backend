@@ -4,11 +4,17 @@ import { app } from '../../src/app';
 import { setupDatabase } from '../../src/db';
 import User from '../../src/db/models/user';
 
-const createUser = async (name: string) =>
-    User.create({ email: `${name}@abc.com`, username: name, password: 'test1234' });
+const tokenMatcher = expect.stringMatching(/^ey/);
+
+let user: User;
 
 beforeEach(async () => {
     await setupDatabase(true);
+    user = await User.scope('full').create({
+        username: 'user',
+        email: `user@abc.com`,
+        password: 'test1234',
+    });
 });
 
 describe('POST /auth/register', () => {
@@ -18,11 +24,10 @@ describe('POST /auth/register', () => {
         const res = await register()
             .send({ email: 'a@abc.com', username: 'a', password: 'test1234' })
             .expect(200);
-        expect(res.body).toEqual({ token: expect.stringMatching(/^ey/) });
+        expect(res.body).toEqual({ token: tokenMatcher });
     });
 
-    it.each(['duplicate1', 'DUPLICATE1'])('rejects duplicate usernames ("%s")', async (name) => {
-        await createUser('duplicate1');
+    it.each(['user', 'USER'])('rejects duplicate usernames ("%s")', async (name) => {
         const res = await register()
             .send({ username: name, email: 'otherduplicate@abc.com', password: 'test1234' })
             .expect(409);
@@ -30,9 +35,8 @@ describe('POST /auth/register', () => {
     });
 
     it('rejects duplicate emails', async () => {
-        await createUser('duplicate2');
         const res = await register()
-            .send({ username: 'otherduplicate', email: 'duplicate2@abc.com', password: 'test1234' })
+            .send({ username: 'duplicate', email: 'user@abc.com', password: 'test1234' })
             .expect(409);
         expect(res.body).toEqual({ error: 'User with given email already exists' });
     });
@@ -41,15 +45,38 @@ describe('POST /auth/register', () => {
 describe('POST /auth/login', () => {
     const login = () => request(app).post('/api/auth/login');
 
-    it.todo('allows login by username (case-insensitive)');
+    it.each(['user', 'USER'])('allows login by username, case-insensitive ("%s")', async (name) => {
+        const res = await login().send({ username: name, password: 'test1234' }).expect(200);
+        expect(res.body).toEqual({ token: tokenMatcher });
+    });
 
-    it.todo('allows login by email');
+    it('allows login by email', async () => {
+        const res = await login()
+            .send({ username: 'user@abc.com', password: 'test1234' })
+            .expect(200);
+        expect(res.body).toEqual({ token: tokenMatcher });
+    });
 
-    it.todo('supports password reset tokens');
+    it('supports password reset tokens', async () => {
+        await user.update({ passwordResetToken: 'cooltoken' });
+        const res = await login().send({ username: 'user', password: 'cooltoken' }).expect(200);
+        expect(res.body).toEqual({ token: tokenMatcher });
 
-    it.todo('rejects unknown users');
+        await user.reload();
+        expect(user.passwordResetToken).toBeNull();
+    });
 
-    it.todo('rejects invalid passwords');
+    it('rejects unknown users', async () => {
+        const res = await login().send({ username: 'notfound', password: 'test1234' }).expect(404);
+        expect(res.body).toEqual({ error: "No user named 'notfound'" });
+    });
+
+    it('rejects invalid passwords', async () => {
+        const res = await login()
+            .send({ username: 'user', password: 'invalidpassword' })
+            .expect(401);
+        expect(res.body).toEqual({ error: 'Incorrect password' });
+    });
 });
 
 describe('POST /auth/reset', () => {
