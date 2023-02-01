@@ -212,6 +212,10 @@ export default class User
         return pick(this, [...publicUserFields, ...extraFields]);
     }
 
+    getName(): string {
+        return this.displayName || this.username;
+    }
+
     // Wrapper functions to make Tag-function names more meaningfull
     async getFavouriteTags() {
         return await this.getTags();

@@ -32,8 +32,9 @@ import {
     Table,
 } from 'sequelize-typescript';
 
+import { NotificationParams, sendNotification } from '../../utils/notifications';
 import { Enum, ForeignUUIDColumn } from '../utils';
-import EventAttendee from './eventAttendee';
+import EventAttendee, { EventAttendeeStatus } from './eventAttendee';
 import EventTags from './eventTags';
 import Media from './media';
 import Message from './message';
@@ -186,5 +187,27 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
             ? eventAttendees.map((ea) => ea.rating! as number).reduce((a, c) => a + c) /
                   eventAttendees.length
             : null;
+    }
+
+    async notifyAttendees(
+        statuses: EventAttendeeStatus[],
+        params: NotificationParams,
+        options?: { includeHost?: boolean; excludeIDs?: string[] },
+    ) {
+        // we don't need full user objects, just their IDs
+        const attendees = await EventAttendee.findAll({
+            where: { eventId: this.id, status: { [Op.in]: statuses } },
+            attributes: ['userId'],
+        });
+
+        let attendeeIds = attendees.map((a) => a.userId);
+        if (options?.includeHost !== undefined) {
+            if (options.includeHost) attendeeIds.push(this.hostId);
+            else attendeeIds.filter((id) => id !== this.hostId);
+        }
+        if (options?.excludeIDs?.length)
+            attendeeIds = attendeeIds.filter((id) => !options.excludeIDs?.includes(id));
+
+        await sendNotification(attendeeIds, params);
     }
 }

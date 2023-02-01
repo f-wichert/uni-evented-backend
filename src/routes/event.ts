@@ -1,5 +1,6 @@
 import assert from 'assert';
 import { Router } from 'express';
+import httpError from 'http-errors';
 import { json, Op } from 'sequelize';
 import { z } from 'zod';
 
@@ -624,11 +625,25 @@ router.post(
             })
             .join(' ');
 
-        await Message.create({
+        // create message
+        const msg = await Message.create({
             eventId: eventId,
             message: profMsg,
             senderId: user.id,
         });
+
+        // send push notifications
+        const event = await Event.findByPk(eventId);
+        if (!event) throw new httpError.NotFound();
+
+        await event.notifyAttendees(
+            ['attending'],
+            {
+                title: `${user.getName()} (${event.name})`,
+                body: msg.message,
+            },
+            { includeHost: true, excludeIDs: [user.id] },
+        );
 
         res.json({});
     },

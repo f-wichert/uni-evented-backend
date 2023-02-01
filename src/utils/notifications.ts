@@ -3,6 +3,8 @@ import { Op } from 'sequelize';
 
 import PushToken from '../db/models/pushToken';
 
+export type NotificationParams = Omit<ExpoPushMessage, 'to'>;
+
 /**
  * See https://docs.expo.dev/push-notifications/sending-notifications and
  * https://github.com/expo/expo-server-sdk-node.
@@ -13,7 +15,7 @@ const TICKET_CHECK_DELAY = 10; // seconds
 
 const expo = new Expo();
 
-export async function sendNotification(userIDs: string[], params: Omit<ExpoPushMessage, 'to'>) {
+export async function sendNotification(userIDs: string[], params: NotificationParams) {
     if (!userIDs.length) return;
 
     const tokens = await PushToken.findAll({ where: { userId: { [Op.in]: userIDs } } });
