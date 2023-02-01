@@ -124,27 +124,27 @@ export default class User
 
     @Default(1)
     @AllowNull(false)
-    @Column(DataTypes.NUMBER)
+    @Column(DataTypes.DOUBLE)
     declare DistanceWeight: CreationOptional<number>;
 
     @Default(1)
     @AllowNull(false)
-    @Column(DataTypes.NUMBER)
+    @Column(DataTypes.DOUBLE)
     declare TagIntersectionWeight: CreationOptional<number>;
 
     @Default(1)
     @AllowNull(false)
-    @Column(DataTypes.NUMBER)
+    @Column(DataTypes.DOUBLE)
     declare FolloweeIntersectionWeight: CreationOptional<number>;
 
     @Default(0.5)
     @AllowNull(false)
-    @Column(DataTypes.NUMBER)
+    @Column(DataTypes.DOUBLE)
     declare AverageEventRatingWeight: CreationOptional<number>;
 
     @Default(0.3)
     @AllowNull(false)
-    @Column(DataTypes.NUMBER)
+    @Column(DataTypes.DOUBLE)
     declare NumberOfMediasWeight: CreationOptional<number>;
 
     // relationships
