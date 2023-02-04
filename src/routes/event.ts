@@ -487,26 +487,14 @@ router.get(
             },
             include: [
                 // TODO: remove media from this event object, it should be requested separately
-                ...(loadMedia
-                    ? [
-                          {
-                              model: Media,
-                              as: 'media',
-                          },
-                      ]
-                    : []),
+                {
+                    model: Media,
+                    as: 'media',
+                },
                 {
                     model: User,
                     as: 'attendees',
                     through: { as: 'eventAttendee', attributes: ['status'] },
-                },
-                {
-                    model: Media,
-                    as: 'media',
-                    where: {
-                        type: 'livestream',
-                    },
-                    required: false,
                 },
             ],
         });
@@ -520,7 +508,14 @@ router.get(
             );
         }
 
-        res.json(events);
+        const rawEvents = events.map((e) => ({
+            // don't question it, it just works :tm:
+            ...e.get({ plain: true }),
+            livestream: !!e.media?.find((m) => m.type === 'livestream'),
+            ...(!loadMedia ? { media: undefined } : undefined),
+        }));
+
+        res.json(rawEvents);
     },
 );
 
