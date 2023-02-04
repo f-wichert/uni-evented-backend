@@ -4,7 +4,7 @@ import httpError from 'http-errors';
 import { json, Op } from 'sequelize';
 import { z } from 'zod';
 
-import Event, { EventStatuses } from '../db/models/event';
+import Event from '../db/models/event';
 import EventAttendee from '../db/models/eventAttendee';
 import EventTags from '../db/models/eventTags';
 import Media from '../db/models/media';
@@ -12,7 +12,7 @@ import Message from '../db/models/message';
 import User from '../db/models/user';
 import { distanceInMeters } from '../utils/math';
 import { checkProfanity } from '../utils/profanity';
-import { dateSchema, validateBody, validateParams } from '../utils/validate';
+import { dateSchema, validateBody, validateParams, validateQuery } from '../utils/validate';
 
 async function getEventForResponse(id: string) {
     const eventData = await Event.findOne({
@@ -520,11 +520,11 @@ router.get(
 );
 
 /**
- * Find own events, that should be shown on the Events Screen
+ * Find events that should be shown on the Events/Profile Screen
  *
  * input
  *  {
- *      statuses?: ['scheduled' | 'active' | 'completed']
+ *      userId?: string
  *  }
  *
  * returns
@@ -541,34 +541,25 @@ router.get(
  */
 router.get(
     '/relevantEvents',
-    validateBody(
+    validateQuery(
         z.object({
-            statuses: z.array(z.enum(EventStatuses)).optional(),
+            userId: z.string().uuid().optional(),
         }),
     ),
     async (req, res) => {
-        const { statuses } = req.body;
-        const user = req.user!;
+        const { userId } = req.query;
+
+        const user = userId ? await User.findByPk(userId) : req.user!;
+        if (!user) throw new httpError.NotFound();
 
         const result = await Promise.all([
-            user.getHostedEvents(statuses),
+            user.getHostedEvents(),
             user.getCurrentEvent(),
-            user.getEventsWithAttendeeStatus('interested', statuses),
-            user.getEventsWithAttendeeStatus('left', statuses),
+            user.getEventsWithAttendeeStatus('interested'),
+            user.getEventsWithAttendeeStatus('left'),
         ]);
 
-        // nice - fix linter
-        const [hostedEvents, currentEvent, , pastEvents] = result;
-        let [, , interestedEvents] = result;
-
-        const followerEvents: Event[] = [];
-
-        const activeEvent = currentEvent ? [currentEvent] : [];
-
-        // filter events from followedEvents that are already in HostedEvents
-        const myEventIds = hostedEvents.map((el) => el.id);
-        interestedEvents = interestedEvents.filter((el) => !myEventIds.includes(el.id));
-
+        const [hostedEvents, currentEvent, interestedEvents, pastEvents] = result;
         res.json({ hostedEvents, currentEvent, interestedEvents, pastEvents });
     },
 );
