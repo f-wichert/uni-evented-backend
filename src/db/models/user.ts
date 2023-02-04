@@ -3,9 +3,11 @@ import crypto from 'crypto';
 import fs from 'fs/promises';
 import {
     BelongsToManyAddAssociationMixin,
+    BelongsToManyCountAssociationsMixin,
     BelongsToManySetAssociationsMixin,
     CreationOptional,
     DataTypes,
+    HasManyCountAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
     NonAttribute,
@@ -159,14 +161,17 @@ export default class User
 
     @HasMany(() => Event, { onDelete: 'CASCADE' })
     declare hostedEvents?: NonAttribute<Event[]>;
+    declare countHostedEvents: HasManyCountAssociationsMixin;
 
     @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
     declare getFollowers: BelongsToManyGetAssociationsMixinFixed<User>;
+    declare countFollowers: BelongsToManyCountAssociationsMixin;
     @BelongsToMany(() => User, () => FollowerTable, 'followerId', 'followeeId')
     declare followees?: NonAttribute<User[]>;
     declare getFollowees: BelongsToManyGetAssociationsMixinFixed<User>;
+    declare countFollowees: BelongsToManyCountAssociationsMixin;
 
     @BelongsToMany(() => Tag, 'TagsILikeTable', 'userId', 'tagId')
     declare tags?: NonAttribute<Tag[]>;
@@ -383,6 +388,16 @@ export default class User
         ) as number[];
 
         return ratings.length ? ratings.reduce((a, c) => a + c) / ratings.length : null;
+    }
+
+    async getProfileDetails() {
+        const [numFollowing, numFollowers, numEvents] = await Promise.all([
+            // {scope: false} due to https://github.com/sequelize/sequelize/issues/3256
+            this.countFollowees({ scope: false }),
+            this.countFollowers({ scope: false }),
+            this.countHostedEvents({ scope: false }),
+        ]);
+        return { numFollowing, numFollowers, numEvents };
     }
 
     async handleAvatarUpdate(input: Buffer | null): Promise<string | null> {

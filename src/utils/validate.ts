@@ -81,3 +81,6 @@ export const dateSchema = z.preprocess((arg: unknown) => {
 export const base64Schema = z.string().transform((data) => {
     return Buffer.from(data, 'base64');
 });
+
+// https://github.com/colinhacks/zod/issues/1630
+export const booleanSchema = z.enum(['true', 'false']).transform((value) => value === 'true');

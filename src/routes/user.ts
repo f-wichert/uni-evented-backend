@@ -3,7 +3,13 @@ import httpError from 'http-errors';
 import { z } from 'zod';
 
 import User from '../db/models/user';
-import { base64Schema, validateBody, validateParams } from '../utils/validate';
+import {
+    base64Schema,
+    booleanSchema,
+    validateBody,
+    validateParams,
+    validateQuery,
+} from '../utils/validate';
 
 const router = Router();
 
@@ -13,8 +19,10 @@ router.get(
     '/:userID',
     // `userID` may be a user's ID, or '@me' in which case additional fields are included
     validateParams(z.object({ userID: userIDSchema })),
+    validateQuery(z.object({ details: booleanSchema.optional() })),
     async (req, res) => {
         const { userID } = req.params;
+        const { details: includeDetails } = req.query;
 
         const isMe = userID === '@me';
         const user = isMe ? req.user! : await User.findByPk(userID);
@@ -22,6 +30,8 @@ router.get(
         if (!user) {
             throw new httpError.NotFound('User not found');
         }
+
+        const details = includeDetails ? await user.getProfileDetails() : undefined;
 
         res.json({
             // include more fields if request is current user
@@ -33,6 +43,7 @@ router.get(
                       recommendationSettings: user.getRecommendationSettings(),
                   }
                 : {}),
+            details,
         });
     },
 );
