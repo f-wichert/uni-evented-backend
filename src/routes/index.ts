@@ -1,8 +1,7 @@
-import assert from 'assert';
 import { Router } from 'express';
 import config from '../config';
 
-import { requireAuth } from '../passport';
+import { requireAdmin, requireAuth } from '../passport';
 import adminRouter from './admin';
 import authRouter from './auth';
 import discoverRouter from './discover';
@@ -28,10 +27,7 @@ router.use('/discover', discoverRouter);
 router.use('/user', userRouter);
 
 // require admin
-router.use((req, res, next) => {
-    assert(req.user!.isAdmin);
-    next();
-});
+router.use(requireAdmin);
 router.use('/admin', adminRouter);
 
 export default router;

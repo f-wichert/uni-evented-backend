@@ -71,3 +71,8 @@ export const requireAuth = passport.authenticate('jwt', { session: false }) as H
 // // not used yet, useful if we ever have routes where auth is optional
 // // see https://github.com/mikenicholson/passport-jwt/issues/110#issuecomment-724797721
 // export const optionalAuth = passport.authenticate(['jwt', 'anonymous'], {session: false}) as Handler;
+
+export const requireAdmin: Handler = (req, res, next) => {
+    if (req.user!.isAdmin) next();
+    else res.sendStatus(401);
+};
