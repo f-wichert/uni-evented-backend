@@ -97,6 +97,22 @@ router.patch(
     },
 );
 
+router.get(
+    '/:userID/:type(following|followers)',
+    validateParams(z.object({ userID: userIDSchema, type: z.enum(['following', 'followers']) })),
+    async (req, res) => {
+        const { userID, type } = req.params;
+
+        const user = userID === '@me' ? req.user! : await User.findByPk(userID);
+        if (!user) {
+            throw new httpError.NotFound('User not found');
+        }
+
+        const users = type === 'following' ? await user.getFollowees() : await user.getFollowers();
+        res.json(users.map((u) => u.formatForResponse()));
+    },
+);
+
 router.post(
     '/setRecommendationSettings',
     validateBody(
