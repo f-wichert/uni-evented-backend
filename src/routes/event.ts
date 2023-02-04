@@ -511,7 +511,7 @@ router.get(
         const rawEvents = events.map((e) => ({
             // don't question it, it just works :tm:
             ...e.get({ plain: true }),
-            livestream: !!e.media?.find((m) => m.type === 'livestream'),
+            livestream: !!e.media?.find((m) => m.type === 'livestream' && m.fileAvailable),
             ...(!loadMedia ? { media: undefined } : undefined),
         }));
 
