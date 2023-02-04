@@ -221,11 +221,11 @@ export default class User
         return await this.getTags();
     }
 
-    async setFavouriteTags(newFavouriteTags: Tag[]) {
+    async setFavouriteTags(newFavouriteTags: (string | Tag)[]) {
         await this.setTags(newFavouriteTags);
     }
 
-    async addFavouriteTag(NewFavouredTag: Tag) {
+    async addFavouriteTag(NewFavouredTag: string | Tag) {
         await this.addTag(NewFavouredTag);
     }
 
