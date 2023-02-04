@@ -80,7 +80,8 @@ async function eventRankingForUser(event: Event, user: User, userLocation: Coord
     explanation.ratingScore = AverageEventRatingOfUser! * user.AverageEventRatingWeight;
 
     // Ranking based on the availability of media
-    const numberOfMedias = Math.min(await event.countMedia(), 10); // Ignore pieces of media beyond 10
+    // {scope: false} due to https://github.com/sequelize/sequelize/issues/3256
+    const numberOfMedias = Math.min(await event.countMedia({ scope: false }), 10); // Ignore pieces of media beyond 10
     score += numberOfMedias * user.NumberOfMediasWeight;
     explanation.mediaScore = numberOfMedias * user.NumberOfMediasWeight;
 

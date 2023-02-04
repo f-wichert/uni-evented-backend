@@ -8,6 +8,7 @@ import {
     ForeignKey,
     HasManyAddAssociationMixin,
     HasManyAddAssociationsMixin,
+    HasManyCountAssociationsMixin,
     HasManyGetAssociationsMixin,
     InferAttributes,
     InferCreationAttributes,
@@ -131,7 +132,7 @@ export default class Event extends Model<InferAttributes<Event>, InferCreationAt
     @HasMany(() => Media, { onDelete: 'CASCADE' })
     declare media?: NonAttribute<Media[]>;
     declare getMedia: HasManyGetAssociationsMixin<Media>;
-    declare countMedia: BelongsToManyCountAssociationsMixin;
+    declare countMedia: HasManyCountAssociationsMixin;
 
     @HasMany(() => Message, { onDelete: 'CASCADE' })
     declare messages?: NonAttribute<Message[]>;
