@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import {
     BelongsToManyAddAssociationMixin,
     BelongsToManyCountAssociationsMixin,
+    BelongsToManyHasAssociationMixin,
     BelongsToManySetAssociationsMixin,
     CreationOptional,
     DataTypes,
@@ -165,6 +166,7 @@ export default class User
 
     @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
+    declare hasFollower: BelongsToManyHasAssociationMixin<User, string>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
     declare getFollowers: BelongsToManyGetAssociationsMixinFixed<User>;
     declare countFollowers: BelongsToManyCountAssociationsMixin;
@@ -390,14 +392,15 @@ export default class User
         return ratings.length ? ratings.reduce((a, c) => a + c) / ratings.length : null;
     }
 
-    async getProfileDetails() {
-        const [numFollowing, numFollowers, numEvents] = await Promise.all([
+    async getProfileDetails(currentUser: User) {
+        const [numFollowing, numFollowers, numEvents, followed] = await Promise.all([
             // {scope: false} due to https://github.com/sequelize/sequelize/issues/3256
             this.countFollowees({ scope: false }),
             this.countFollowers({ scope: false }),
             this.countHostedEvents({ scope: false }),
+            this.hasFollower(currentUser),
         ]);
-        return { numFollowing, numFollowers, numEvents };
+        return { numFollowing, numFollowers, numEvents, followed };
     }
 
     async handleAvatarUpdate(input: Buffer | null): Promise<string | null> {

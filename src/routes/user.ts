@@ -31,7 +31,7 @@ router.get(
             throw new httpError.NotFound('User not found');
         }
 
-        const details = includeDetails ? await user.getProfileDetails() : undefined;
+        const details = includeDetails ? await user.getProfileDetails(req.user!) : undefined;
 
         res.json({
             // include more fields if request is current user
