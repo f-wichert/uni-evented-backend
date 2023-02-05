@@ -5,6 +5,7 @@ import {
     BelongsToManyAddAssociationMixin,
     BelongsToManyCountAssociationsMixin,
     BelongsToManyHasAssociationMixin,
+    BelongsToManyRemoveAssociationMixin,
     BelongsToManySetAssociationsMixin,
     CreationOptional,
     DataTypes,
@@ -168,6 +169,7 @@ export default class User
     declare followers?: NonAttribute<User[]>;
     declare hasFollower: BelongsToManyHasAssociationMixin<User, string>;
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
+    declare removeFollower: BelongsToManyRemoveAssociationMixin<User, string>;
     declare getFollowers: BelongsToManyGetAssociationsMixinFixed<User>;
     declare countFollowers: BelongsToManyCountAssociationsMixin;
     @BelongsToMany(() => User, () => FollowerTable, 'followerId', 'followeeId')

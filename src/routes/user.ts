@@ -114,6 +114,23 @@ router.get(
 );
 
 router.post(
+    '/:userID/:type(follow|unfollow)',
+    validateParams(z.object({ userID: z.string().uuid(), type: z.enum(['follow', 'unfollow']) })),
+    async (req, res) => {
+        const { userID, type } = req.params;
+
+        const user = await User.findByPk(userID);
+        if (!user) {
+            throw new httpError.NotFound('User not found');
+        }
+
+        if (type === 'follow') await user.addFollower(req.user);
+        else await user.removeFollower(req.user);
+        res.json({});
+    },
+);
+
+router.post(
     '/setRecommendationSettings',
     validateBody(
         z.object({
