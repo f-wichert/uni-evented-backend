@@ -124,8 +124,8 @@ router.post(
             throw new httpError.NotFound('User not found');
         }
 
-        if (type === 'follow') await user.addFollower(req.user);
-        else await user.removeFollower(req.user);
+        if (type === 'follow') await req.user!.follow(user);
+        else await req.user!.unfollow(user);
         res.json({});
     },
 );

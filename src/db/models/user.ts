@@ -44,6 +44,7 @@ import {
 import { pick } from '../../utils';
 import { hash, hashPassword, verifyPassword } from '../../utils/crypto';
 import MediaProcessor from '../../utils/mediaProcessing';
+import { sendNotification } from '../../utils/notifications';
 import Event, { EventStatus, EventStatuses } from './event';
 import EventAttendee, { EventAttendeeStatus } from './eventAttendee';
 import FollowerTable from './FollowerTable';
@@ -168,6 +169,7 @@ export default class User
     @BelongsToMany(() => User, () => FollowerTable, 'followeeId', 'followerId')
     declare followers?: NonAttribute<User[]>;
     declare hasFollower: BelongsToManyHasAssociationMixin<User, string>;
+    // note: use `follow`/`unfollow` instead
     declare addFollower: BelongsToManyAddAssociationMixin<User, string>;
     declare removeFollower: BelongsToManyRemoveAssociationMixin<User, string>;
     declare getFollowers: BelongsToManyGetAssociationsMixinFixed<User>;
@@ -363,6 +365,14 @@ export default class User
 
     async follow(followee: User) {
         await followee.addFollower(this);
+        await sendNotification([followee.id], {
+            title: `New follower`,
+            body: `@${this.username} is now following you!`,
+        });
+    }
+
+    async unfollow(followee: User) {
+        await followee.removeFollower(this);
     }
 
     async rateEventId(eventId: string, rating: number, statuses?: EventAttendeeStatus[]) {

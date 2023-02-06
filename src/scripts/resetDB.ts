@@ -289,12 +289,11 @@ export async function generateTestdata() {
             FoodTag,
         ]),
 
-        // Not yet implemented
-        users[0].follow(users[1]),
-        users[1].follow(users[2]),
-        users[2].follow(users[3]),
-        users[3].follow(users[4]),
-        users[4].follow(users[0]),
+        users[1].addFollower(users[0]),
+        users[2].addFollower(users[1]),
+        users[3].addFollower(users[2]),
+        users[4].addFollower(users[3]),
+        users[0].addFollower(users[4]),
         users[0].addFavouriteTags(SportTag, RelaxedTag, CardgamesTag, TalkingTag, BeerTag),
         users[1].addFavouriteTags(
             SportTag,
