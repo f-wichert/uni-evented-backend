@@ -2,7 +2,7 @@
 
 ## Description
 
-Backend for Evented Application using Node.js & Express.js with Typescript
+Backend for Evented Application using Node.js & Express.js with Typescript.
 
 ## Typescript
 
@@ -24,6 +24,8 @@ Backend for Evented Application using Node.js & Express.js with Typescript
 
 -   `npm run lint` to run eslint and check for common issues
 -   `npm run format` to automatically format all files with consistent styling
+-   `npm run test` to run unit tests
+-   `npm run resetDB` to completely wipe and reinitialize the database with placeholder data
 
 `lint` + `format` also automatically run through a git hook on all staged changes before every commit.
 
@@ -33,15 +35,5 @@ Backend for Evented Application using Node.js & Express.js with Typescript
 -   dotenv
 -   sequelize
 -   passport
-
-## [Initial setup](https://blog.logrocket.com/how-to-set-up-node-typescript-express/)
-
-1. `npm init`
-2. `npm install express dotenv`
-3. `touch index.js`
-4. `touch .env`
-5. `npm i -D typescript @types/express @types/nodes`
-6. `npx tsc --init`
-7. `npm i -D concurrently nodemon`
-8. `npm install --save sequelize`
-9. `npm install --save sqlite3`
+-   zod
+-   node-media-server
