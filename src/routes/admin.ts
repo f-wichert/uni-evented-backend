@@ -69,6 +69,31 @@ router.post(
 );
 
 /**
+ * Change the admin status of a user
+ *
+ * input
+ * {
+ *      userId: uuid
+ *      isAdmin: boolean
+ * }
+ */
+router.post(
+    '/user/set-admin',
+    validateBody(z.object({ userId: z.string().uuid(), isAdmin: z.boolean() })),
+    async (req, res) => {
+        const { userId, isAdmin } = req.body;
+
+        // make sure there is always at least one admin user
+        assert(isAdmin || (await User.count({ where: { isAdmin: true } })) > 1);
+
+        const [affectedRows] = await User.update({ isAdmin }, { where: { id: userId } });
+        assert(affectedRows);
+
+        res.json({});
+    },
+);
+
+/**
  * Get all events with the specified statuses
  *
  * input
