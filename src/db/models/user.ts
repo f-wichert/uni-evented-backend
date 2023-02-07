@@ -188,6 +188,9 @@ export default class User
     @HasMany(() => PushToken, { onDelete: 'CASCADE' })
     declare pushTokens?: NonAttribute<PushToken[]>;
 
+    @HasMany(() => Media, { onDelete: 'CASCADE' })
+    declare media?: NonAttribute<Media[]>;
+
     // hooks
 
     @BeforeCreate
